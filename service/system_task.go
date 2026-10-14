@@ -355,21 +355,22 @@ func runLogCleanupTask(ctx context.Context, task *model.SystemTask, runnerID str
 		return
 	}
 
-	// Delete captured payloads for the same cutoff first, so a completed cleanup
-	// never leaves logs without payloads. CH is handled by the table TTL; the
-	// batch delete still applies its streaming branch.
+	// Clean up captured payloads for the same cutoff first, so no leftover payload
+	// outlives the log row it belongs to. This is best-effort: a failure here must
+	// not block log retention, because payloads are an add-on (ClickHouse also
+	// expires them via the table TTL).
 	remainingPayloads, err := model.CountOldUpstreamPayload(ctx, payload.TargetTimestamp)
 	if err != nil {
-		failSystemTask(task, runnerID, err)
-		return
+		logger.LogError(ctx, common.LogText("upstream payload cleanup failed: %s", err.Error()))
 	}
 	for remainingPayloads > 0 {
 		rowsAffected, err := model.DeleteOldUpstreamPayloadBatch(ctx, payload.TargetTimestamp, payload.BatchSize)
 		if err != nil {
-			failSystemTask(task, runnerID, err)
-			return
+			logger.LogError(ctx, common.LogText("upstream payload cleanup failed: %s", err.Error()))
+			break
 		}
 		if rowsAffected == 0 {
+			logger.LogWarn(ctx, common.LogText("upstream payload cleanup made no progress: cutoff=%d remaining=%d", payload.TargetTimestamp, remainingPayloads))
 			break
 		}
 		if remainingPayloads > rowsAffected {

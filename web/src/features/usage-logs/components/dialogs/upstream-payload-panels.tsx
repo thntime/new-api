@@ -68,12 +68,15 @@ export function UpstreamPayloadPanels(props: { requestId: string }) {
         </p>
       )
     }
-    if (!body) {
+    if (payload === null) {
       return (
         <p className='text-muted-foreground text-xs'>
           {t('No upstream payload was recorded for this request.')}
         </p>
       )
+    }
+    if (!body) {
+      return <p className='text-muted-foreground text-xs'>-</p>
     }
     const isJson = isJsonBody(body)
     return (
@@ -111,6 +114,7 @@ export function UpstreamPayloadPanels(props: { requestId: string }) {
       <DetailSection label={title}>
         <Button
           aria-expanded={isOpen}
+          aria-label={`${isOpen ? t('Hide upstream payload') : t('Show upstream payload')} — ${title}`}
           className='h-6 w-full justify-start px-0 text-xs'
           onClick={() => setExpanded(isOpen ? null : kind)}
           size='sm'

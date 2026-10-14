@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/utils/tests"
 )
 
 func TestIsClickHouseDSN(t *testing.T) {
@@ -182,6 +184,36 @@ func TestMigrateUpstreamPayloadsUsesAutoMigrateOffClickHouse(t *testing.T) {
 
 	require.NoError(t, MigrateUpstreamPayloads())
 	assert.True(t, db.Migrator().HasTable(&UpstreamPayload{}))
+}
+
+// GetUpstreamPayloadByRequestId orders by created_at only on ClickHouse: its
+// table has no DEFAULT on id, so GORM omits it from INSERT and every row keeps
+// id = 0, making ORDER BY id a no-op tie-break. This asserts the generated SQL
+// shape only; the real engine behavior is verified manually.
+func TestGetUpstreamPayloadByRequestIdClickHouseOrderDropsId(t *testing.T) {
+	db, err := gorm.Open(tests.DummyDialector{}, &gorm.Config{DryRun: true, Logger: logger.Discard})
+	require.NoError(t, err)
+
+	previousLogDB := LOG_DB
+	previousMain, previousLog := common.MainDatabaseType(), common.LogDatabaseType()
+	LOG_DB = db
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeClickHouse)
+	t.Cleanup(func() {
+		LOG_DB = previousLogDB
+		common.SetDatabaseTypes(previousMain, previousLog)
+	})
+
+	var captured string
+	require.NoError(t, db.Callback().Query().After("gorm:query").Register("capture_ch_payload_sql", func(tx *gorm.DB) {
+		captured = tx.Statement.SQL.String()
+	}))
+	t.Cleanup(func() { _ = db.Callback().Query().Remove("capture_ch_payload_sql") })
+
+	_, err = GetUpstreamPayloadByRequestId("req-ch-order")
+	require.NoError(t, err)
+
+	require.Contains(t, captured, "ORDER BY created_at DESC")
+	assert.NotContains(t, captured, "id DESC", "ClickHouse ids are always 0 and cannot break ordering ties")
 }
 
 func TestClickHouseUpstreamPayloadTTLSQL(t *testing.T) {

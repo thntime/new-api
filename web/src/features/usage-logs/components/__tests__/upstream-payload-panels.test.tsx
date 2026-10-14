@@ -60,11 +60,14 @@ test('collapsed panels do not fetch until expanded', async () => {
   expect(get).not.toHaveBeenCalled()
 
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   await waitFor(() =>
     expect(get).toHaveBeenCalledWith(
-      '/api/log/upstream_payload?request_id=req-1'
+      '/api/log/upstream_payload?request_id=req-1',
+      expect.objectContaining({ skipErrorHandler: true })
     )
   )
 })
@@ -84,7 +87,9 @@ test('an expanded response panel shows the SSE source verbatim', async () => {
   }))
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[1]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Response',
+    })
   )
   await waitFor(() =>
     expect(document.body.textContent).toContain('data: [DONE]')
@@ -107,7 +112,9 @@ test('a compact JSON body is pretty printed for readability', async () => {
   }))
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   await waitFor(() =>
     expect(document.body.textContent).toContain('"a": 1')
@@ -124,7 +131,9 @@ test('an in-flight request shows the loading placeholder', async () => {
   )
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   expect(await screen.findByText('Loading upstream payload...')).toBeVisible()
   respond({ data: { success: true, data: null } })
@@ -136,7 +145,9 @@ test('a failed request shows the failure placeholder', async () => {
   })
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   expect(
     await screen.findByText('Failed to load the upstream payload.')
@@ -157,7 +168,9 @@ test('a truncated body shows the truncation notice', async () => {
   }))
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   expect(
     await screen.findByText(
@@ -172,11 +185,37 @@ test('no recorded payload shows the empty placeholder without an error', async (
   }))
   renderPanels()
   await userEvent.click(
-    screen.getAllByRole('button', { name: 'Show upstream payload' })[0]
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
   )
   expect(
     await screen.findByText(
       'No upstream payload was recorded for this request.'
     )
   ).toBeVisible()
+})
+
+test('a recorded payload with an empty request body shows a dash, not the no-record placeholder', async () => {
+  vi.spyOn(api, 'get').mockImplementation(async () => ({
+    data: {
+      success: true,
+      data: {
+        request_body: '',
+        response_body: '{"ok":true}',
+        request_truncated: false,
+        response_truncated: false,
+      },
+    },
+  }))
+  renderPanels()
+  await userEvent.click(
+    screen.getByRole('button', {
+      name: 'Show upstream payload — Upstream Request',
+    })
+  )
+  expect(await screen.findByText('-')).toBeVisible()
+  expect(
+    screen.queryByText('No upstream payload was recorded for this request.')
+  ).toBeNull()
 })

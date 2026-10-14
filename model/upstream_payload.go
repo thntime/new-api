@@ -89,7 +89,10 @@ func GetUpstreamPayloadByRequestId(requestId string) (*UpstreamPayload, error) {
 	var payload UpstreamPayload
 	query := LOG_DB.Where("request_id = ?", requestId)
 	if common.UsingLogDatabase(common.DatabaseTypeClickHouse) {
-		query = query.Order("created_at DESC").Order("id DESC")
+		// ClickHouse leaves id at its zero value because the table declares no
+		// DEFAULT and GORM omits the primary key from INSERT, so ordering by id
+		// would not break created_at ties; created_at is the only useful sort key.
+		query = query.Order("created_at DESC")
 	}
 	err := query.Take(&payload).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -184,6 +184,11 @@ export async function getTaskArtifacts(taskId: string) {
   return parseTaskArtifactsResponse(response.data)
 }
 
+const upstreamPayloadRequestConfig = {
+  skipBusinessError: true,
+  skipErrorHandler: true,
+} satisfies ApiRequestConfig
+
 /**
  * Fetch the captured raw upstream bodies for one request_id. Returns null when
  * capture was off, the channel bypassed the shared upstream exit, or the payload
@@ -193,7 +198,8 @@ export async function getUpstreamPayload(
   requestId: string
 ): Promise<UpstreamPayload | null> {
   const response = await api.get<GetUpstreamPayloadResponse>(
-    `/api/log/upstream_payload?request_id=${encodeURIComponent(requestId)}`
+    `/api/log/upstream_payload?request_id=${encodeURIComponent(requestId)}`,
+    upstreamPayloadRequestConfig
   )
   return response.data.data ?? null
 }
