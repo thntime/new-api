@@ -543,6 +543,9 @@ export function useCommonLogsColumns(
               </TooltipProvider>
             )
           },
+          // These three columns give back exactly the retry-count column's width
+          // so the model column keeps its pre-retry-column share.
+          size: 130,
         },
         {
           id: 'link-count',
@@ -636,6 +639,7 @@ export function useCommonLogsColumns(
               </button>
             )
           },
+          size: 120,
         }
       )
     }
@@ -700,7 +704,7 @@ export function useCommonLogsColumns(
           </div>
         )
       },
-      size: 160,
+      size: 130,
     })
     columns.push(
       {

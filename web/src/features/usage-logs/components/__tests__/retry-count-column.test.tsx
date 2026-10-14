@@ -121,6 +121,18 @@ describe('usage log retry count column', () => {
     expect(retryColumn?.size).toBeLessThan(modelColumn?.size ?? 150)
   })
 
+  test('frees exactly the retry count width from channel, user and token', () => {
+    const { result } = renderColumns(true)
+    const sizeOf = (key: string) =>
+      result.current.find(
+        (c) => c.id === key || ('accessorKey' in c && c.accessorKey === key)
+      )?.size ?? 150
+    // Pre-retry-column widths of the three shrinking columns: 150 + 150 + 160.
+    expect(sizeOf('channel') + sizeOf('user') + sizeOf('token_name')).toBe(
+      460 - sizeOf('link-count')
+    )
+  })
+
   test.each([
     { useChannel: [3], expected: '0' },
     { useChannel: [3, 5, 7], expected: '2' },
