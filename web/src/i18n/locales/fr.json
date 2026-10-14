@@ -7456,6 +7456,15 @@
     "Loading API keys...": "Chargement des clés API...",
     "No API keys": "Aucune clé API",
     "In use": "En cours d’utilisation",
-    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Voulez-vous vraiment supprimer la clé API « {{name}} » ? Cette action est irréversible."
+    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Voulez-vous vraiment supprimer la clé API « {{name}} » ? Cette action est irréversible.",
+    "Upstream Request": "Requête amont",
+    "Show upstream payload": "Afficher la charge utile amont",
+    "Hide upstream payload": "Masquer la charge utile amont",
+    "This payload was truncated at the capture size limit.": "Cette charge utile a été tronquée à la limite de taille de capture.",
+    "No upstream payload was recorded for this request.": "Aucune charge utile amont n'a été enregistrée pour cette requête.",
+    "Capture upstream payloads": "Capturer les charges utiles amont",
+    "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Enregistrer les corps bruts envoyés au fournisseur amont et renvoyés par celui-ci pour inspection par les administrateurs. Désactivé par défaut ; stocke les invites en clair et augmente les écritures en base.",
+    "Loading upstream payload...": "Chargement de la charge utile amont…",
+    "Failed to load the upstream payload.": "Échec du chargement de la charge utile amont."
   }
 }

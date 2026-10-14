@@ -470,6 +470,23 @@ export interface GetLogStatsResponse {
 }
 
 // ============================================================================
+// Upstream Payload Types
+// ============================================================================
+
+export interface UpstreamPayload {
+  request_body: string
+  response_body: string
+  request_truncated: boolean
+  response_truncated: boolean
+}
+
+export interface GetUpstreamPayloadResponse {
+  success: boolean
+  message?: string
+  data?: UpstreamPayload | null
+}
+
+// ============================================================================
 // Drawing Log Types
 // ============================================================================
 

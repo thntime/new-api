@@ -44,6 +44,7 @@ function Fixture() {
             LogConsumeEnabled: true,
             'log_setting.user_export_enabled': true,
             'log_setting.max_range_days': 30,
+            'log_setting.capture_upstream_payload': false,
           }}
         />
       </SettingsPageProvider>
@@ -90,7 +91,7 @@ test('the page shows the four log modules in order, each with its own controls',
     'Server Log Management',
   ])
   const recording = screen.getByRole('group', { name: 'Log recording' })
-  expect(within(recording).getAllByRole('switch')).toHaveLength(1)
+  expect(within(recording).getAllByRole('switch')).toHaveLength(2)
   expect(
     within(recording).getByRole('switch', { name: 'Record quota usage' })
   ).toBeVisible()
@@ -181,4 +182,21 @@ test('a time range under one day shows a field error and is not saved', async ()
 
   await waitFor(() => expect(days).toHaveAttribute('aria-invalid', 'true'))
   expect(api.put).not.toHaveBeenCalled()
+})
+
+test('saving the upstream payload switch submits its option key', async () => {
+  const user = userEvent.setup()
+  await renderSettings()
+
+  await user.click(
+    screen.getByRole('switch', { name: 'Capture upstream payloads' })
+  )
+  await user.click(screen.getByRole('button', { name: 'Save log settings' }))
+
+  await waitFor(() =>
+    expect(api.put).toHaveBeenCalledWith('/api/option/', {
+      key: 'log_setting.capture_upstream_payload',
+      value: true,
+    })
+  )
 })

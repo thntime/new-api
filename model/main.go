@@ -238,7 +238,10 @@ func InitLogDB() (err error) {
 		common.SetLogDatabaseType(common.MainDatabaseType())
 		initCol()
 		if common.IsMasterNode {
-			return MigrateAuditLogs()
+			if err := MigrateAuditLogs(); err != nil {
+				return err
+			}
+			return MigrateUpstreamPayloads()
 		}
 		return
 	}
@@ -405,6 +408,9 @@ func migrateLOGDB() error {
 	if err := MigrateAuditLogs(); err != nil {
 		return err
 	}
+	if err := MigrateUpstreamPayloads(); err != nil {
+		return err
+	}
 	if common.UsingLogDatabase(common.DatabaseTypeClickHouse) {
 		return migrateClickHouseLogDB()
 	}
@@ -416,7 +422,10 @@ func migrateClickHouseLogDB() error {
 	if err := LOG_DB.Exec(clickHouseLogCreateTableSQL(ttlDays)).Error; err != nil {
 		return err
 	}
-	return syncClickHouseLogTTL(ttlDays)
+	if err := syncClickHouseLogTTL(ttlDays); err != nil {
+		return err
+	}
+	return syncClickHouseUpstreamPayloadTTL(ttlDays)
 }
 
 func clickHouseLogTTLDays() int {

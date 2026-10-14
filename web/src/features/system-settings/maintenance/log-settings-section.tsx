@@ -53,6 +53,7 @@ const logSettingsSchema = z.object({
   log_setting: z.object({
     user_export_enabled: z.boolean(),
     max_range_days: z.number().int().min(1),
+    capture_upstream_payload: z.boolean(),
   }),
 })
 
@@ -63,6 +64,7 @@ type LogSettingsSectionProps = {
     LogConsumeEnabled: boolean
     'log_setting.user_export_enabled': boolean
     'log_setting.max_range_days': number
+    'log_setting.capture_upstream_payload': boolean
   }
 }
 
@@ -78,6 +80,8 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
         user_export_enabled:
           props.defaultValues['log_setting.user_export_enabled'],
         max_range_days: props.defaultValues['log_setting.max_range_days'],
+        capture_upstream_payload:
+          props.defaultValues['log_setting.capture_upstream_payload'],
       },
     }),
     [props.defaultValues]
@@ -99,6 +103,10 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
         values.log_setting.user_export_enabled,
       ],
       ['log_setting.max_range_days', values.log_setting.max_range_days],
+      [
+        'log_setting.capture_upstream_payload',
+        values.log_setting.capture_upstream_payload,
+      ],
     ] as const
     for (const [key, value] of changes) {
       if (value === props.defaultValues[key]) continue
@@ -133,6 +141,29 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
                     <FormDescription>
                       {t(
                         'Track per-request consumption to power usage analytics. Keeping this on increases database writes.'
+                      )}
+                    </FormDescription>
+                  </SettingsSwitchContent>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsSwitchItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='log_setting.capture_upstream_payload'
+              render={({ field }) => (
+                <SettingsSwitchItem>
+                  <SettingsSwitchContent>
+                    <FormLabel>{t('Capture upstream payloads')}</FormLabel>
+                    <FormDescription>
+                      {t(
+                        'Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.'
                       )}
                     </FormDescription>
                   </SettingsSwitchContent>

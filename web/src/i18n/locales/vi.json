@@ -7456,6 +7456,15 @@
     "Loading API keys...": "Đang tải khóa API...",
     "No API keys": "Không có khóa API",
     "In use": "Đang sử dụng",
-    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Bạn có chắc muốn xóa khóa API \"{{name}}\"? Hành động này không thể hoàn tác."
+    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Bạn có chắc muốn xóa khóa API \"{{name}}\"? Hành động này không thể hoàn tác.",
+    "Upstream Request": "Yêu cầu thượng nguồn",
+    "Show upstream payload": "Mở rộng payload thượng nguồn",
+    "Hide upstream payload": "Thu gọn payload thượng nguồn",
+    "This payload was truncated at the capture size limit.": "Payload này đã bị cắt tại giới hạn kích thước thu thập.",
+    "No upstream payload was recorded for this request.": "Không có payload thượng nguồn nào được ghi cho yêu cầu này.",
+    "Capture upstream payloads": "Thu thập payload thượng nguồn",
+    "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Lưu nguyên văn phần thân gửi đến và nhận từ nhà cung cấp thượng nguồn để quản trị viên kiểm tra. Mặc định tắt; lưu prompt dạng văn bản thuần và tăng ghi cơ sở dữ liệu.",
+    "Loading upstream payload...": "Đang tải payload thượng nguồn…",
+    "Failed to load the upstream payload.": "Không tải được payload thượng nguồn."
   }
 }

@@ -7456,6 +7456,15 @@
     "Loading API keys...": "Loading API keys...",
     "No API keys": "No API keys",
     "In use": "In use",
-    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone."
+    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.",
+    "Upstream Request": "Upstream Request",
+    "Show upstream payload": "Show upstream payload",
+    "Hide upstream payload": "Hide upstream payload",
+    "This payload was truncated at the capture size limit.": "This payload was truncated at the capture size limit.",
+    "No upstream payload was recorded for this request.": "No upstream payload was recorded for this request.",
+    "Capture upstream payloads": "Capture upstream payloads",
+    "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.",
+    "Loading upstream payload...": "Loading upstream payload...",
+    "Failed to load the upstream payload.": "Failed to load the upstream payload."
   }
 }

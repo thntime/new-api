@@ -2,14 +2,21 @@ package channel
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/model"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestNewTaskAPIRequestInheritsClientCancellation(t *testing.T) {
@@ -216,4 +223,69 @@ func TestToWebSocketURL(t *testing.T) {
 	} {
 		assert.Equal(t, want, toWebSocketURL(input), input)
 	}
+}
+
+// useUpstreamPayloadTestLogDB installs an isolated SQLite log database for the
+// capture tests in this package.
+func useUpstreamPayloadTestLogDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+	require.NoError(t, db.AutoMigrate(&model.UpstreamPayload{}))
+	previousDB, previousLogDB := model.DB, model.LOG_DB
+	previousMain, previousLog := common.MainDatabaseType(), common.LogDatabaseType()
+	model.DB, model.LOG_DB = db, db
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	t.Cleanup(func() {
+		model.DB, model.LOG_DB = previousDB, previousLogDB
+		common.SetDatabaseTypes(previousMain, previousLog)
+		require.NoError(t, sqlDB.Close())
+	})
+	return db
+}
+
+func TestDoRequestCaptureKeepsUpstreamBytesAndStoresBothBodies(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	useUpstreamPayloadTestLogDB(t)
+
+	requestBody := `{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}`
+	responseBody := `{"id":"chatcmpl-1","choices":[]}`
+	upstreamRequestCh := make(chan []byte, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received, _ := io.ReadAll(r.Body)
+		upstreamRequestCh <- received
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(responseBody))
+	}))
+	defer server.Close()
+
+	setting := operation_setting.GetLogSetting()
+	previousSetting := *setting
+	setting.CaptureUpstreamPayload = true
+	t.Cleanup(func() { *setting = previousSetting })
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+
+	req, err := http.NewRequest(http.MethodPost, server.URL, strings.NewReader(requestBody))
+	require.NoError(t, err)
+	info := &relaycommon.RelayInfo{RequestId: "req-do-request", ChannelMeta: &relaycommon.ChannelMeta{}}
+
+	resp, err := doRequest(c, req, info)
+	require.NoError(t, err)
+	downstream, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+	assert.Equal(t, requestBody, string(<-upstreamRequestCh), "upstream must receive the original bytes")
+	assert.Equal(t, responseBody, string(downstream), "downstream must receive the original bytes")
+
+	stored, err := model.GetUpstreamPayloadByRequestId("req-do-request")
+	require.NoError(t, err)
+	require.NotNil(t, stored)
+	assert.Equal(t, requestBody, string(stored.RequestBody))
+	assert.Equal(t, responseBody, string(stored.ResponseBody))
 }

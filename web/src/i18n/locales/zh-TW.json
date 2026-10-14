@@ -7456,6 +7456,15 @@
     "Loading API keys...": "正在載入 API 金鑰...",
     "No API keys": "沒有 API 金鑰",
     "In use": "使用中",
-    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "確定要刪除 API 金鑰「{{name}}」嗎？此操作無法復原。"
+    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "確定要刪除 API 金鑰「{{name}}」嗎？此操作無法復原。",
+    "Upstream Request": "上游請求",
+    "Show upstream payload": "展開上游報文",
+    "Hide upstream payload": "收起上游報文",
+    "This payload was truncated at the capture size limit.": "報文已達採集大小上限，內容被截斷。",
+    "No upstream payload was recorded for this request.": "未記錄此請求的上游報文。",
+    "Capture upstream payloads": "採集上游報文",
+    "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "儲存傳往上游與上游回傳的原始報文，供管理員排查。預設關閉；會以明文保存提示詞並增加資料庫寫入。",
+    "Loading upstream payload...": "正在載入上游報文…",
+    "Failed to load the upstream payload.": "載入上游報文失敗。"
   }
 }

@@ -104,6 +104,8 @@ const OPERATIONS_SECTIONS = [
             settings['log_setting.user_export_enabled'] ?? true,
           'log_setting.max_range_days':
             settings['log_setting.max_range_days'] ?? 365,
+          'log_setting.capture_upstream_payload':
+            settings['log_setting.capture_upstream_payload'] ?? false,
         }}
       />
     ),

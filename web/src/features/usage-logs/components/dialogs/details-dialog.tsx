@@ -94,6 +94,7 @@ import { USAGE_BILLING_PATH, type LogOtherData } from '../../types'
 import { ResponseModelDetails } from '../model-badge'
 import { PluginAuthorLink } from '../plugin-author-link'
 import { DetailRow, DetailSection } from './log-detail-layout'
+import { UpstreamPayloadPanels } from './upstream-payload-panels'
 
 // Maps a channel-update changed-field token (as recorded by the backend audit)
 // to its i18n label key for display in the audit details.
@@ -1341,6 +1342,11 @@ export function DetailsDialog(props: DetailsDialogProps) {
               )
             })}
           </DetailSection>
+        )}
+
+        {/* Captured upstream bodies (admin only) */}
+        {props.isAdmin && props.log.request_id !== '' && (
+          <UpstreamPayloadPanels requestId={props.log.request_id} />
         )}
 
         {/* Content */}

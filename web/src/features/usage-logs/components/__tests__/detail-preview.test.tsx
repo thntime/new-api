@@ -501,3 +501,19 @@ test.each(['missing schema', 'unsupported expression', 'unknown tier'])(
     )
   }
 )
+
+test.each([true, false])(
+  'upstream payload panels respect admin=%s',
+  async (isAdmin) => {
+    const preview = renderPreview({ model_price: 0.25 }, isAdmin)
+    fireEvent.click(preview)
+    const dialog = within(await screen.findByRole('dialog'))
+    if (isAdmin) {
+      expect(dialog.getByText('Upstream Request')).toBeVisible()
+      expect(dialog.getByText('Upstream Response')).toBeVisible()
+    } else {
+      expect(dialog.queryByText('Upstream Request')).not.toBeInTheDocument()
+      expect(dialog.queryByText('Upstream Response')).not.toBeInTheDocument()
+    }
+  }
+)

@@ -17,11 +17,15 @@ type LogSetting struct {
 	// MaxRangeDays is the longest time range a user can search in their logs
 	// and dashboard, and the longest range any export can cover.
 	MaxRangeDays int `json:"max_range_days"`
+	// CaptureUpstreamPayload stores the raw bodies sent to and returned by the
+	// upstream provider. Off by default; it stores prompts in plain text.
+	CaptureUpstreamPayload bool `json:"capture_upstream_payload"`
 }
 
 var logSetting = LogSetting{
-	UserExportEnabled: true,
-	MaxRangeDays:      365,
+	UserExportEnabled:      true,
+	MaxRangeDays:           365,
+	CaptureUpstreamPayload: false,
 }
 
 func init() {

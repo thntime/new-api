@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
@@ -243,4 +244,46 @@ func TestAcquireLogExportLock(t *testing.T) {
 			releaseAgain()
 		})
 	}
+}
+
+func TestGetUpstreamPayloadRequiresAdminAndReturnsCapturedBodies(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	db, _ := newAuditTestDatabase(t, "sqlite", "")
+	useLogExportDatabases(t, db, db, common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	require.NoError(t, db.AutoMigrate(&model.UpstreamPayload{}))
+	require.NoError(t, model.SaveUpstreamPayload(&model.UpstreamPayload{
+		RequestId:         "req-ctl",
+		CreatedAt:         time.Now().Unix(),
+		RequestBody:       `{"model":"gpt-4o"}`,
+		ResponseBody:      `{"id":"chatcmpl-1"}`,
+		ResponseTruncated: true,
+	}))
+
+	// Anonymous access is rejected by AdminAuth before the handler runs.
+	router := gin.New()
+	router.GET("/api/log/upstream_payload", middleware.AdminAuth(), GetUpstreamPayload)
+	anonymous := httptest.NewRecorder()
+	router.ServeHTTP(anonymous, httptest.NewRequest(http.MethodGet, "/api/log/upstream_payload?request_id=req-ctl", nil))
+	assert.NotEqual(t, http.StatusOK, anonymous.Code)
+	assert.NotContains(t, anonymous.Body.String(), "chatcmpl-1")
+
+	// An administrator reads the captured bodies.
+	lines := callLogHandler(t, GetUpstreamPayload, 3, common.RoleAdminUser, "request_id=req-ctl")
+	require.Len(t, lines, 1)
+	assert.Equal(t, true, lines[0]["success"])
+	data, ok := lines[0]["data"].(map[string]any)
+	require.True(t, ok, "data must be a JSON object, got %T", lines[0]["data"])
+	assert.Equal(t, `{"model":"gpt-4o"}`, data["request_body"])
+	assert.Equal(t, `{"id":"chatcmpl-1"}`, data["response_body"])
+	assert.Equal(t, true, data["response_truncated"])
+
+	// An unknown request_id is a success with no data.
+	missing := callLogHandler(t, GetUpstreamPayload, 3, common.RoleAdminUser, "request_id=absent")[0]
+	assert.Equal(t, true, missing["success"])
+	assert.Nil(t, missing["data"])
+
+	// An empty request_id is a success with no data, not a parameter error.
+	empty := callLogHandler(t, GetUpstreamPayload, 3, common.RoleAdminUser, "")[0]
+	assert.Equal(t, true, empty["success"])
+	assert.Nil(t, empty["data"])
 }

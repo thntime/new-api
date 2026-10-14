@@ -7456,6 +7456,15 @@
     "Loading API keys...": "Загрузка API-ключей...",
     "No API keys": "Нет API-ключей",
     "In use": "Используется",
-    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Удалить API-ключ «{{name}}»? Это действие необратимо."
+    "Are you sure you want to delete the API key \"{{name}}\"? This action cannot be undone.": "Удалить API-ключ «{{name}}»? Это действие необратимо.",
+    "Upstream Request": "Запрос к провайдеру",
+    "Show upstream payload": "Показать полезную нагрузку",
+    "Hide upstream payload": "Скрыть полезную нагрузку",
+    "This payload was truncated at the capture size limit.": "Полезная нагрузка была усечена по пределу размера захвата.",
+    "No upstream payload was recorded for this request.": "Для этого запроса полезная нагрузка не записана.",
+    "Capture upstream payloads": "Захватывать полезные нагрузки",
+    "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Сохранять исходные тела запросов к провайдеру и его ответов для проверки администраторами. По умолчанию выключено; сохраняет промпты в открытом виде и увеличивает запись в базу данных.",
+    "Loading upstream payload...": "Загрузка полезной нагрузки…",
+    "Failed to load the upstream payload.": "Не удалось загрузить полезную нагрузку."
   }
 }

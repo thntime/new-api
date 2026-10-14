@@ -261,3 +261,28 @@ func GetLogsSelfStat(c *gin.Context) {
 	})
 	return
 }
+
+// GetUpstreamPayload returns the captured raw upstream request/response bodies
+// for one request_id. It is administrator-only and never returns headers.
+func GetUpstreamPayload(c *gin.Context) {
+	requestId := c.Query("request_id")
+	if requestId == "" {
+		common.ApiSuccess(c, nil)
+		return
+	}
+	payload, err := model.GetUpstreamPayloadByRequestId(requestId)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if payload == nil {
+		common.ApiSuccess(c, nil)
+		return
+	}
+	common.ApiSuccess(c, gin.H{
+		"request_body":       string(payload.RequestBody),
+		"response_body":      string(payload.ResponseBody),
+		"request_truncated":  payload.RequestTruncated,
+		"response_truncated": payload.ResponseTruncated,
+	})
+}

@@ -562,13 +562,33 @@ func doRequest(c *gin.Context, req *http.Request, info *common.RelayInfo) (*http
 		}
 	}
 
+	var capture *service.UpstreamPayloadCapture
+	if operation_setting.GetLogSetting().CaptureUpstreamPayload {
+		if capture = service.NewUpstreamPayloadCapture(c, info); capture != nil && req.Body != nil {
+			req.Body = capture.WrapRequestBody(req.Body)
+		}
+	}
+
 	resp, err := relayClient.Do(req)
 	if err != nil {
+		if capture != nil {
+			capture.Finish() // record the request body that reached the wire
+		}
 		logger.LogError(c, common2.LogText("do request failed: %s", err.Error()))
 		return nil, types.NewError(err, types.ErrorCodeDoRequestFailed, types.ErrOptionWithHideErrMsg("upstream error: do request failed"))
 	}
 	if resp == nil {
+		if capture != nil {
+			capture.Finish()
+		}
 		return nil, errors.New("resp is nil")
+	}
+	if capture != nil {
+		if resp.Body != nil {
+			resp.Body = capture.WrapResponseBody(resp.Body) // EOF / Close triggers the write
+		} else {
+			capture.Finish()
+		}
 	}
 	if common2.DebugEnabled {
 		policy := service.NormalizeHTTPTransportPolicy(info.ChannelSetting)

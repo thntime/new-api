@@ -7,8 +7,10 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestIsClickHouseDSN(t *testing.T) {
@@ -151,4 +153,97 @@ func TestAssignDisplayLogIds(t *testing.T) {
 	assert.Equal(t, []int{21, 22, 23}, []int{logs[0].Id, logs[1].Id, logs[2].Id})
 
 	assert.NotPanics(t, func() { assignDisplayLogIds(nil, 0) })
+}
+
+func TestClickHouseUpstreamPayloadCreateTableSQL(t *testing.T) {
+	withoutTTL := clickHouseUpstreamPayloadCreateTableSQL(0)
+	assert.Contains(t, withoutTTL, "CREATE TABLE IF NOT EXISTS upstream_payloads")
+	assert.Contains(t, withoutTTL, "ENGINE = MergeTree()")
+	assert.Contains(t, withoutTTL, "PARTITION BY toYYYYMM(toDateTime(created_at))")
+	assert.Contains(t, withoutTTL, "ORDER BY (created_at, request_id)")
+	assert.NotContains(t, withoutTTL, "TTL ")
+
+	withTTL := clickHouseUpstreamPayloadCreateTableSQL(30)
+	assert.Contains(t, withTTL, "ORDER BY (created_at, request_id)")
+	assert.Contains(t, withTTL, "TTL toDateTime(created_at) + INTERVAL 30 DAY DELETE")
+}
+
+func TestMigrateUpstreamPayloadsUsesAutoMigrateOffClickHouse(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	previousLogDB := LOG_DB
+	previousMain, previousLog := common.MainDatabaseType(), common.LogDatabaseType()
+	LOG_DB = db
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	t.Cleanup(func() {
+		LOG_DB = previousLogDB
+		common.SetDatabaseTypes(previousMain, previousLog)
+	})
+
+	require.NoError(t, MigrateUpstreamPayloads())
+	assert.True(t, db.Migrator().HasTable(&UpstreamPayload{}))
+}
+
+func TestClickHouseUpstreamPayloadTTLSQL(t *testing.T) {
+	withoutTTL := "CREATE TABLE upstream_payloads (...) ENGINE = MergeTree()\nORDER BY (created_at, request_id)"
+	withTTL := "CREATE TABLE upstream_payloads (...)\nTTL toDateTime(created_at) + INTERVAL 30 DAY DELETE"
+
+	cases := []struct {
+		name           string
+		createTableSQL string
+		ttlDays        int
+		want           string
+	}{
+		{
+			name:           "正数 TTL 执行 MODIFY",
+			createTableSQL: withTTL,
+			ttlDays:        7,
+			want:           "ALTER TABLE upstream_payloads MODIFY TTL toDateTime(created_at) + INTERVAL 7 DAY DELETE",
+		},
+		{
+			name:           "置零且已有 TTL 执行 REMOVE",
+			createTableSQL: withTTL,
+			ttlDays:        0,
+			want:           "ALTER TABLE upstream_payloads REMOVE TTL",
+		},
+		{
+			name:           "置零且无 TTL 不执行任何语句",
+			createTableSQL: withoutTTL,
+			ttlDays:        0,
+			want:           "",
+		},
+	}
+	for _, c := range cases {
+		assert.Equalf(t, c.want, clickHouseUpstreamPayloadTTLSQL(c.createTableSQL, c.ttlDays), "case %s", c.name)
+	}
+}
+
+func TestInitLogDBMigratesUpstreamPayloadsWithoutSeparateLogDB(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+
+	previousDB, previousLogDB := DB, LOG_DB
+	previousMain, previousLog := common.MainDatabaseType(), common.LogDatabaseType()
+	previousMaster := common.IsMasterNode
+	originalDSN, hadDSN := os.LookupEnv("LOG_SQL_DSN")
+	t.Cleanup(func() {
+		DB, LOG_DB = previousDB, previousLogDB
+		common.SetDatabaseTypes(previousMain, previousLog)
+		common.IsMasterNode = previousMaster
+		if hadDSN {
+			require.NoError(t, os.Setenv("LOG_SQL_DSN", originalDSN))
+		} else {
+			require.NoError(t, os.Unsetenv("LOG_SQL_DSN"))
+		}
+	})
+	// 未配置独立日志库时走单库分支（LOG_DB = DB）
+	require.NoError(t, os.Unsetenv("LOG_SQL_DSN"))
+
+	DB = db
+	common.SetDatabaseTypes(common.DatabaseTypeSQLite, common.DatabaseTypeSQLite)
+	common.IsMasterNode = true
+
+	require.NoError(t, InitLogDB())
+	assert.True(t, db.Migrator().HasTable(&UpstreamPayload{}), "默认单库部署也必须创建 upstream_payloads")
+	assert.True(t, db.Migrator().HasTable(&AuditLog{}))
 }

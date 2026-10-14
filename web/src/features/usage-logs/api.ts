@@ -29,7 +29,9 @@ import type {
   GetLogStatsResponse,
   GetMidjourneyLogsParams,
   GetTaskLogsParams,
+  GetUpstreamPayloadResponse,
   TaskArtifactsResponse,
+  UpstreamPayload,
   UserInfo,
 } from './types'
 
@@ -180,4 +182,18 @@ export async function getTaskArtifacts(taskId: string) {
     taskArtifactRequestConfig
   )
   return parseTaskArtifactsResponse(response.data)
+}
+
+/**
+ * Fetch the captured raw upstream bodies for one request_id. Returns null when
+ * capture was off, the channel bypassed the shared upstream exit, or the payload
+ * was already cleaned up.
+ */
+export async function getUpstreamPayload(
+  requestId: string
+): Promise<UpstreamPayload | null> {
+  const response = await api.get<GetUpstreamPayloadResponse>(
+    `/api/log/upstream_payload?request_id=${encodeURIComponent(requestId)}`
+  )
+  return response.data.data ?? null
 }

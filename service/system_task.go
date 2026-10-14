@@ -355,6 +355,30 @@ func runLogCleanupTask(ctx context.Context, task *model.SystemTask, runnerID str
 		return
 	}
 
+	// Delete captured payloads for the same cutoff first, so a completed cleanup
+	// never leaves logs without payloads. CH is handled by the table TTL; the
+	// batch delete still applies its streaming branch.
+	remainingPayloads, err := model.CountOldUpstreamPayload(ctx, payload.TargetTimestamp)
+	if err != nil {
+		failSystemTask(task, runnerID, err)
+		return
+	}
+	for remainingPayloads > 0 {
+		rowsAffected, err := model.DeleteOldUpstreamPayloadBatch(ctx, payload.TargetTimestamp, payload.BatchSize)
+		if err != nil {
+			failSystemTask(task, runnerID, err)
+			return
+		}
+		if rowsAffected == 0 {
+			break
+		}
+		if remainingPayloads > rowsAffected {
+			remainingPayloads -= rowsAffected
+		} else {
+			remainingPayloads = 0
+		}
+	}
+
 	for {
 		remaining, err := model.CountOldLog(ctx, payload.TargetTimestamp)
 		if err != nil {
