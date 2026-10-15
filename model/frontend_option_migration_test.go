@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -177,4 +178,30 @@ func TestRetiredThemeOptionIsPersistedButNotPublished(t *testing.T) {
 	assert.Equal(t, "default", requireOptionValue(t, db, retiredThemeOptionKey))
 	_, published := common.OptionMap[retiredThemeOptionKey]
 	assert.False(t, published)
+}
+
+func TestErrorStatusMappingRulesOptionDefaultsAndUpdate(t *testing.T) {
+	db := useFrontendOptionMigrationDB(t)
+	previousMap := common.OptionMap
+	previousRules := operation_setting.ErrorStatusMappingRulesToString()
+	t.Cleanup(func() {
+		common.OptionMap = previousMap
+		require.NoError(t, operation_setting.ErrorStatusMappingRulesFromString(previousRules))
+	})
+
+	InitOptionMap()
+
+	raw, ok := common.OptionMap["ErrorStatusMappingRules"]
+	require.True(t, ok, "the option key must be published in the option map")
+	rules, err := operation_setting.ParseErrorStatusMappingRules(raw)
+	require.NoError(t, err)
+	require.Len(t, rules, 1)
+	assert.False(t, rules[0].Enabled)
+
+	custom := `[{"name":"custom","enabled":true,"match":{"status_code":429,"message_regex":"boom"},"output":{"status_code":503,"message":"oops","type":"t","code":"c"}}]`
+	require.NoError(t, UpdateOption("ErrorStatusMappingRules", custom))
+	assert.Equal(t, custom, requireOptionValue(t, db, "ErrorStatusMappingRules"))
+	require.Len(t, operation_setting.ErrorStatusMappingRules, 1)
+	assert.Equal(t, "custom", operation_setting.ErrorStatusMappingRules[0].Name)
+	assert.True(t, operation_setting.ErrorStatusMappingRules[0].Enabled)
 }

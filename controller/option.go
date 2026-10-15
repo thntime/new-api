@@ -330,6 +330,11 @@ func UpdateOption(c *gin.Context) {
 			common.ApiError(c, err)
 			return
 		}
+	case "ErrorStatusMappingRules":
+		if _, err = operation_setting.ParseErrorStatusMappingRules(option.Value.(string)); err != nil {
+			common.ApiErrorT(c, "Invalid error status mapping rules: {{error}}", map[string]any{"error": err.Error()})
+			return
+		}
 	case "billing_setting.billing_expr":
 		expressions := make(map[string]string)
 		if err = common.UnmarshalJsonStr(option.Value.(string), &expressions); err != nil {
