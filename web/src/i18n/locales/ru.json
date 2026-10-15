@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "Захватывать полезные нагрузки",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Сохранять исходные тела запросов к провайдеру и его ответов для проверки администраторами. По умолчанию выключено; сохраняет промпты в открытом виде и увеличивает запись в базу данных.",
     "Loading upstream payload...": "Загрузка полезной нагрузки…",
-    "Failed to load the upstream payload.": "Не удалось загрузить полезную нагрузку."
+    "Failed to load the upstream payload.": "Не удалось загрузить полезную нагрузку.",
+    "Status mapping": "Сопоставление статусов",
+    "Rewrite matching upstream errors into a response that clients can retry.": "Переписывает подходящие ошибки вышестоящего сервиса в ответ, который клиенты могут повторить.",
+    "Rules are evaluated in order; the first match wins.": "Правила применяются по порядку; срабатывает первое совпадение.",
+    "No rules configured": "Правила не настроены",
+    "Add a rule to map matching upstream errors.": "Добавьте правило для сопоставления подходящих ошибок вышестоящего сервиса.",
+    "Match": "Совпадение",
+    "Match status code": "Код состояния для совпадения",
+    "Message regex": "Регулярное выражение сообщения",
+    "Output status code": "Код состояния ответа",
+    "Message": "Сообщение",
+    "Error code": "Код ошибки",
+    "Headers": "Заголовки",
+    "Response headers": "Заголовки ответа",
+    "Add header": "Добавить заголовок",
+    "New Rule": "Новое правило",
+    "Any status code": "Любой код состояния",
+    "Existing rules could not be parsed and are treated as empty.": "Существующие правила не удалось разобрать; они считаются пустыми.",
+    "Invalid error status mapping rules: {{error}}": "Недопустимые правила сопоставления статусов: {{error}}",
+    "Delete rule “{{name}}”?": "Удалить правило «{{name}}»?",
+    "Save your changes to apply the removal.": "Сохраните изменения, чтобы применить удаление.",
+    "Status mapping rules": "Правила сопоставления статусов"
   }
 }

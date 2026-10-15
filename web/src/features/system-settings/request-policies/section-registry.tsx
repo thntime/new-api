@@ -21,6 +21,7 @@ import { ChannelHealthSection } from './channel-health-section'
 import type { RequestPolicySettings } from './defaults'
 import { RequestChecksSection } from './request-checks-section'
 import { RoutingPolicySection } from './routing-section'
+import { StatusMappingSection } from './status-mapping-section'
 
 const POLICY_SECTIONS = [
   {
@@ -40,6 +41,11 @@ const POLICY_SECTIONS = [
     id: 'routing',
     titleKey: 'Sessions and retries',
     build: () => <RoutingPolicySection />,
+  },
+  {
+    id: 'status-mapping',
+    titleKey: 'Status mapping',
+    build: () => <StatusMappingSection />,
   },
   {
     id: 'health',

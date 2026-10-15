@@ -47,19 +47,27 @@ import {
   defaultRequestPolicySettings,
   type RequestPolicySettings,
 } from '../defaults'
+import {
+  getPolicySectionNavItems,
+  POLICY_SECTION_IDS,
+} from '../section-registry'
 
 type PolicyBeforeLoad = (context: { params: { section: string } }) => void
 
 let queryClient: QueryClient
 let settings: RequestPolicySettings
+let extraOptions: Record<string, string>
 
 function optionsResponse() {
   return {
     success: true,
-    data: Object.entries(settings).map(([key, value]) => ({
-      key,
-      value: String(value),
-    })),
+    data: [
+      ...Object.entries(settings).map(([key, value]) => ({
+        key,
+        value: String(value),
+      })),
+      ...Object.entries(extraOptions).map(([key, value]) => ({ key, value })),
+    ],
   }
 }
 
@@ -116,6 +124,7 @@ beforeEach(() => {
   queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
+  extraOptions = {}
   settings = {
     ...defaultRequestPolicySettings,
     RetryTimes: 2,
@@ -364,5 +373,188 @@ describe('request policy settings', () => {
       )
     )
     expect(api.put).not.toHaveBeenCalled()
+  })
+})
+
+describe('error status mapping', () => {
+  const statusMappingRule = {
+    name: 'Upstream rate limit',
+    enabled: false,
+    match: { status_code: 0, message_regex: 'exhausted|tpm/rpm' },
+    output: {
+      status_code: 429,
+      message: 'rate limit exceeded',
+      type: 'rate_limit_error',
+      code: 'rate_limit_exceeded',
+      headers: [{ key: 'x-should-retry', value: 'true' }],
+    },
+  }
+
+  const setRules = (rules: unknown[]) => {
+    extraOptions.ErrorStatusMappingRules = JSON.stringify(rules)
+  }
+
+  it('registers the section right after routing', () => {
+    const translate = ((key: string) => key) as unknown as Parameters<
+      typeof getPolicySectionNavItems
+    >[0]
+
+    expect(POLICY_SECTION_IDS).toContain('status-mapping')
+    expect(getPolicySectionNavItems(translate).map((item) => item.url)).toEqual(
+      [
+        '/system-settings/request-policies/filtering',
+        '/system-settings/request-policies/routing',
+        '/system-settings/request-policies/status-mapping',
+        '/system-settings/request-policies/health',
+      ]
+    )
+  })
+
+  it('opens the status mapping page and lists the stored rules', async () => {
+    setRules([statusMappingRule])
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    expect(await screen.findByText('Status mapping')).toBeVisible()
+    expect(
+      screen.getByRole('region', { name: 'Status mapping rules' })
+    ).toBeVisible()
+    expect(screen.getByText('Upstream rate limit')).toBeVisible()
+  })
+
+  it('saves a new rule under the ErrorStatusMappingRules option key', async () => {
+    setRules([])
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Add Rule' })
+    )
+    await userEvent.type(await screen.findByLabelText('Name'), 'New limit rule')
+    await userEvent.click(screen.getByRole('switch', { name: 'Enabled' }))
+    fireEvent.change(screen.getByLabelText('Match status code'), {
+      target: { value: '0' },
+    })
+    await userEvent.type(screen.getByLabelText('Message regex'), 'exhausted')
+    fireEvent.change(screen.getByLabelText('Output status code'), {
+      target: { value: '429' },
+    })
+    await userEvent.type(
+      screen.getByLabelText('Message'),
+      'rate limit exceeded'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Add header' }))
+    await userEvent.type(screen.getByLabelText('Key'), 'x-should-retry')
+    await userEvent.type(screen.getByLabelText('Value'), 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1))
+    const [url, payload] = vi.mocked(api.put).mock.calls[0] as [
+      string,
+      { key: string; value: string },
+    ]
+    expect(url).toBe('/api/option/')
+    expect(payload.key).toBe('ErrorStatusMappingRules')
+    expect(JSON.parse(payload.value)).toEqual([
+      {
+        name: 'New limit rule',
+        enabled: true,
+        match: { status_code: 0, message_regex: 'exhausted' },
+        output: {
+          status_code: 429,
+          message: 'rate limit exceeded',
+          type: '',
+          code: '',
+          headers: [{ key: 'x-should-retry', value: 'true' }],
+        },
+      },
+    ])
+  })
+
+  it('edits an existing rule and saves the updated fields', async () => {
+    setRules([statusMappingRule])
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Edit Rule' })
+    )
+    const name = await screen.findByLabelText('Name')
+    await userEvent.clear(name)
+    await userEvent.type(name, 'Edited rule')
+    await userEvent.click(screen.getByRole('switch', { name: 'Enabled' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1))
+    const payload = vi.mocked(api.put).mock.calls[0][1] as { value: string }
+    const saved = JSON.parse(payload.value)
+    expect(saved[0].name).toBe('Edited rule')
+    expect(saved[0].enabled).toBe(true)
+  })
+
+  it('removes a rule and saves the list without it', async () => {
+    setRules([statusMappingRule, { ...statusMappingRule, name: 'Second rule' }])
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    const deleteButtons = await screen.findAllByRole('button', {
+      name: 'Delete Rule',
+    })
+    await userEvent.click(deleteButtons[1])
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1))
+    const payload = vi.mocked(api.put).mock.calls[0][1] as { value: string }
+    const saved = JSON.parse(payload.value)
+    expect(saved).toHaveLength(1)
+    expect(saved[0].name).toBe('Upstream rate limit')
+  })
+
+  it('does not write options when nothing changed', async () => {
+    setRules([statusMappingRule])
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Save Changes' })
+    )
+    expect(api.put).not.toHaveBeenCalled()
+  })
+
+  it('shows the server validation error and keeps the edited rules', async () => {
+    setRules([])
+    vi.mocked(api.put).mockResolvedValue({
+      data: {
+        success: false,
+        message: 'Invalid error status mapping rules: bad regexp',
+      },
+    })
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Add Rule' })
+    )
+    await userEvent.type(await screen.findByLabelText('Name'), 'Broken rule')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Invalid error status mapping rules: bad regexp'
+    )
+    expect(api.put).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Edit Rule' })).toBeVisible()
+  })
+
+  it.each([['null'], ['{"a":1}'], ['not-json']])(
+    'treats an unparseable stored option (%s) as an empty list',
+    async (value) => {
+      extraOptions.ErrorStatusMappingRules = value
+      await renderPolicies('/system-settings/request-policies/status-mapping')
+      expect(await screen.findByText('Status mapping')).toBeVisible()
+      expect(
+        screen.getByText(
+          'Existing rules could not be parsed and are treated as empty.'
+        )
+      ).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Add Rule' })).toBeVisible()
+    }
+  )
+
+  it('renders an empty list when the option is absent', async () => {
+    await renderPolicies('/system-settings/request-policies/status-mapping')
+    expect(await screen.findByText('Status mapping')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Add Rule' })).toBeVisible()
   })
 })

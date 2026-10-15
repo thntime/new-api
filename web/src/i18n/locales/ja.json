@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "上流ペイロードを収集",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "上流へ送信した本文と上流からの応答本文をそのまま保存し、管理者が確認できるようにします。既定では無効で、プロンプトを平文で保存しデータベース書き込みを増やします。",
     "Loading upstream payload...": "上流ペイロードを読み込み中…",
-    "Failed to load the upstream payload.": "上流ペイロードの読み込みに失敗しました。"
+    "Failed to load the upstream payload.": "上流ペイロードの読み込みに失敗しました。",
+    "Status mapping": "ステータスマッピング",
+    "Rewrite matching upstream errors into a response that clients can retry.": "一致する上流のエラーを、クライアントが再試行できる応答に書き換えます。",
+    "Rules are evaluated in order; the first match wins.": "ルールは順番に評価され、最初に一致したものが適用されます。",
+    "No rules configured": "ルールが設定されていません",
+    "Add a rule to map matching upstream errors.": "一致する上流のエラーをマッピングするルールを追加します。",
+    "Match": "一致条件",
+    "Match status code": "一致ステータスコード",
+    "Message regex": "メッセージの正規表現",
+    "Output status code": "出力ステータスコード",
+    "Message": "メッセージ",
+    "Error code": "エラーコード",
+    "Headers": "ヘッダー",
+    "Response headers": "応答ヘッダー",
+    "Add header": "ヘッダーを追加",
+    "New Rule": "新しいルール",
+    "Any status code": "任意のステータスコード",
+    "Existing rules could not be parsed and are treated as empty.": "既存のルールを解析できないため、空のルールとして扱います。",
+    "Invalid error status mapping rules: {{error}}": "無効なステータスマッピングルール: {{error}}",
+    "Delete rule “{{name}}”?": "ルール「{{name}}」を削除しますか？",
+    "Save your changes to apply the removal.": "変更を保存すると削除が適用されます。",
+    "Status mapping rules": "ステータスマッピングルール"
   }
 }

@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "Capturer les charges utiles amont",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Enregistrer les corps bruts envoyés au fournisseur amont et renvoyés par celui-ci pour inspection par les administrateurs. Désactivé par défaut ; stocke les invites en clair et augmente les écritures en base.",
     "Loading upstream payload...": "Chargement de la charge utile amont…",
-    "Failed to load the upstream payload.": "Échec du chargement de la charge utile amont."
+    "Failed to load the upstream payload.": "Échec du chargement de la charge utile amont.",
+    "Status mapping": "Mappage des statuts",
+    "Rewrite matching upstream errors into a response that clients can retry.": "Réécrit les erreurs amont correspondantes en une réponse que les clients peuvent réessayer.",
+    "Rules are evaluated in order; the first match wins.": "Les règles sont évaluées dans l'ordre ; la première correspondance s'applique.",
+    "No rules configured": "Aucune règle configurée",
+    "Add a rule to map matching upstream errors.": "Ajoutez une règle pour mapper les erreurs amont correspondantes.",
+    "Match": "Correspondance",
+    "Match status code": "Code de statut correspondant",
+    "Message regex": "Expression régulière du message",
+    "Output status code": "Code de statut de sortie",
+    "Message": "Message",
+    "Error code": "Code d'erreur",
+    "Headers": "En-têtes",
+    "Response headers": "En-têtes de réponse",
+    "Add header": "Ajouter un en-tête",
+    "New Rule": "Nouvelle règle",
+    "Any status code": "Tout code de statut",
+    "Existing rules could not be parsed and are treated as empty.": "Les règles existantes sont illisibles et sont traitées comme vides.",
+    "Invalid error status mapping rules: {{error}}": "Règles de mappage des statuts invalides : {{error}}",
+    "Delete rule “{{name}}”?": "Supprimer la règle « {{name}} » ?",
+    "Save your changes to apply the removal.": "Enregistrez vos modifications pour appliquer la suppression.",
+    "Status mapping rules": "Règles de mappage des statuts"
   }
 }

@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "Thu thập payload thượng nguồn",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Lưu nguyên văn phần thân gửi đến và nhận từ nhà cung cấp thượng nguồn để quản trị viên kiểm tra. Mặc định tắt; lưu prompt dạng văn bản thuần và tăng ghi cơ sở dữ liệu.",
     "Loading upstream payload...": "Đang tải payload thượng nguồn…",
-    "Failed to load the upstream payload.": "Không tải được payload thượng nguồn."
+    "Failed to load the upstream payload.": "Không tải được payload thượng nguồn.",
+    "Status mapping": "Ánh xạ trạng thái",
+    "Rewrite matching upstream errors into a response that clients can retry.": "Viết lại các lỗi thượng nguồn khớp điều kiện thành phản hồi để máy khách có thể thử lại.",
+    "Rules are evaluated in order; the first match wins.": "Các quy tắc được đánh giá theo thứ tự; quy tắc khớp đầu tiên được áp dụng.",
+    "No rules configured": "Chưa có quy tắc nào",
+    "Add a rule to map matching upstream errors.": "Thêm quy tắc để ánh xạ các lỗi thượng nguồn khớp điều kiện.",
+    "Match": "Điều kiện khớp",
+    "Match status code": "Mã trạng thái khớp",
+    "Message regex": "Biểu thức chính quy của thông báo",
+    "Output status code": "Mã trạng thái đầu ra",
+    "Message": "Thông báo",
+    "Error code": "Mã lỗi",
+    "Headers": "Tiêu đề",
+    "Response headers": "Tiêu đề phản hồi",
+    "Add header": "Thêm tiêu đề",
+    "New Rule": "Quy tắc mới",
+    "Any status code": "Mọi mã trạng thái",
+    "Existing rules could not be parsed and are treated as empty.": "Không thể phân tích các quy tắc hiện có nên được coi là danh sách rỗng.",
+    "Invalid error status mapping rules: {{error}}": "Quy tắc ánh xạ trạng thái không hợp lệ: {{error}}",
+    "Delete rule “{{name}}”?": "Xóa quy tắc “{{name}}”?",
+    "Save your changes to apply the removal.": "Lưu thay đổi để áp dụng việc xóa.",
+    "Status mapping rules": "Quy tắc ánh xạ trạng thái"
   }
 }

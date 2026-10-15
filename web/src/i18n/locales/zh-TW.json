@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "採集上游報文",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "儲存傳往上游與上游回傳的原始報文，供管理員排查。預設關閉；會以明文保存提示詞並增加資料庫寫入。",
     "Loading upstream payload...": "正在載入上游報文…",
-    "Failed to load the upstream payload.": "載入上游報文失敗。"
+    "Failed to load the upstream payload.": "載入上游報文失敗。",
+    "Status mapping": "狀態映射",
+    "Rewrite matching upstream errors into a response that clients can retry.": "將符合的上游錯誤改寫為用戶端可重試的回應。",
+    "Rules are evaluated in order; the first match wins.": "規則依序求值，第一個符合者生效。",
+    "No rules configured": "尚未設定規則",
+    "Add a rule to map matching upstream errors.": "新增一條規則來對應符合的上游錯誤。",
+    "Match": "符合條件",
+    "Match status code": "符合狀態碼",
+    "Message regex": "訊息正規表達式",
+    "Output status code": "輸出狀態碼",
+    "Message": "訊息",
+    "Error code": "錯誤碼",
+    "Headers": "回應標頭",
+    "Response headers": "附加回應標頭",
+    "Add header": "新增回應標頭",
+    "New Rule": "新增規則",
+    "Any status code": "任意狀態碼",
+    "Existing rules could not be parsed and are treated as empty.": "現有規則無法解析，已視為空規則清單處理。",
+    "Invalid error status mapping rules: {{error}}": "無效的狀態映射規則：{{error}}",
+    "Delete rule “{{name}}”?": "刪除規則「{{name}}」？",
+    "Save your changes to apply the removal.": "儲存後刪除才會生效。",
+    "Status mapping rules": "狀態映射規則"
   }
 }

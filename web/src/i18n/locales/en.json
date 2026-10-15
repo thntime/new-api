@@ -7473,6 +7473,27 @@
     "Capture upstream payloads": "Capture upstream payloads",
     "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.": "Save the raw bodies sent to and returned by the upstream provider so administrators can inspect them. Off by default; stores prompts in plain text and increases database writes.",
     "Loading upstream payload...": "Loading upstream payload...",
-    "Failed to load the upstream payload.": "Failed to load the upstream payload."
+    "Failed to load the upstream payload.": "Failed to load the upstream payload.",
+    "Status mapping": "Status mapping",
+    "Rewrite matching upstream errors into a response that clients can retry.": "Rewrite matching upstream errors into a response that clients can retry.",
+    "Rules are evaluated in order; the first match wins.": "Rules are evaluated in order; the first match wins.",
+    "No rules configured": "No rules configured",
+    "Add a rule to map matching upstream errors.": "Add a rule to map matching upstream errors.",
+    "Match": "Match",
+    "Match status code": "Match status code",
+    "Message regex": "Message regex",
+    "Output status code": "Output status code",
+    "Message": "Message",
+    "Error code": "Error code",
+    "Headers": "Headers",
+    "Response headers": "Response headers",
+    "Add header": "Add header",
+    "New Rule": "New Rule",
+    "Any status code": "Any status code",
+    "Existing rules could not be parsed and are treated as empty.": "Existing rules could not be parsed and are treated as empty.",
+    "Invalid error status mapping rules: {{error}}": "Invalid error status mapping rules: {{error}}",
+    "Delete rule “{{name}}”?": "Delete rule “{{name}}”?",
+    "Save your changes to apply the removal.": "Save your changes to apply the removal.",
+    "Status mapping rules": "Status mapping rules"
   }
 }
