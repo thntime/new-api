@@ -74,6 +74,20 @@ func TestRenderErrorResponseOverride(t *testing.T) {
 		require.Equal(t, "rate limit exceeded", body.Error.Message)
 	})
 
+	t.Run("overrides a pre-set event-stream content type", func(t *testing.T) {
+		c, recorder := newErrorMappingContext(t)
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Transfer-Encoding", "chunked")
+
+		written := renderErrorResponseOverride(c, &types.NewAPIError{ResponseOverride: override}, types.RelayFormatOpenAI)
+
+		require.True(t, written)
+		require.Equal(t, http.StatusTooManyRequests, recorder.Code)
+		require.Contains(t, recorder.Header().Get("Content-Type"), "application/json")
+		require.Equal(t, "true", recorder.Header().Get("x-should-retry"))
+		require.Empty(t, recorder.Header().Get("Transfer-Encoding"))
+	})
+
 	t.Run("nil override is not rendered", func(t *testing.T) {
 		c, recorder := newErrorMappingContext(t)
 

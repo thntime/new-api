@@ -80,6 +80,10 @@ func renderErrorResponseOverride(c *gin.Context, newAPIError *types.NewAPIError,
 	for key, value := range override.Headers {
 		c.Header(key, value)
 	}
+	// A streaming request that failed before its first chunk already set
+	// text/event-stream; force JSON so the client does not parse the override as SSE.
+	c.Header("Content-Type", "application/json")
+	c.Writer.Header().Del("Transfer-Encoding")
 	if relayFormat == types.RelayFormatClaude {
 		c.JSON(override.StatusCode, gin.H{
 			"type": "error",

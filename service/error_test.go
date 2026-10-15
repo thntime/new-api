@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,9 +31,9 @@ func TestResetStatusCodeAppliesErrorStatusMapping(t *testing.T) {
 
 		ResetStatusCode(newAPIError, "")
 
-		require.Nil(t, newAPIError.ResponseOverride)
-		require.Equal(t, 429, newAPIError.StatusCode)
-		require.EqualError(t, newAPIError.Err, "inference exceeds tpm/rpm limit")
+		assert.Nil(t, newAPIError.ResponseOverride)
+		assert.Equal(t, 429, newAPIError.StatusCode)
+		assert.EqualError(t, newAPIError.Err, "inference exceeds tpm/rpm limit")
 	})
 
 	t.Run("matching rule sets only the response override", func(t *testing.T) {
@@ -42,13 +43,13 @@ func TestResetStatusCodeAppliesErrorStatusMapping(t *testing.T) {
 		ResetStatusCode(newAPIError, "")
 
 		require.NotNil(t, newAPIError.ResponseOverride)
-		require.Equal(t, 429, newAPIError.ResponseOverride.StatusCode)
-		require.Equal(t, map[string]string{"x-should-retry": "true", "Retry-After": "30"}, newAPIError.ResponseOverride.Headers)
-		require.Equal(t, "rate limit exceeded", newAPIError.ResponseOverride.Message)
-		require.Equal(t, "rate_limit_error", newAPIError.ResponseOverride.Type)
-		require.Equal(t, "rate_limit_exceeded", newAPIError.ResponseOverride.Code)
-		require.Equal(t, 200, newAPIError.StatusCode)
-		require.EqualError(t, newAPIError.Err, "inference exceeds tpm/rpm limit")
+		assert.Equal(t, 429, newAPIError.ResponseOverride.StatusCode)
+		assert.Equal(t, map[string]string{"x-should-retry": "true", "Retry-After": "30"}, newAPIError.ResponseOverride.Headers)
+		assert.Equal(t, "rate limit exceeded", newAPIError.ResponseOverride.Message)
+		assert.Equal(t, "rate_limit_error", newAPIError.ResponseOverride.Type)
+		assert.Equal(t, "rate_limit_exceeded", newAPIError.ResponseOverride.Code)
+		assert.Equal(t, 200, newAPIError.StatusCode)
+		assert.EqualError(t, newAPIError.Err, "inference exceeds tpm/rpm limit")
 	})
 }
 
