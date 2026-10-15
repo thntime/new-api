@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "Pre-Consumed Quota",
     "Pre-release": "Pre-release",
     "Prefer the original channel, allow switching": "Prefer the original channel, allow switching",
+    "Prefer the original channel, then descend through priority layers": "Prefer the original channel, then descend through priority layers",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.",
     "Preferences": "Preferences",

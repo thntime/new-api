@@ -22,7 +22,7 @@ export interface KeySource {
   path?: string
 }
 
-export type SessionMode = 'off' | 'prefer' | 'strict'
+export type SessionMode = 'off' | 'prefer' | 'strict' | 'descent'
 
 export interface AffinityRule {
   session_mode?: SessionMode | 'inherit'

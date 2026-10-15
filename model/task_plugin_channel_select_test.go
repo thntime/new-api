@@ -49,6 +49,36 @@ func TestTaskPluginChannelSelectionFiltersBothCachePaths(t *testing.T) {
 	assert.Contains(t, []string{"legacy-alpha", "legacy-beta"}, selected.Name)
 }
 
+func TestGetChannelDescendingFollowsPriorityRing(t *testing.T) {
+	truncateTables(t)
+	ids := []int{900201, 900202, 900203}
+	priorities := []int64{30, 20, 10}
+	weight := uint(1)
+	for i, priority := range priorities {
+		p := priority
+		channel := Channel{Id: ids[i], Type: constant.ChannelTypeOpenAI, Status: common.ChannelStatusEnabled, Name: "ring", Models: "ring-model", Group: "default", Priority: &p, Weight: &weight}
+		require.NoError(t, channel.Insert())
+	}
+
+	// 无锚点时保持历史语义：retry 即降序层下标。
+	plain, err := GetChannel("default", "ring-model", 1, nil)
+	require.NoError(t, err)
+	require.NotNil(t, plain)
+	require.Equal(t, ids[1], plain.Id, "无锚点时 retry=1 落在第二层")
+
+	// 锚点层为 20（降序下标 1）：retry=1 逐层向下到最低层，retry=2 回绕最高层。
+	anchor := int64(20)
+	ring, err := GetChannelDescending("default", "ring-model", anchor, 1, nil)
+	require.NoError(t, err)
+	require.NotNil(t, ring)
+	require.Equal(t, ids[2], ring.Id, "锚点层 20 的下一层是最低层")
+
+	ring, err = GetChannelDescending("default", "ring-model", anchor, 2, nil)
+	require.NoError(t, err)
+	require.NotNil(t, ring)
+	require.Equal(t, ids[0], ring.Id, "降至最低层后回绕最高层")
+}
+
 func identityFilters(key string, channelTypes []int) []dto.ChannelFilter {
 	return []dto.ChannelFilter{{
 		Kind:                   dto.FilterTaskPluginIdentity,

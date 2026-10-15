@@ -332,6 +332,9 @@ export function RuleEditorDialog(props: Props) {
             <NativeSelectOption value='strict'>
               {t('Require the original channel')}
             </NativeSelectOption>
+            <NativeSelectOption value='descent'>
+              {t('Prefer the original channel, then descend through priority layers')}
+            </NativeSelectOption>
           </NativeSelect>
           <p
             id='rule-session-mode-description'

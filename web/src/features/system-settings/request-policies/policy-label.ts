@@ -73,6 +73,8 @@ export function policyLabel(t: TFunction, value: string): string {
       return t('Prefer the original channel, allow switching')
     case 'strict':
       return t('Require the original channel')
+    case 'descent':
+      return t('Prefer the original channel, then descend through priority layers')
     default:
       return value
   }

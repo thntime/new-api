@@ -19,6 +19,30 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+// descent 必须同时被全局与规则级白名单接受并原样保留，未知取值仍被拒（fail-closed）。
+func TestRequestPolicyAcceptsDescentSessionMode(t *testing.T) {
+	snapshot, err := BuildRequestPolicy(map[string]string{"channel_affinity_setting.session_mode": "descent"})
+	require.NoError(t, err)
+	require.Equal(t, "descent", snapshot.Affinity.SessionMode)
+
+	rules := `[{"name":"ring","model_regex":[".*"],"key_sources":[{"type":"request_header","key":"X-Session"}],"session_mode":"descent"}]`
+	snapshot, err = BuildRequestPolicy(map[string]string{
+		"channel_affinity_setting.session_mode": "prefer",
+		"channel_affinity_setting.rules":        rules,
+	})
+	require.NoError(t, err)
+	require.Len(t, snapshot.Affinity.Rules, 1)
+	require.Equal(t, "descent", snapshot.Affinity.Rules[0].SessionMode)
+
+	_, err = BuildRequestPolicy(map[string]string{"channel_affinity_setting.session_mode": "unknown"})
+	require.Error(t, err)
+	_, err = BuildRequestPolicy(map[string]string{
+		"channel_affinity_setting.session_mode": "prefer",
+		"channel_affinity_setting.rules":        `[{"name":"ring","model_regex":[".*"],"key_sources":[{"type":"request_header","key":"X-Session"}],"session_mode":"unknown"}]`,
+	})
+	require.Error(t, err)
+}
+
 func TestRequestPolicyDatabaseMatrix(t *testing.T) {
 	for _, dialect := range []string{"sqlite", "mysql", "postgres"} {
 		t.Run(dialect, func(t *testing.T) {

@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "Quota pré-consommé",
     "Pre-release": "Version préliminaire",
     "Prefer the original channel, allow switching": "Préférer le canal initial, autoriser le repli",
+    "Prefer the original channel, then descend through priority layers": "Privilégier le canal d'origine, puis descendre couche par couche",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "Préférence enregistrée comme {{pref}}, mais aucun abonnement actif. Les demandes seront rejetées.",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "Préférence enregistrée comme {{pref}}, mais aucun abonnement actif. Le portefeuille sera utilisé automatiquement.",
     "Preferences": "Préférences",

@@ -114,15 +114,49 @@ func SyncChannelCache(frequency int) {
 	}
 }
 
+// descentLayerIndex 返回目标优先级层下标。anchorPriority 为 nil 时保持历史语义
+// （retry 即降序层下标，越界 clamp 到最低层）；否则以第一个不高于 anchorPriority
+// 的层为锚点，按 retry 环形向下推进。
+func descentLayerIndex(prioritiesDesc []int64, anchorPriority *int64, retry int) int {
+	if anchorPriority == nil {
+		return min(retry, len(prioritiesDesc)-1)
+	}
+	above := sort.Search(len(prioritiesDesc), func(i int) bool { return prioritiesDesc[i] <= *anchorPriority })
+	// shortcut: 锚点低于全部候选层时回退为最高层起算；锚点恒来自同组已选中渠道，故生产不可达
+	return (above + retry) % len(prioritiesDesc)
+}
+
 func GetRandomSatisfiedChannel(
 	group string,
 	model string,
 	retry int,
 	filters []dto.ChannelFilter,
 ) (*Channel, error) {
+	return getRandomSatisfiedChannel(group, model, retry, filters, nil)
+}
+
+// GetRandomSatisfiedChannelDescending 与 GetRandomSatisfiedChannel 相同，但从
+// anchorPriority 所在的优先级层起，按 retry 环形向下推进（最低层后回绕最高层）。
+func GetRandomSatisfiedChannelDescending(
+	group string,
+	model string,
+	anchorPriority int64,
+	retry int,
+	filters []dto.ChannelFilter,
+) (*Channel, error) {
+	return getRandomSatisfiedChannel(group, model, retry, filters, &anchorPriority)
+}
+
+func getRandomSatisfiedChannel(
+	group string,
+	model string,
+	retry int,
+	filters []dto.ChannelFilter,
+	anchorPriority *int64,
+) (*Channel, error) {
 	// if memory cache is disabled, get channel directly from database
 	if !common.MemoryCacheEnabled {
-		return GetChannel(group, model, retry, filters)
+		return getChannel(group, model, retry, filters, anchorPriority)
 	}
 
 	channelSyncLock.RLock()
@@ -148,24 +182,21 @@ func GetRandomSatisfiedChannel(
 		return nil, fmt.Errorf("database consistency error: channel #%d does not exist, please contact the administrator", channels[0])
 	}
 
-	uniquePriorities := make(map[int]bool)
+	uniquePriorities := make(map[int64]bool)
 	for _, channelId := range channels {
 		if channel, ok := channelsIDM[channelId]; ok {
-			uniquePriorities[int(channel.GetPriority())] = true
+			uniquePriorities[channel.GetPriority()] = true
 		} else {
 			return nil, fmt.Errorf("database consistency error: channel #%d does not exist, please contact the administrator", channelId)
 		}
 	}
-	var sortedUniquePriorities []int
+	sortedUniquePriorities := make([]int64, 0, len(uniquePriorities))
 	for priority := range uniquePriorities {
 		sortedUniquePriorities = append(sortedUniquePriorities, priority)
 	}
-	sort.Sort(sort.Reverse(sort.IntSlice(sortedUniquePriorities)))
+	sort.Slice(sortedUniquePriorities, func(i, j int) bool { return sortedUniquePriorities[i] > sortedUniquePriorities[j] })
 
-	if retry >= len(uniquePriorities) {
-		retry = len(uniquePriorities) - 1
-	}
-	targetPriority := int64(sortedUniquePriorities[retry])
+	targetPriority := sortedUniquePriorities[descentLayerIndex(sortedUniquePriorities, anchorPriority, retry)]
 
 	// get the priority for the given retry number
 	var sumWeight = 0

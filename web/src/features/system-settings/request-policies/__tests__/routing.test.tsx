@@ -383,6 +383,53 @@ it.each([
   }
 )
 
+it('selecting the descending session mode saves descent and keeps it after the round-trip', async () => {
+  show()
+  const descent = await screen.findByRole('radio', {
+    name: 'Prefer the original channel, then descend through priority layers',
+  })
+  await userEvent.click(descent)
+  expect(descent).toBeChecked()
+  await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+  await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(1))
+  expect(vi.mocked(api.patch).mock.calls[0][1]).toEqual({
+    options: { 'channel_affinity_setting.session_mode': 'descent' },
+  })
+  expect(currentOptions['channel_affinity_setting.session_mode']).toBe('descent')
+  expect(
+    screen.getByRole('radio', {
+      name: 'Prefer the original channel, then descend through priority layers',
+    })
+  ).toBeChecked()
+})
+
+it('a rule overrides the session behavior with the descending mode and shows its translated global label', async () => {
+  currentOptions['channel_affinity_setting.session_mode'] = 'descent'
+  show()
+  await screen.findByRole('table')
+  await userEvent.click(screen.getByRole('button', { name: 'Edit Rule' }))
+  const dialog = screen.getByRole('dialog')
+  const behavior = within(dialog).getByRole('combobox', {
+    name: 'Session behavior',
+  })
+  expect(dialog).toHaveTextContent(
+    'Global default: Prefer the original channel, then descend through priority layers'
+  )
+  await userEvent.selectOptions(behavior, 'descent')
+  expect(behavior).toHaveValue('descent')
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+  expect(
+    screen.getByRole('row', { name: /Session rule.*X-Session/ })
+  ).toHaveTextContent(
+    'Prefer the original channel, then descend through priority layers'
+  )
+  await userEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+  await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(1))
+  expect(
+    JSON.parse(currentOptions['channel_affinity_setting.rules'])[0].session_mode
+  ).toBe('descent')
+})
+
 it('switching between visual and JSON editing preserves the shared draft', async () => {
   show()
   fireEvent.change(

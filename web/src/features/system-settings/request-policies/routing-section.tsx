@@ -200,9 +200,9 @@ function AffinitySettings() {
                 aria-label={t('Session behavior')}
                 value={field.value || 'prefer'}
                 onValueChange={field.onChange}
-                className='gap-2 sm:grid-cols-3'
+                className='gap-2 sm:grid-cols-2'
               >
-                {(['off', 'prefer', 'strict'] as const).map((mode) => (
+                {(['off', 'prefer', 'strict', 'descent'] as const).map((mode) => (
                   <div key={mode} className='rounded-lg border'>
                     <Label
                       htmlFor={`global-session-${mode}`}

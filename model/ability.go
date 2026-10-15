@@ -110,6 +110,28 @@ func GetChannel(
 	retry int,
 	filters []dto.ChannelFilter,
 ) (*Channel, error) {
+	return getChannel(group, model, retry, filters, nil)
+}
+
+// GetChannelDescending 与 GetChannel 相同，但从 anchorPriority 所在的优先级层起，
+// 按 retry 环形向下推进（最低层后回绕最高层）。
+func GetChannelDescending(
+	group string,
+	model string,
+	anchorPriority int64,
+	retry int,
+	filters []dto.ChannelFilter,
+) (*Channel, error) {
+	return getChannel(group, model, retry, filters, &anchorPriority)
+}
+
+func getChannel(
+	group string,
+	model string,
+	retry int,
+	filters []dto.ChannelFilter,
+	anchorPriority *int64,
+) (*Channel, error) {
 	var abilities []Ability
 	err := DB.Where(commonGroupCol+" = ? and model = ? and enabled = ?", group, model, true).Order("priority DESC, weight DESC").Find(&abilities).Error
 	if err != nil {
@@ -130,10 +152,7 @@ func GetChannel(
 			}
 		}
 		sort.Slice(priorities, func(i, j int) bool { return priorities[i] > priorities[j] })
-		if retry >= len(priorities) {
-			retry = len(priorities) - 1
-		}
-		targetPriority := priorities[retry]
+		targetPriority := priorities[descentLayerIndex(priorities, anchorPriority, retry)]
 		abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
 			return ability.Priority == nil && targetPriority == 0 || ability.Priority != nil && *ability.Priority == targetPriority
 		})

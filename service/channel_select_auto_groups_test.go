@@ -2,14 +2,17 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -182,6 +185,207 @@ func TestAffinityRetrySelectsTopPriorityChannel(t *testing.T) {
 	require.NoError(t, err2)
 	require.NotNil(t, ch2)
 	require.Equal(t, 1, ch2.Id, "亲和命中时重试应能选中最高优先级渠道 1")
+}
+
+// createPriorityLayeredChannels 为同一分组/模型建立「每层单渠道」的确定性候选池，
+// priorities 按降序给出（下标 0 = 最高层）。返回的渠道 id 与层序一一对应。
+func createPriorityLayeredChannels(t *testing.T, db *gorm.DB, group, modelName string, firstID int, priorities []int64) []int {
+	t.Helper()
+	ids := make([]int, 0, len(priorities))
+	for i, priority := range priorities {
+		id := firstID + i
+		weight := uint(100)
+		p := priority
+		require.NoError(t, db.Create(&model.Channel{
+			Id:       id,
+			Type:     constant.ChannelTypeOpenAI,
+			Key:      fmt.Sprintf("key-%d", id),
+			Status:   common.ChannelStatusEnabled,
+			Name:     fmt.Sprintf("channel-%d", id),
+			Weight:   &weight,
+			Models:   modelName,
+			Group:    group,
+			Priority: &p,
+		}).Error)
+		require.NoError(t, db.Create(&model.Ability{
+			Group:     group,
+			Model:     modelName,
+			ChannelId: id,
+			Enabled:   true,
+			Priority:  &p,
+			Weight:    weight,
+		}).Error)
+		ids = append(ids, id)
+	}
+	return ids
+}
+
+func descentTestContext(t *testing.T, modelName, tokenGroup string) *RetryParam {
+	t.Helper()
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	RequestPolicy(ctx).SessionMode = "descent"
+	return &RetryParam{Ctx: ctx, TokenGroup: tokenGroup, ModelName: modelName, Retry: intPtr(0)}
+}
+
+// 环序 = 锚点层 + retry 逐层向下并在最低层回绕最高层。锚点层在中间与最低层两种输入。
+func TestDescentRingFollowsPriorityLayers(t *testing.T) {
+	const modelName = "descent-ring-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 7101, []int64{30, 20, 10})
+	model.InitChannelCache()
+
+	cases := []struct {
+		name       string
+		seedRetry  int
+		seedWantID int
+		wantRing   []int // priorityRetry 1、2、3 依次选中的渠道 id
+	}{
+		{
+			name:       "anchor in middle layer",
+			seedRetry:  1,
+			seedWantID: ids[1],
+			wantRing:   []int{ids[2], ids[0], ids[1]},
+		},
+		{
+			name:       "anchor in lowest layer",
+			seedRetry:  2,
+			seedWantID: ids[2],
+			wantRing:   []int{ids[0], ids[1], ids[2]},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			param := descentTestContext(t, modelName, "default")
+			seed, _, err := CacheGetRandomSatisfiedChannelWithPriority(param, tc.seedRetry)
+			require.NoError(t, err)
+			require.NotNil(t, seed)
+			require.Equal(t, tc.seedWantID, seed.Id, "锚点层由首次选中的渠道决定")
+
+			for i, wantID := range tc.wantRing {
+				got, _, err := CacheGetRandomSatisfiedChannelWithPriority(param, i+1)
+				require.NoError(t, err)
+				require.NotNil(t, got)
+				assert.Equal(t, wantID, got.Id, "retry=%d 应落在环序第 %d 个渠道", i+1, i+1)
+			}
+		})
+	}
+}
+
+// 锚点在最高层时环序与常规降序逐位一致（无亲和把首轮拉低的情形）。
+func TestDescentFromTopMatchesPlainDescending(t *testing.T) {
+	const modelName = "descent-top-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 7201, []int64{30, 20, 10})
+	model.InitChannelCache()
+
+	descent := descentTestContext(t, modelName, "default")
+	descentIDs := make([]int, 0, len(ids))
+	for retry := range len(ids) {
+		got, _, err := CacheGetRandomSatisfiedChannelWithPriority(descent, retry)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		descentIDs = append(descentIDs, got.Id)
+	}
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	baseline := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+	baselineIDs := make([]int, 0, len(ids))
+	for retry := range len(ids) {
+		got, _, err := CacheGetRandomSatisfiedChannelWithPriority(baseline, retry)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		baselineIDs = append(baselineIDs, got.Id)
+	}
+
+	assert.Equal(t, baselineIDs, descentIDs, "锚点在最高层时环序必须逐位等于常规降序")
+	assert.Equal(t, ids, descentIDs)
+}
+
+// descent 的层下标是「锚点层 + retry」，retry 前移会重选原层，因此必须跳过偏移。
+func TestAffinityAdjustedRetrySkipsShiftForDescent(t *testing.T) {
+	ctx := buildChannelAffinityTemplateContextForTest(channelAffinityMeta{RuleName: "descent"})
+	MarkChannelAffinityUsed(ctx, "default", 6)
+	RequestPolicy(ctx).SessionMode = "descent"
+	require.Equal(t, 1, AffinityAdjustedRetry(ctx, 1), "descent 模式不得前移 retry")
+
+	preferCtx := buildChannelAffinityTemplateContextForTest(channelAffinityMeta{RuleName: "prefer"})
+	MarkChannelAffinityUsed(preferCtx, "default", 6)
+	RequestPolicy(preferCtx).SessionMode = "prefer"
+	require.Equal(t, 0, AffinityAdjustedRetry(preferCtx, 1), "prefer 模式仍前移 retry（无回归）")
+}
+
+// 同一请求内 auto 跨组时，新分组不沿用锚点所在分组的环游标（D3 的 false 分支）。
+func TestDescentRingDoesNotCrossGroupsWithinSingleRequest(t *testing.T) {
+	const modelName = "descent-cross-group-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	vipPriorities := []int64{30, 20, 10}
+	createPriorityLayeredChannels(t, db, "vip", modelName, 7301, vipPriorities)
+	defaultIDs := createPriorityLayeredChannels(t, db, "default", modelName, 7311, []int64{30, 20, 10})
+	model.InitChannelCache()
+	require.NoError(t, setting.UpdateAutoGroupsByJsonString(`["vip","default"]`))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	common.SetContextKey(ctx, constant.ContextKeyUserGroup, "default")
+	// 跳过 vip，本组从 default 开始搜索：锚点仍钉在 vip 的中间层。
+	common.SetContextKey(ctx, constant.ContextKeyAutoGroupIndex, 1)
+	RequestPolicy(ctx).SessionMode = "descent"
+	ctx.Set(ginKeyChannelAffinityDescent, descentAnchorState{group: "vip", priority: vipPriorities[1]})
+
+	param := &RetryParam{Ctx: ctx, TokenGroup: "auto", ModelName: modelName, Retry: intPtr(1)}
+	got, group, err := CacheGetRandomSatisfiedChannelWithPriority(param, 1)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Equal(t, "default", group)
+	assert.Equal(t, defaultIDs[1], got.Id, "同一请求内跨组时新组从最高层起算，不沿用锚点环游标")
+}
+
+// 亲和命中时首轮复用原渠道，且锚点由亲和渠道的优先级决定；重试从该层的下一层（环序）推进。
+func TestSelectChannelForRequestDescentAnchorFromAffinityHit(t *testing.T) {
+	const modelName = "descent-affinity-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 7501, []int64{30, 20, 10})
+	model.InitChannelCache()
+
+	affinityValue := fmt.Sprintf("descent-affinity-%d", time.Now().UnixNano())
+	rule := operation_setting.ChannelAffinityRule{
+		Name:        "descent-affinity",
+		ModelRegex:  []string{".*"},
+		KeySources:  []operation_setting.ChannelAffinityKeySource{{Type: "request_header", Key: "X-Affinity-Key"}},
+		SessionMode: "descent",
+	}
+	cacheKeySuffix := buildChannelAffinityCacheKeySuffix(rule, modelName, "default", affinityValue)
+	cache := getChannelAffinityCache()
+	require.NoError(t, cache.SetWithTTL(cacheKeySuffix, ids[1], time.Minute))
+	t.Cleanup(func() { _, _ = cache.DeleteMany([]string{cacheKeySuffix}) })
+
+	setting := operation_setting.GetChannelAffinitySetting()
+	originalRules := setting.Rules
+	setting.Rules = append([]operation_setting.ChannelAffinityRule{rule}, originalRules...)
+	t.Cleanup(func() { setting.Rules = originalRules })
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	ctx.Request.Header.Set("X-Affinity-Key", affinityValue)
+
+	param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+	first, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, selectErr)
+	require.NotNil(t, first)
+	require.Equal(t, ids[1], first.Id, "首轮必须复用亲和渠道（非最高层）")
+	require.Equal(t, "default", group)
+
+	anchorGroup, anchorPriority, ok := descentAnchor(ctx)
+	require.True(t, ok, "亲和命中后必须写入 descent 锚点")
+	assert.Equal(t, "default", anchorGroup)
+	assert.Equal(t, int64(20), anchorPriority, "锚点优先级来自亲和渠道")
+	_, keyExists := ctx.Get(ginKeyChannelAffinityDescent)
+	assert.True(t, keyExists, "gin key channel_affinity_descent_anchor 必须已写入")
+
+	param.SetRetry(1)
+	next, _, err := CacheGetRandomSatisfiedChannelWithPriority(param, 1)
+	require.NoError(t, err)
+	require.NotNil(t, next)
+	assert.Equal(t, ids[2], next.Id, "重试应从锚点层的下一层推进，而不是回到最高层")
 }
 
 func intPtr(v int) *int {

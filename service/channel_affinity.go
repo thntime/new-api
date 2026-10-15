@@ -27,6 +27,7 @@ const (
 	ginKeyChannelAffinityLogInfo    = "channel_affinity_log_info"
 	ginKeyChannelAffinitySkipRetry  = "channel_affinity_skip_retry_on_failure"
 	ginKeyChannelAffinityRetryBase  = "channel_affinity_retry_base"
+	ginKeyChannelAffinityDescent    = "channel_affinity_descent_anchor"
 
 	channelAffinityCacheNamespace           = "new-api:channel_affinity:v1"
 	channelAffinityUsageCacheStatsNamespace = "new-api:channel_affinity_usage_cache_stats:v1"
@@ -1037,9 +1038,44 @@ func AffinityConsumedFirstTry(c *gin.Context) bool {
 // AffinityAdjustedRetry 返回用于候选池选择的有效 retry 索引：
 // 亲和渠道已消耗首轮尝试（retry=0）时，重试索引前移一位，使
 // 最高优先级渠道层（layer 0）得以参与候选池选择。
+// descent 模式的层下标是「锚点层 + retry」，前移会重选原层，因此不偏移。
 func AffinityAdjustedRetry(c *gin.Context, retry int) int {
-	if retry > 0 && AffinityConsumedFirstTry(c) {
+	if retry > 0 && AffinityConsumedFirstTry(c) && RequestPolicy(c).SessionMode != "descent" {
 		return retry - 1
 	}
 	return retry
+}
+
+// descentAnchorState 是本次请求记录的环形锚点层。
+type descentAnchorState struct {
+	group    string
+	priority int64
+}
+
+// rememberDescentAnchor 记录本次请求的环形锚点层：仅当会话模式为 descent 且尚未
+// 记录时写入（先写者胜），其余情况为无副作用的空操作，因此调用点无需分支。
+func rememberDescentAnchor(c *gin.Context, group string, channel *model.Channel) {
+	if c == nil || channel == nil || RequestPolicy(c).SessionMode != "descent" {
+		return
+	}
+	if _, exists := c.Get(ginKeyChannelAffinityDescent); exists {
+		return
+	}
+	c.Set(ginKeyChannelAffinityDescent, descentAnchorState{group: group, priority: channel.GetPriority()})
+}
+
+// descentAnchor 读取已记录的环形锚点层。
+func descentAnchor(c *gin.Context) (group string, priority int64, ok bool) {
+	if c == nil {
+		return "", 0, false
+	}
+	v, exists := c.Get(ginKeyChannelAffinityDescent)
+	if !exists {
+		return "", 0, false
+	}
+	anchor, ok := v.(descentAnchorState)
+	if !ok {
+		return "", 0, false
+	}
+	return anchor.group, anchor.priority, true
 }

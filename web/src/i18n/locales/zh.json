@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "预消耗配额",
     "Pre-release": "预发布版",
     "Prefer the original channel, allow switching": "优先原渠道，失败允许切换",
+    "Prefer the original channel, then descend through priority layers": "优先原渠道，失败后逐层降级",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "已保存偏好为{{pref}}，当前无生效订阅，请求将被拒绝",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "已保存偏好为{{pref}}，当前无生效订阅，将自动使用钱包",
     "Preferences": "偏好设置",

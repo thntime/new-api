@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "Предварительно потребленная квота",
     "Pre-release": "Предварительная версия",
     "Prefer the original channel, allow switching": "Предпочитать исходный канал, разрешать смену",
+    "Prefer the original channel, then descend through priority layers": "Сначала исходный канал, затем понижение по уровням приоритета",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "Настройка сохранена как {{pref}}, но нет активной подписки. Запросы будут отклонены.",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "Настройка сохранена как {{pref}}, но нет активной подписки. Кошелёк будет использоваться автоматически.",
     "Preferences": "Настройки",

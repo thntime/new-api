@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "事前消費クォータ",
     "Pre-release": "プレリリース",
     "Prefer the original channel, allow switching": "元のチャネルを優先し、切り替えを許可",
+    "Prefer the original channel, then descend through priority layers": "元のチャネルを優先し、失敗後は優先度層を順に下げる",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "設定は{{pref}}として保存されましたが、アクティブなサブスクリプションがありません。リクエストは拒否されます。",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "設定は{{pref}}として保存されましたが、アクティブなサブスクリプションがありません。ウォレットが自動的に使用されます。",
     "Preferences": "環境設定",

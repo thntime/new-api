@@ -176,13 +176,13 @@ func BuildRequestPolicy(options map[string]string) (*RequestPolicySnapshot, erro
 		return nil, fmt.Errorf("invalid affinity cache limits")
 	}
 	switch snapshot.Affinity.SessionMode {
-	case "", "off", "prefer", "strict":
+	case "", "off", "prefer", "strict", "descent":
 	default:
 		return nil, fmt.Errorf("invalid global session mode")
 	}
 	for _, rule := range snapshot.Affinity.Rules {
 		switch rule.SessionMode {
-		case "", "inherit", "off", "prefer", "strict":
+		case "", "inherit", "off", "prefer", "strict", "descent":
 		default:
 			return nil, fmt.Errorf("invalid session mode for rule %q", rule.Name)
 		}

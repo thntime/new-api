@@ -125,6 +125,8 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 	selectGroup := param.TokenGroup
 	userGroup := common.GetContextKeyString(param.Ctx, constant.ContextKeyUserGroup)
 	filters := GetChannelConstraints(param.Ctx).Filters
+	anchorGroup, anchorPriority, hasAnchor := descentAnchor(param.Ctx)
+	downward := RequestPolicy(param.Ctx).SessionMode == "descent" && hasAnchor
 
 	if param.TokenGroup == "auto" {
 		autoGroups := GetRequestAutoGroups(param.Ctx, userGroup)
@@ -154,12 +156,22 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 			}
 			logger.LogDebug(param.Ctx, "Auto selecting group: %s, priorityRetry: %d", autoGroup, priorityRetry)
 
-			channel, _ = model.GetRandomSatisfiedChannel(
-				autoGroup,
-				param.ModelName,
-				priorityRetry,
-				filters,
-			)
+			if downward && anchorGroup == autoGroup {
+				channel, _ = model.GetRandomSatisfiedChannelDescending(
+					autoGroup,
+					param.ModelName,
+					anchorPriority,
+					priorityRetry,
+					filters,
+				)
+			} else {
+				channel, _ = model.GetRandomSatisfiedChannel(
+					autoGroup,
+					param.ModelName,
+					priorityRetry,
+					filters,
+				)
+			}
 			if channel == nil {
 				// Current group has no available channel for this model, try next group
 				// 当前分组没有该模型的可用渠道，尝试下一个分组
@@ -197,16 +209,27 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 			break
 		}
 	} else {
-		channel, err = model.GetRandomSatisfiedChannel(
-			param.TokenGroup,
-			param.ModelName,
-			priorityRetry,
-			filters,
-		)
+		if downward && anchorGroup == param.TokenGroup {
+			channel, err = model.GetRandomSatisfiedChannelDescending(
+				param.TokenGroup,
+				param.ModelName,
+				anchorPriority,
+				priorityRetry,
+				filters,
+			)
+		} else {
+			channel, err = model.GetRandomSatisfiedChannel(
+				param.TokenGroup,
+				param.ModelName,
+				priorityRetry,
+				filters,
+			)
+		}
 		if err != nil {
 			return nil, param.TokenGroup, err
 		}
 	}
+	rememberDescentAnchor(param.Ctx, selectGroup, channel)
 	return channel, selectGroup, nil
 }
 
@@ -380,6 +403,7 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 			FilterKind: kind, Channel: channel, NoAvailableChannel: true,
 		}
 	}
+	rememberDescentAnchor(c, selectGroup, channel)
 	return channel, selectGroup, nil
 }
 

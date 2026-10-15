@@ -4749,6 +4749,7 @@
     "Pre-Consumed Quota": "Hạn mức đã tiêu thụ trước",
     "Pre-release": "Bản phát hành thử",
     "Prefer the original channel, allow switching": "Ưu tiên kênh cũ, cho phép chuyển kênh",
+    "Prefer the original channel, then descend through priority layers": "Ưu tiên kênh gốc, sau đó hạ dần theo từng lớp ưu tiên",
     "Preference saved as {{pref}}, but no active subscription. Requests will be rejected.": "Tùy chọn đã lưu là {{pref}}, nhưng không có gói đăng ký đang hoạt động. Các yêu cầu sẽ bị từ chối.",
     "Preference saved as {{pref}}, but no active subscription. Wallet will be used automatically.": "Tùy chọn đã lưu là {{pref}}, nhưng không có gói đăng ký đang hoạt động. Ví sẽ được sử dụng tự động.",
     "Preferences": "Tùy chọn",

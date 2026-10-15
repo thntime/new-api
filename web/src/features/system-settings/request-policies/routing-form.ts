@@ -14,7 +14,7 @@ export function createRoutingPolicySchema(t: TFunction) {
       ),
     channel_affinity_setting: z.object({
       enabled: z.boolean(),
-      session_mode: z.enum(['', 'off', 'prefer', 'strict']),
+      session_mode: z.enum(['', 'off', 'prefer', 'strict', 'descent']),
       switch_on_success: z.boolean(),
       keep_on_channel_disabled: z.boolean(),
       max_entries: z.number().int().min(0),
