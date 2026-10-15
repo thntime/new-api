@@ -31,8 +31,8 @@ func TestParseErrorStatusMappingRules(t *testing.T) {
 	})
 
 	t.Run("invalid regex", func(t *testing.T) {
-		_, err := ParseErrorStatusMappingRules(`[{"name":"bad","match":{"message_regex":"["}}]`)
-		require.Error(t, err)
+		_, err := ParseErrorStatusMappingRules(`[{"name":"bad","match":{"message_regex":"["},"output":{"status_code":429}}]`)
+		require.ErrorContains(t, err, "invalid message regex")
 	})
 
 	t.Run("match status code out of range", func(t *testing.T) {
@@ -65,8 +65,14 @@ func TestErrorStatusMappingRulesFromString(t *testing.T) {
 	require.NoError(t, ErrorStatusMappingRulesFromString(""))
 	assert.Nil(t, ErrorStatusMappingRules)
 
-	require.Error(t, ErrorStatusMappingRulesFromString(`[{"name":"bad","match":{"message_regex":"["}}]`))
-	assert.Nil(t, ErrorStatusMappingRules, "invalid input must not override the current value")
+	baseline := `[{"name":"baseline","enabled":true,"match":{"status_code":500,"message_regex":"exhausted"},"output":{"status_code":429}}]`
+	require.NoError(t, ErrorStatusMappingRulesFromString(baseline))
+	require.Len(t, ErrorStatusMappingRules, 1)
+
+	err := ErrorStatusMappingRulesFromString(`[{"name":"bad","match":{"message_regex":"["},"output":{"status_code":429}}]`)
+	require.ErrorContains(t, err, "invalid message regex")
+	require.Len(t, ErrorStatusMappingRules, 1, "invalid input must not override the current value")
+	assert.Equal(t, "baseline", ErrorStatusMappingRules[0].Name)
 }
 
 func TestDefaultErrorStatusMappingRules(t *testing.T) {
@@ -123,6 +129,13 @@ func TestMatchErrorStatusMapping(t *testing.T) {
 	t.Run("message mismatch does not match", func(t *testing.T) {
 		setRules(t, `[{"name":"boom","enabled":true,"match":{"status_code":500,"message_regex":"boom"},"output":{"status_code":429}}]`)
 		assert.Nil(t, MatchErrorStatusMapping(500, "all good"))
+	})
+
+	t.Run("empty message regex matches any message", func(t *testing.T) {
+		setRules(t, `[{"name":"code-only","enabled":true,"match":{"status_code":500},"output":{"status_code":429}}]`)
+		require.NotNil(t, MatchErrorStatusMapping(500, "\u4efb\u610f\u6587\u672c"))
+		require.NotNil(t, MatchErrorStatusMapping(500, ""))
+		assert.Nil(t, MatchErrorStatusMapping(200, "\u4efb\u610f\u6587\u672c"))
 	})
 
 	t.Run("first matching rule wins", func(t *testing.T) {
