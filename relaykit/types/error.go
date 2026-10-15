@@ -87,6 +87,16 @@ const (
 	ErrorCodePreConsumeTokenQuotaFailed ErrorCode = "pre_consume_token_quota_failed"
 )
 
+// ErrorResponseOverride carries a host-configured replacement for an error
+// response (status, headers and message/type/code triple).
+type ErrorResponseOverride struct {
+	StatusCode int
+	Headers    map[string]string
+	Message    string
+	Type       string
+	Code       string
+}
+
 type NewAPIError struct {
 	Err            error
 	RelayError     any
@@ -95,7 +105,10 @@ type NewAPIError struct {
 	errorType      ErrorType
 	errorCode      ErrorCode
 	StatusCode     int
-	Metadata       json.RawMessage
+	// ResponseOverride, when non-nil, is rendered by the host exit path instead
+	// of the default error body; it does not participate in retry decisions.
+	ResponseOverride *ErrorResponseOverride `json:"-"`
+	Metadata         json.RawMessage
 }
 
 // Unwrap enables errors.Is / errors.As to work with NewAPIError by exposing the underlying error.

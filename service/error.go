@@ -138,6 +138,7 @@ func RelayErrorHandler(ctx context.Context, resp *http.Response, showBodyWhenFai
 }
 
 func ResetStatusCode(newApiErr *types.NewAPIError, statusCodeMappingStr string) {
+	ApplyErrorStatusMapping(newApiErr)
 	if newApiErr == nil {
 		return
 	}

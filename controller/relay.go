@@ -66,6 +66,40 @@ func geminiRelayHandler(c *gin.Context, info *relaycommon.RelayInfo) *types.NewA
 	return err
 }
 
+// renderErrorResponseOverride writes a host-configured error response override
+// and reports whether it did. A committed response, the realtime channel, or a
+// missing override leaves rendering to the existing exit path.
+func renderErrorResponseOverride(c *gin.Context, newAPIError *types.NewAPIError, relayFormat types.RelayFormat) bool {
+	if newAPIError == nil || newAPIError.ResponseOverride == nil {
+		return false
+	}
+	if relayFormat == types.RelayFormatOpenAIRealtime || c.Writer.Written() {
+		return false
+	}
+	override := newAPIError.ResponseOverride
+	for key, value := range override.Headers {
+		c.Header(key, value)
+	}
+	if relayFormat == types.RelayFormatClaude {
+		c.JSON(override.StatusCode, gin.H{
+			"type": "error",
+			"error": gin.H{
+				"type":    override.Type,
+				"message": override.Message,
+			},
+		})
+		return true
+	}
+	c.JSON(override.StatusCode, gin.H{
+		"error": gin.H{
+			"message": override.Message,
+			"type":    override.Type,
+			"code":    override.Code,
+		},
+	})
+	return true
+}
+
 func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 
 	requestId := c.GetString(common.RequestIdKey)
@@ -91,6 +125,9 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 		if newAPIError != nil {
 			service.RecordRequestPolicyTermination(c, newAPIError)
 			logger.LogError(c, common.LogText("relay error: %s", common.LocalLogPreview(newAPIError.Error())))
+			if renderErrorResponseOverride(c, newAPIError, relayFormat) {
+				return
+			}
 			newAPIError.SetMessage(common.MessageWithRequestId(newAPIError.Error(), requestId))
 			switch relayFormat {
 			case types.RelayFormatOpenAIRealtime:
