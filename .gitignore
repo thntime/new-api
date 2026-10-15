@@ -64,8 +64,11 @@ CLAUDE.md
 .superpowers/
 # Superpowers artifacts (design docs, plans, verify reports).
 docs/superpowers/
-# OpenSpec CLI artifacts (change docs, main specs, config).
-docs/openspec/
+# OpenSpec in-flight state (active changes, main specs, CLI config) stays local;
+# sealed archives ship with the code so they can be reviewed in history.
+docs/openspec/*
+!docs/openspec/changes
+docs/openspec/changes/*
+!docs/openspec/changes/archive
 # Comet per-change runtime state inside OpenSpec changes.
 docs/openspec/changes/**/.comet/
-docs/openspec/changes/**/.comet.yaml
