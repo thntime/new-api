@@ -14,7 +14,6 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/openai"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
@@ -237,10 +236,36 @@ func TestRelayErrorStatusMapping(t *testing.T) {
 		assert.Empty(t, recorder.Body.String())
 	})
 
-	t.Run("successful upstream body is not an error", func(t *testing.T) {
-		var response dto.OpenAITextResponse
-		require.NoError(t, common.Unmarshal([]byte(`{"id":"chatcmpl-1","object":"chat.completion","choices":[{"index":0,"message":{"role":"assistant","content":"hello"},"finish_reason":"stop"}]}`), &response))
-		assert.Nil(t, response.GetOpenAIError(), "a normal body produces no NewAPIError, so no rule can be evaluated")
+	t.Run("successful upstream body stays a successful response", func(t *testing.T) {
+		// Review Focus #1: a 200 body of normal content must never be rewritten.
+		// Driven through the production handler (OpenaiHandler) instead of a
+		// hand-rolled detector call, so a regression that turns normal content
+		// into an error is caught here.
+		c, recorder := newErrorMappingContext(t)
+		successBody := `{"id":"chatcmpl-1","object":"chat.completion","model":"gpt-4o","choices":[{"index":0,"message":{"role":"assistant","content":"hello"},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":1,"total_tokens":4}}`
+		resp := &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(successBody)),
+		}
+		info := &relaycommon.RelayInfo{ChannelMeta: &relaycommon.ChannelMeta{ChannelType: constant.ChannelTypeOpenAI}}
+		usage, newAPIError := openai.OpenaiHandler(c, info, resp)
+
+		assert.Nil(t, newAPIError, "a normal 200 body must not become a NewAPIError")
+		assert.NotNil(t, usage, "the successful path returns usage")
+
+		// The mapping rule is enabled, but a nil error cannot match it: the exit
+		// chain must neither panic nor have an override to render.
+		service.ResetStatusCode(nil, "")
+		assert.False(t, renderErrorResponseOverride(c, newAPIError, types.RelayFormatOpenAI))
+
+		assert.Equal(t, http.StatusOK, recorder.Code)
+		assert.Empty(t, recorder.Header().Get("x-should-retry"))
+		assert.Empty(t, recorder.Header().Get("Retry-After"))
+		assert.Equal(t, successBody, recorder.Body.String(), "the successful body must be forwarded verbatim")
+		for _, token := range statusMappingForbiddenTokens {
+			assert.NotContains(t, successBody, token)
+		}
 	})
 }
 
