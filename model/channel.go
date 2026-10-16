@@ -71,6 +71,7 @@ type ChannelInfo struct {
 	MultiKeyDisabledTime   map[int]int64         `json:"multi_key_disabled_time,omitempty"`   // key禁用时间列表，key index -> time
 	MultiKeyPollingIndex   int                   `json:"multi_key_polling_index"`             // 多Key模式下轮询的key索引
 	MultiKeyMode           constant.MultiKeyMode `json:"multi_key_mode"`
+	IsFallback             bool                  `json:"is_fallback"` // 该渠道是否作为兜底渠道
 }
 
 type ChannelSortOptions struct {
@@ -607,6 +608,13 @@ func (channel *Channel) Update() error {
 	}
 	var err error
 	err = DB.Model(channel).Updates(channel).Error
+	if err != nil {
+		return err
+	}
+	// channel_info is a JSON column: the struct update above skips it when it
+	// marshals to its zero value, which would leave a cleared is_fallback
+	// behind. Write it explicitly so both setting and clearing persist.
+	err = DB.Model(channel).Update("channel_info", channel.ChannelInfo).Error
 	if err != nil {
 		return err
 	}

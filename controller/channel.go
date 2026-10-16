@@ -1197,6 +1197,28 @@ func UpdateChannel(c *gin.Context) {
 	// Always copy the original ChannelInfo so that fields like IsMultiKey and MultiKeySize are retained.
 	channel.ChannelInfo = originChannel.ChannelInfo
 
+	// Merge the fallback marker from the request on top of the stored object so
+	// the client can toggle it without dropping other channel_info keys. Only
+	// is_fallback is editable here; a pointer distinguishes "absent" from
+	// an explicit false.
+	if raw, ok := requestData["channel_info"]; ok {
+		var infoPatch struct {
+			IsFallback *bool `json:"is_fallback"`
+		}
+		encoded, marshalErr := common.Marshal(raw)
+		if marshalErr != nil {
+			common.ApiError(c, marshalErr)
+			return
+		}
+		if unmarshalErr := common.Unmarshal(encoded, &infoPatch); unmarshalErr != nil {
+			common.ApiError(c, unmarshalErr)
+			return
+		}
+		if infoPatch.IsFallback != nil {
+			channel.ChannelInfo.IsFallback = *infoPatch.IsFallback
+		}
+	}
+
 	if channelHasSensitiveChanges(&channel, originChannel, requestData) &&
 		!authz.Can(c.GetInt("id"), c.GetInt("role"), authz.ChannelSensitiveWrite) {
 		common.ApiErrorT(c, "Unauthorized, insufficient privileges")

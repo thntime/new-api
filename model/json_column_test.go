@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"testing"
 
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +21,7 @@ func TestJSONColumnValuersReturnString(t *testing.T) {
 		{
 			name:   "ChannelInfo",
 			valuer: ChannelInfo{IsMultiKey: true, MultiKeySize: 2},
-			want:   `{"is_multi_key":true,"multi_key_size":2,"multi_key_status_list":null,"multi_key_polling_index":0,"multi_key_mode":""}`,
+			want:   `{"is_multi_key":true,"multi_key_size":2,"multi_key_status_list":null,"multi_key_polling_index":0,"multi_key_mode":"","is_fallback":false}`,
 		},
 		{
 			name:   "Properties",
@@ -63,6 +64,30 @@ func TestJSONColumnValuersZeroValueIsNil(t *testing.T) {
 			assert.Nil(t, value)
 		})
 	}
+}
+
+// 保护契约:渠道级兜底标记随 channel_info 一起往返持久化,且新增字段不得
+// 挤掉同列的既有键(is_multi_key 等)。
+func TestChannelInfoFallbackMarkerRoundTripPreservesExistingKeys(t *testing.T) {
+	original := ChannelInfo{
+		IsMultiKey:           true,
+		MultiKeySize:         2,
+		MultiKeyMode:         constant.MultiKeyModePolling,
+		MultiKeyPollingIndex: 1,
+		IsFallback:           true,
+	}
+
+	value, err := original.Value()
+	require.NoError(t, err)
+
+	var decoded ChannelInfo
+	require.NoError(t, decoded.Scan(value))
+
+	assert.True(t, decoded.IsFallback)
+	assert.True(t, decoded.IsMultiKey)
+	assert.Equal(t, 2, decoded.MultiKeySize)
+	assert.Equal(t, constant.MultiKeyModePolling, decoded.MultiKeyMode)
+	assert.Equal(t, 1, decoded.MultiKeyPollingIndex)
 }
 
 // 保护契约:json 列的 Scan 必须同时接受 []byte 与 string——不同驱动/协议
