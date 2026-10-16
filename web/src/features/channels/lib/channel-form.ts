@@ -21,6 +21,7 @@ import { z } from 'zod'
 import {
   CLAUDE_FIELD_PASSTHROUGH_TYPES,
   CHANNEL_TYPE_CLINE,
+  CHANNEL_TYPE_CODEBUDDY,
   CHANNEL_TYPE_COMMANDCODE,
   CHANNEL_TYPE_NEW_API,
   CHANNEL_TYPE_OLLAMA,
@@ -341,6 +342,9 @@ export const channelFormSchema = z
     endpoint_profile: z
       .enum(['coding', 'coding-intl', 'clinepass', ''])
       .optional(), // Coding Plan：VolcEngine(45) / ZhipuV4(26) / Moonshot(25)；coding-intl 仅 ZhipuV4 后端支持；ClinePass 仅 Cline(94)
+    codebuddy_region: z
+      .enum(['cn', 'intl', ''])
+      .optional(), // CodeBuddy(93)：接入方式区域标记，仅写入 settings，不改写 base_url
     // Field passthrough controls (stored in settings JSON)
     allow_service_tier: z.boolean().optional(), // OpenAI/Anthropic
     disable_store: z.boolean().optional(), // OpenAI only
@@ -553,6 +557,7 @@ export const CHANNEL_FORM_DEFAULT_VALUES: ChannelFormValues = {
   aws_api_type: 'invoke_model',
   azure_responses_version: '',
   endpoint_profile: '',
+  codebuddy_region: '',
   // Field passthrough controls
   allow_service_tier: false,
   disable_store: false,
@@ -634,6 +639,7 @@ export function transformChannelToFormDefaults(
   let vertexProjectId = ''
   let azureResponsesVersion = ''
   let endpointProfile: 'coding' | 'coding-intl' | 'clinepass' | '' = ''
+  let codebuddyRegion: 'cn' | 'intl' | '' = ''
   let isEnterpriseAccount = false
   let awsKeyType: 'ak_sk' | 'api_key' = 'ak_sk'
   let awsApiType: 'invoke_model' | 'mantle' = 'invoke_model'
@@ -664,6 +670,10 @@ export function transformChannelToFormDefaults(
         parsed.endpoint_profile === 'coding-intl' ||
         parsed.endpoint_profile === 'clinepass'
           ? parsed.endpoint_profile
+          : ''
+      codebuddyRegion =
+        parsed.codebuddy_region === 'cn' || parsed.codebuddy_region === 'intl'
+          ? parsed.codebuddy_region
           : ''
       isEnterpriseAccount = parsed.openrouter_enterprise === true
       awsKeyType = parsed.aws_key_type || 'ak_sk'
@@ -743,6 +753,7 @@ export function transformChannelToFormDefaults(
     azure_responses_version: azureResponsesVersion,
     aws_key_type: awsKeyType,
     endpoint_profile: endpointProfile,
+    codebuddy_region: codebuddyRegion,
     aws_api_type: awsApiType,
     allow_service_tier: allowServiceTier,
     disable_store: disableStore,
@@ -879,6 +890,18 @@ function buildSettingsJSON(formData: ChannelFormValues): string {
     }
   } else if ('endpoint_profile' in settingsObj) {
     delete settingsObj.endpoint_profile
+  }
+
+  // CodeBuddy (93) access mode: a region marker written to settings only.
+  // Switching it never derives or rewrites base_url.
+  if (formData.type === CHANNEL_TYPE_CODEBUDDY) {
+    if (formData.codebuddy_region) {
+      settingsObj.codebuddy_region = formData.codebuddy_region
+    } else {
+      delete settingsObj.codebuddy_region
+    }
+  } else if ('codebuddy_region' in settingsObj) {
+    delete settingsObj.codebuddy_region
   }
 
   // Field passthrough controls:
