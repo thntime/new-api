@@ -13,7 +13,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -161,6 +160,7 @@ function RoutingPolicyEditor(props: { config: PolicyConfig }) {
         />
         <div className='min-w-0 space-y-4'>
           <AffinitySettings />
+          <FallbackChannelPool />
           <FormField
             control={form.control}
             name='channel_affinity_setting.rules'
@@ -205,21 +205,6 @@ function AffinitySettings() {
     control: form.control,
     name: 'channel_affinity_setting.enabled',
   })
-  // The fallback pool works with session affinity off, so this query and the
-  // field below must not depend on `enabled`.
-  const channelsQuery = useQuery({
-    queryKey: ['request-policy-fallback-channels'],
-    queryFn: fetchAllChannels,
-    staleTime: Infinity,
-  })
-  const channelOptions = useMemo(
-    () =>
-      (channelsQuery.data ?? []).map((channel) => ({
-        value: String(channel.id),
-        label: `#${channel.id} ${channel.name}`,
-      })),
-    [channelsQuery.data]
-  )
   return (
     <SettingsCard
       title={t('Session defaults')}
@@ -328,34 +313,6 @@ function AffinitySettings() {
           />
         )}
       />
-      <FormField
-        control={form.control}
-        name='channel_affinity_setting.fallback_channel_ids'
-        render={({ field }) => (
-          <FormItem className='mt-4'>
-            <FormLabel>{t('Fallback channels')}</FormLabel>
-            {channelsQuery.isPending ? (
-              <Skeleton className='h-10 w-full' />
-            ) : (
-              <FormControl>
-                <MultiSelect
-                  options={channelOptions}
-                  selected={field.value.map(String)}
-                  onChange={(values) => field.onChange(values.map(Number))}
-                  allowCreate={false}
-                  placeholder={t('Select fallback channels')}
-                />
-              </FormControl>
-            )}
-            <FormDescription>
-              {t(
-                'Tried in priority order after every normal candidate fails, even when session affinity is off.'
-              )}
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
       <Accordion className='mt-4'>
         <SettingsAccordion
           value='session-advanced'
@@ -400,6 +357,65 @@ function AffinitySettings() {
           </div>
         </SettingsAccordion>
       </Accordion>
+    </SettingsCard>
+  )
+}
+
+// Kept out of the session defaults card on purpose: the pool applies to every
+// request and no routing rule can inherit or override it.
+function FallbackChannelPool() {
+  const { t } = useTranslation()
+  const form = useFormContext<RoutingPolicyFormValues>()
+  // The fallback pool works with session affinity off, so this query and the
+  // field below must not depend on `enabled`.
+  const channelsQuery = useQuery({
+    queryKey: ['request-policy-fallback-channels'],
+    queryFn: fetchAllChannels,
+    staleTime: Infinity,
+  })
+  const channelOptions = useMemo(
+    () =>
+      (channelsQuery.data ?? []).map((channel) => ({
+        value: String(channel.id),
+        label: `#${channel.id} ${channel.name}`,
+      })),
+    [channelsQuery.data]
+  )
+  return (
+    <SettingsCard
+      title={t('Fallback channels')}
+      description={t(
+        'Applies to every request: tried in priority order after all normal candidates fail, even when session affinity is off. Routing rules do not inherit or override this pool.'
+      )}
+      className='shadow-none'
+    >
+      <FormField
+        control={form.control}
+        name='channel_affinity_setting.fallback_channel_ids'
+        render={({ field }) => (
+          <FormItem>
+            {/* The card title is the visible label; keep a screen-reader-only
+                label so the combobox keeps its accessible name. */}
+            <FormLabel className='sr-only'>
+              {t('Fallback channels')}
+            </FormLabel>
+            {channelsQuery.isPending ? (
+              <Skeleton className='h-10 w-full' />
+            ) : (
+              <FormControl>
+                <MultiSelect
+                  options={channelOptions}
+                  selected={field.value.map(String)}
+                  onChange={(values) => field.onChange(values.map(Number))}
+                  allowCreate={false}
+                  placeholder={t('Select fallback channels')}
+                />
+              </FormControl>
+            )}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </SettingsCard>
   )
 }

@@ -906,6 +906,18 @@ it('keeps the fallback channel pool editable while session affinity is disabled'
   expect(screen.getByText('#66 Fallback Beta')).toBeVisible()
 })
 
+it('keeps the fallback channel pool outside the session defaults card', async () => {
+  show()
+  const combobox = await screen.findByRole('combobox', {
+    name: 'Select fallback channels',
+  })
+  const sessionDefaultsCard = (
+    await screen.findByText('Session defaults')
+  ).closest('[data-slot="card"]')
+  expect(sessionDefaultsCard).not.toBeNull()
+  expect(sessionDefaultsCard).not.toContainElement(combobox)
+})
+
 it('leaves an unchanged fallback channel pool out of the save payload', async () => {
   const user = userEvent.setup()
   show()
