@@ -2707,6 +2707,8 @@
     "Fallback channel: {{name}}": "フォールバックチャネル: {{name}}",
     "Fallback channels": "フォールバックチャネル",
     "Fallback for remaining models": "残りのモデル用フォールバック",
+    "Fallback model": "フォールバックモデル",
+    "Excluded from normal priority routing; tried only after all regular channels fail, in priority order among fallback channels": "通常の優先度ルーティングの対象外です。通常のチャネルがすべて失敗した場合にのみ、フォールバックチャネル間で優先度順に試行されます",
     "Fallback must be last": "フォールバックは最後",
     "Fallback route": "フォールバックルート",
     "Fallback tier": "フォールバック段階",

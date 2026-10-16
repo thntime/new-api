@@ -2707,6 +2707,8 @@
     "Fallback channel: {{name}}": "Резервный канал: {{name}}",
     "Fallback channels": "Резервные каналы",
     "Fallback for remaining models": "Резерв для остальных моделей",
+    "Fallback model": "Резервная модель",
+    "Excluded from normal priority routing; tried only after all regular channels fail, in priority order among fallback channels": "Исключён из обычной маршрутизации по приоритету; используется только когда все обычные каналы недоступны, в порядке приоритета среди резервных каналов",
     "Fallback must be last": "Резервный маршрут последним",
     "Fallback route": "Резервный маршрут",
     "Fallback tier": "Резервный уровень",

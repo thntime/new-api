@@ -2707,6 +2707,8 @@
     "Fallback channel: {{name}}": "兜底渠道：{{name}}",
     "Fallback channels": "兜底渠道",
     "Fallback for remaining models": "留空匹配剩餘模型",
+    "Fallback model": "兜底模型",
+    "Excluded from normal priority routing; tried only after all regular channels fail, in priority order among fallback channels": "不參與正常優先級調度，僅在正常渠道全部失敗後，按自身優先級在兜底渠道中嘗試",
     "Fallback must be last": "兜底必須在最後",
     "Fallback route": "兜底路由",
     "Fallback tier": "兜底階梯",

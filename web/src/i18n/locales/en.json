@@ -2707,6 +2707,8 @@
     "Fallback channel: {{name}}": "Fallback channel: {{name}}",
     "Fallback channels": "Fallback channels",
     "Fallback for remaining models": "Fallback for remaining models",
+    "Fallback model": "Fallback model",
+    "Excluded from normal priority routing; tried only after all regular channels fail, in priority order among fallback channels": "Excluded from normal priority routing; tried only after all regular channels fail, in priority order among fallback channels",
     "Fallback must be last": "Fallback must be last",
     "Fallback route": "Fallback route",
     "Fallback tier": "Fallback tier",

@@ -273,6 +273,9 @@ export const channelFormSchema = z
     sort: z.number().optional(),
     test_model: z.string().optional(),
     auto_ban: z.number().optional(),
+    // Nested path mirrors the channel payload; the backend only merges
+    // is_fallback from this object so other channel_info keys are preserved.
+    channel_info: z.object({ is_fallback: z.boolean() }).optional(),
     status: z.number(),
     status_code_mapping: z
       .string()
@@ -525,6 +528,7 @@ export const CHANNEL_FORM_DEFAULT_VALUES: ChannelFormValues = {
   sort: 0,
   test_model: '',
   auto_ban: 1,
+  channel_info: { is_fallback: false },
   status: CHANNEL_STATUS.ENABLED,
   status_code_mapping: '',
   tag: '',
@@ -742,6 +746,7 @@ export function transformChannelToFormDefaults(
     other: channel.other || '',
     multi_key_mode: 'single',
     multi_key_type: channel.channel_info.multi_key_mode || 'random',
+    channel_info: { is_fallback: channel.channel_info.is_fallback },
     batch_add_set_key_prefix_2_name: false,
     key_mode: 'append', // Default to append mode for editing multi-key channels
     // Channel extra settings
@@ -1100,6 +1105,11 @@ export function transformFormDataToCreatePayload(formData: ChannelFormValues): {
     sort: formData.sort ?? null,
     test_model: formData.test_model || null,
     auto_ban: formData.auto_ban ?? 1,
+    // The backend only reads is_fallback here and keeps the stored
+    // ChannelInfo otherwise; the cast documents the intentional partial.
+    channel_info: {
+      is_fallback: formData.channel_info?.is_fallback ?? false,
+    } as Channel['channel_info'],
     status: formData.status,
     status_code_mapping: formData.status_code_mapping || null,
     tag: formData.tag || null,
@@ -1149,6 +1159,11 @@ export function transformFormDataToUpdatePayload(
     sort: formData.sort ?? 0,
     test_model: formData.test_model || null,
     auto_ban: formData.auto_ban ?? 1,
+    // The backend only reads is_fallback here and keeps the stored
+    // ChannelInfo otherwise; the cast documents the intentional partial.
+    channel_info: {
+      is_fallback: formData.channel_info?.is_fallback ?? false,
+    } as Channel['channel_info'],
     status_code_mapping: formData.status_code_mapping || null,
     tag: formData.tag || null,
     remark: formData.remark || '',

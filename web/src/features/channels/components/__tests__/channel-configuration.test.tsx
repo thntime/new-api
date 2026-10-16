@@ -2937,3 +2937,84 @@ test('AWS interface selection is disabled without sensitive channel write permis
     await screen.findByRole('combobox', { name: 'AWS API' })
   ).toBeDisabled()
 })
+
+function getFallbackModelSwitch(): HTMLElement {
+  const label = screen.getByText('Fallback model')
+  const control = label
+    .closest('[data-slot="form-item"]')
+    ?.querySelector('[role="switch"]')
+  if (!(control instanceof HTMLElement)) {
+    throw new Error('Expected fallback model switch control')
+  }
+  return control
+}
+
+test('editing a fallback-marked channel shows the fallback switch on and keeps is_fallback true on submit', async () => {
+  editingChannel = {
+    ...editingChannel,
+    channel_info: { ...editingChannel.channel_info, is_fallback: true },
+  }
+  const put = vi
+    .spyOn(api, 'put')
+    .mockResolvedValue({ data: { success: true } })
+  const user = userEvent.setup()
+  render(<ConfigurationHarness currentRow={editingChannel} />)
+  await screen.findByDisplayValue('Existing channel')
+  await user.click(screen.getByRole('tab', { name: /Routing & Mapping/ }))
+
+  expect(getFallbackModelSwitch()).toHaveAttribute('aria-checked', 'true')
+
+  await user.click(screen.getByRole('button', { name: 'Update Channel' }))
+  await waitFor(() => expect(put).toHaveBeenCalled())
+  expect(put.mock.calls[0]?.[1]).toMatchObject({
+    id: 42,
+    channel_info: { is_fallback: true },
+  })
+})
+
+test('turning the fallback switch off submits is_fallback false and clears the marking', async () => {
+  editingChannel = {
+    ...editingChannel,
+    channel_info: { ...editingChannel.channel_info, is_fallback: true },
+  }
+  const put = vi
+    .spyOn(api, 'put')
+    .mockResolvedValue({ data: { success: true } })
+  const user = userEvent.setup()
+  render(<ConfigurationHarness currentRow={editingChannel} />)
+  await screen.findByDisplayValue('Existing channel')
+  await user.click(screen.getByRole('tab', { name: /Routing & Mapping/ }))
+
+  const switchControl = getFallbackModelSwitch()
+  await user.click(switchControl)
+  expect(switchControl).not.toHaveAttribute('aria-checked', 'true')
+
+  await user.click(screen.getByRole('button', { name: 'Update Channel' }))
+  await waitFor(() => expect(put).toHaveBeenCalled())
+  expect(put.mock.calls[0]?.[1]).toMatchObject({
+    id: 42,
+    channel_info: { is_fallback: false },
+  })
+})
+
+test('turning the fallback switch on for a normal channel submits is_fallback true', async () => {
+  const put = vi
+    .spyOn(api, 'put')
+    .mockResolvedValue({ data: { success: true } })
+  const user = userEvent.setup()
+  render(<ConfigurationHarness currentRow={editingChannel} />)
+  await screen.findByDisplayValue('Existing channel')
+  await user.click(screen.getByRole('tab', { name: /Routing & Mapping/ }))
+
+  const switchControl = getFallbackModelSwitch()
+  expect(switchControl).not.toHaveAttribute('aria-checked', 'true')
+  await user.click(switchControl)
+  expect(switchControl).toHaveAttribute('aria-checked', 'true')
+
+  await user.click(screen.getByRole('button', { name: 'Update Channel' }))
+  await waitFor(() => expect(put).toHaveBeenCalled())
+  expect(put.mock.calls[0]?.[1]).toMatchObject({
+    id: 42,
+    channel_info: { is_fallback: true },
+  })
+})
