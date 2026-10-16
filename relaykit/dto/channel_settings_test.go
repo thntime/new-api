@@ -736,3 +736,15 @@ func TestChannelOtherSettingsValidateToolLossPolicy(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "tool_loss_policy")
 }
+
+func TestChannelOtherSettingsValidateCodeBuddyRegion(t *testing.T) {
+	require.NoError(t, (*ChannelOtherSettings)(nil).ValidateCodeBuddyRegion())
+	require.NoError(t, (&ChannelOtherSettings{}).ValidateCodeBuddyRegion())
+	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: "cn"}).ValidateCodeBuddyRegion())
+	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: "intl"}).ValidateCodeBuddyRegion())
+	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: " "}).ValidateCodeBuddyRegion())
+
+	err := (&ChannelOtherSettings{CodeBuddyRegion: "eu"}).ValidateCodeBuddyRegion()
+	require.Error(t, err)
+	assert.Equal(t, "invalid codebuddy_region: eu", err.Error())
+}
