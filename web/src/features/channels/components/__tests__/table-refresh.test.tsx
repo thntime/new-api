@@ -68,6 +68,7 @@ function channel(name: string): Channel {
       multi_key_size: 0,
       multi_key_polling_index: 0,
       multi_key_mode: 'random',
+      is_fallback: false,
     },
     settings: '{}',
   }

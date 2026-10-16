@@ -19,9 +19,9 @@ For commercial licensing, please contact support@quantumnous.com
 import { render, screen } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 
-import { SortCell, useChannelsColumns } from '../channels-columns'
 import type { TagRow } from '../../lib'
 import type { Channel } from '../../types'
+import { SortCell, useChannelsColumns } from '../channels-columns'
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>()
@@ -77,7 +77,9 @@ describe('SortCell', () => {
   test('renders an inline sort editor for a regular channel row', () => {
     render(<SortCell channel={createChannel({ sort: 5 })} />)
 
-    expect(screen.getByRole('button', { name: 'Increment' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Increment' })
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '5' })).toBeInTheDocument()
   })
 
@@ -92,19 +94,19 @@ describe('SortCell', () => {
 })
 
 describe('sort column definition', () => {
-  test('places the sort column right before the priority column', () => {
+  test('places the sort column right before the fallback column', () => {
     const getColumns = collectColumns()
     const columns = getColumns()
 
-    const priorityIndex = columns.findIndex(
-      (column) => 'accessorKey' in column && column.accessorKey === 'priority'
+    const fallbackIndex = columns.findIndex(
+      (column) => 'id' in column && column.id === 'fallback'
     )
     const sortIndex = columns.findIndex(
       (column) => 'accessorKey' in column && column.accessorKey === 'sort'
     )
 
     expect(sortIndex).toBeGreaterThanOrEqual(0)
-    expect(priorityIndex).toBe(sortIndex + 1)
+    expect(fallbackIndex).toBe(sortIndex + 1)
   })
 
   test('configures sortable header, mobile hidden and size', () => {

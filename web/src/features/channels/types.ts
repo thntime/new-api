@@ -30,6 +30,7 @@ export const channelInfoSchema = z.object({
   multi_key_disabled_time: z.record(z.string(), z.number()).optional(),
   multi_key_polling_index: z.number().default(0),
   multi_key_mode: z.enum(['random', 'polling']).default('random'),
+  is_fallback: z.boolean().default(false),
 })
 
 export type ChannelInfo = z.infer<typeof channelInfoSchema>
@@ -70,6 +71,7 @@ export const channelSchema = z.object({
     multi_key_size: 0,
     multi_key_polling_index: 0,
     multi_key_mode: 'random',
+    is_fallback: false,
   }),
   settings: z.string().default('{}'), // other_settings JSON
 })

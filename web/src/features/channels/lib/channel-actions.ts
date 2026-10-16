@@ -42,7 +42,7 @@ import {
   resetChannelBalance,
 } from '../api'
 import { CHANNEL_STATUS, ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants'
-import type { ChannelTestResponse, CopyChannelParams } from '../types'
+import type { Channel, ChannelTestResponse, CopyChannelParams } from '../types'
 
 // ============================================================================
 // Query Keys
@@ -223,6 +223,35 @@ export async function handleUpdateChannelField(
           field: fieldLabel,
           value,
         })
+      )
+      queryClient?.invalidateQueries({ queryKey: channelsQueryKeys.lists() })
+      onSuccess?.()
+    } else {
+      handleServerError(response, i18next.t(ERROR_MESSAGES.UPDATE_FAILED))
+    }
+  } catch (error) {
+    handleServerError(error, i18next.t(ERROR_MESSAGES.UPDATE_FAILED))
+  }
+}
+
+/**
+ * Toggle the fallback marker of a channel
+ */
+export async function handleToggleChannelFallback(
+  channel: Channel,
+  queryClient?: QueryClient,
+  onSuccess?: () => void
+): Promise<void> {
+  const next = !channel.channel_info?.is_fallback
+  try {
+    const response = await updateChannel(channel.id, {
+      channel_info: { ...channel.channel_info, is_fallback: next },
+    })
+    if (response.success) {
+      toast.success(
+        i18next.t(
+          next ? 'Marked as fallback channel' : 'Unmarked as fallback channel'
+        )
       )
       queryClient?.invalidateQueries({ queryKey: channelsQueryKeys.lists() })
       onSuccess?.()

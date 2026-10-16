@@ -55,7 +55,7 @@ import {
 import { formatTimestampToDate } from '@/lib/format'
 import { handleServerError } from '@/lib/handle-server-error'
 import { translateServerText } from '@/lib/server-error-message'
-import { truncateText } from '@/lib/utils'
+import { truncateText, cn } from '@/lib/utils'
 
 import {
   getClineUsage,
@@ -96,6 +96,7 @@ import {
   parseChannelSettings,
   channelsQueryKeys,
   handleUpdateChannelField,
+  handleToggleChannelFallback,
   handleUpdateTagField,
   createChannelFieldUpdateScheduler,
   isTagAggregateRow,
@@ -110,17 +111,21 @@ import { DataTableRowActions } from './data-table-row-actions'
 import { DataTableTagRowActions } from './data-table-tag-row-actions'
 import { BalanceQueryDialog } from './dialogs/balance-query-dialog'
 import {
-  CodexUsageDialog,
-  type CodexUsageDialogData,
-} from './dialogs/codex-usage-dialog'
-import {
   ClineUsageDialog,
   type ClineUsageResponse,
 } from './dialogs/cline-usage-dialog'
 import {
+  CodexUsageDialog,
+  type CodexUsageDialogData,
+} from './dialogs/codex-usage-dialog'
+import {
   CommandCodeUsageDialog,
   type CommandCodeUsageResponse,
 } from './dialogs/commandcode-usage-dialog'
+import {
+  MoonshotCodingPlanUsageDialog,
+  type MoonshotCodingPlanUsageResponse,
+} from './dialogs/moonshot-codingplan-usage-dialog'
 import {
   OpenCodeGoUsageDialog,
   type OpenCodeGoUsageResponse,
@@ -130,9 +135,9 @@ import {
   type RadeonCloudUsageResponse,
 } from './dialogs/radeoncloud-usage-dialog'
 import {
-  MoonshotCodingPlanUsageDialog,
-  type MoonshotCodingPlanUsageResponse,
-} from './dialogs/moonshot-codingplan-usage-dialog'
+  SenseNovaUsageDialog,
+  type SenseNovaUsageResponse,
+} from './dialogs/sensenova-usage-dialog'
 import {
   VolcCodingPlanUsageDialog,
   type VolcCodingPlanUsageResponse,
@@ -141,10 +146,6 @@ import {
   ZhipuCodingPlanUsageDialog,
   type ZhipuCodingPlanUsageResponse,
 } from './dialogs/zhipu-codingplan-usage-dialog'
-import {
-  SenseNovaUsageDialog,
-  type SenseNovaUsageResponse,
-} from './dialogs/sensenova-usage-dialog'
 import { NumericSpinnerInput } from './numeric-spinner-input'
 
 function parseIonetMeta(otherInfo: string | null | undefined): null | {
@@ -393,6 +394,45 @@ function TagWeightCell({ channel }: { channel: TagRow }) {
 }
 
 /**
+ * Fallback marker cell: a toggle button showing a filled dot for fallback
+ * channels and a hollow ring otherwise.
+ */
+export function FallbackCell({ channel }: { channel: Channel }) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+
+  if (isTagAggregateRow(channel)) {
+    return null
+  }
+
+  const isFallback = channel.channel_info?.is_fallback ?? false
+
+  return (
+    <Button
+      variant='ghost'
+      size='icon-xs'
+      aria-pressed={isFallback}
+      aria-label={
+        isFallback
+          ? t('Fallback channel: {{name}}', { name: channel.name })
+          : t('Not a fallback channel: {{name}}', { name: channel.name })
+      }
+      onClick={() => void handleToggleChannelFallback(channel, queryClient)}
+    >
+      <span
+        aria-hidden='true'
+        className={cn(
+          'h-3 w-3 rounded-full',
+          isFallback
+            ? 'bg-success'
+            : 'border-muted-foreground/50 border-2 bg-transparent'
+        )}
+      />
+    </Button>
+  )
+}
+
+/**
  * Inline balance/used values longer than this switch to locale-aware compact
  * notation (e.g. "$28万"); the precise value stays available in the tooltip.
  */
@@ -436,7 +476,8 @@ export function BalanceCell({ channel }: { channel: Channel }) {
     useState(false)
   const [moonshotCodingPlanUsageResponse, setMoonshotCodingPlanUsageResponse] =
     useState<MoonshotCodingPlanUsageResponse | null>(null)
-  const [zhipuCodingPlanUsageOpen, setZhipuCodingPlanUsageOpen] = useState(false)
+  const [zhipuCodingPlanUsageOpen, setZhipuCodingPlanUsageOpen] =
+    useState(false)
   const [zhipuCodingPlanUsageResponse, setZhipuCodingPlanUsageResponse] =
     useState<ZhipuCodingPlanUsageResponse | null>(null)
   const [radeonCloudUsageOpen, setRadeonCloudUsageOpen] = useState(false)
@@ -462,7 +503,8 @@ export function BalanceCell({ channel }: { channel: Channel }) {
     parseChannelOtherSettings(channel.settings).endpoint_profile === 'coding'
   const isZhipuCodingPlan =
     channel.type === 26 &&
-    (parseChannelOtherSettings(channel.settings).endpoint_profile === 'coding' ||
+    (parseChannelOtherSettings(channel.settings).endpoint_profile ===
+      'coding' ||
       parseChannelOtherSettings(channel.settings).endpoint_profile ===
         'coding-intl')
   const isRadeonCloud = channel.type === CHANNEL_TYPE_RADEON_CLOUD
@@ -1207,8 +1249,8 @@ export function useChannelsColumns(
             </div>
           )
         },
-        size: 260,
-        minSize: 200,
+        size: 234,
+        minSize: 180,
       },
 
       // Type column
@@ -1350,7 +1392,7 @@ export function useChannelsColumns(
           }
           return value.includes(String(row.getValue(id)))
         },
-        size: 220,
+        size: 198,
         enableSorting: false,
       },
 
@@ -1541,7 +1583,7 @@ export function useChannelsColumns(
           const groupArray = parseGroupsList(group)
           return groupArray.some((g) => value.includes(g))
         },
-        size: 150,
+        size: 135,
         enableSorting: false,
       },
 
@@ -1576,6 +1618,18 @@ export function useChannelsColumns(
         meta: { mobileHidden: true },
         cell: ({ row }) => <SortCell channel={row.original} />,
         size: 100,
+      },
+
+      // Fallback column
+      {
+        id: 'fallback',
+        accessorFn: (row) => row.channel_info?.is_fallback ?? false,
+        header: t('Fallback'),
+        meta: { mobileHidden: true },
+        cell: ({ row }) => <FallbackCell channel={row.original} />,
+        size: 72,
+        minSize: 56,
+        enableSorting: false,
       },
 
       // Priority column
