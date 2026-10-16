@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
@@ -395,6 +396,27 @@ func TestMidjourneyPolicyAcceptance(t *testing.T) {
 	}
 }
 
+// seedAffinityFallbackChannel inserts one enabled channel and marks it as a
+// fallback channel, so affinity isolation is exercised through the persisted
+// marker. The row is removed on cleanup.
+func seedAffinityFallbackChannel(t *testing.T, id int) {
+	t.Helper()
+	priority := int64(6)
+	channel := &model.Channel{
+		Id:       id,
+		Type:     constant.ChannelTypeOpenAI,
+		Key:      fmt.Sprintf("key-%d", id),
+		Name:     fmt.Sprintf("channel-%d", id),
+		Status:   common.ChannelStatusEnabled,
+		Group:    "default",
+		Models:   "affinity-fallback-model",
+		Priority: &priority,
+	}
+	require.NoError(t, model.DB.Create(channel).Error)
+	t.Cleanup(func() { require.NoError(t, model.DB.Where("id = ?", id).Delete(&model.Channel{}).Error) })
+	markFallbackChannels(t, []int{id})
+}
+
 // A fallback-pool channel must not be written into the affinity cache even when
 // it is the channel that finished the request, including when SwitchOnSuccess
 // resolves the final channel from the context.
@@ -407,7 +429,7 @@ func TestRecordChannelAffinitySkipsFallbackChannel(t *testing.T) {
 	t.Cleanup(func() { *setting = previous })
 	setting.Enabled = true
 	setting.SwitchOnSuccess = true
-	setting.FallbackChannelIDs = []int{6066}
+	seedAffinityFallbackChannel(t, 6066)
 
 	cacheKeySuffix := fmt.Sprintf("fallback-affinity-%d", time.Now().UnixNano())
 	cache := getChannelAffinityCache()
@@ -440,7 +462,7 @@ func TestRecordChannelAffinityStillWritesNormalChannel(t *testing.T) {
 	t.Cleanup(func() { *setting = previous })
 	setting.Enabled = true
 	setting.SwitchOnSuccess = true
-	setting.FallbackChannelIDs = []int{6066}
+	seedAffinityFallbackChannel(t, 6066)
 
 	cacheKeySuffix := fmt.Sprintf("normal-affinity-%d", time.Now().UnixNano())
 	cache := getChannelAffinityCache()
@@ -470,7 +492,7 @@ func TestRememberDescentAnchorSkipsFallbackChannel(t *testing.T) {
 	require.NotNil(t, setting)
 	previous := *setting
 	t.Cleanup(func() { *setting = previous })
-	setting.FallbackChannelIDs = []int{6066}
+	seedAffinityFallbackChannel(t, 6066)
 
 	priority := int64(30)
 

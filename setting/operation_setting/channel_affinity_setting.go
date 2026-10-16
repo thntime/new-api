@@ -1,8 +1,6 @@
 package operation_setting
 
 import (
-	"slices"
-
 	"github.com/QuantumNous/new-api/setting/config"
 )
 
@@ -48,7 +46,9 @@ type ChannelAffinitySetting struct {
 	DefaultTTLSeconds     int    `json:"default_ttl_seconds"`
 	// Global fallback switch. Off disables the fallback pool everywhere.
 	FallbackEnabled bool `json:"fallback_enabled"`
-	// Global fallback channel pool, independent of Enabled and of any affinity rule.
+	// Legacy global fallback channel pool. Retained so configurations that still
+	// carry the key keep loading; pool membership now comes from each channel's
+	// channel_info.is_fallback marker.
 	FallbackChannelIDs []int                 `json:"fallback_channel_ids"`
 	Rules              []ChannelAffinityRule `json:"rules"`
 }
@@ -173,14 +173,4 @@ func init() {
 
 func GetChannelAffinitySetting() *ChannelAffinitySetting {
 	return &channelAffinitySetting
-}
-
-// GetFallbackChannelIDs returns the global fallback channel pool; empty means no fallback.
-func GetFallbackChannelIDs() []int {
-	return channelAffinitySetting.FallbackChannelIDs
-}
-
-// IsFallbackChannel reports whether the channel belongs to the global fallback pool.
-func IsFallbackChannel(channelID int) bool {
-	return slices.Contains(channelAffinitySetting.FallbackChannelIDs, channelID)
 }

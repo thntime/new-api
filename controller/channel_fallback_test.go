@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -36,7 +37,6 @@ func setupFallbackStageTest(t *testing.T) (*gorm.DB, *gin.Context) {
 	originalDB := model.DB
 	originalMemoryCacheEnabled := common.MemoryCacheEnabled
 	originalRetryTimes := common.RetryTimes
-	originalFallbackIDs := operation_setting.GetChannelAffinitySetting().FallbackChannelIDs
 
 	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))), &gorm.Config{})
 	require.NoError(t, err)
@@ -49,7 +49,6 @@ func setupFallbackStageTest(t *testing.T) (*gorm.DB, *gin.Context) {
 		model.DB = originalDB
 		common.MemoryCacheEnabled = originalMemoryCacheEnabled
 		common.RetryTimes = originalRetryTimes
-		operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = originalFallbackIDs
 		if originalMemoryCacheEnabled && originalDB != nil && originalDB.Migrator().HasTable(&model.Channel{}) {
 			model.InitChannelCache()
 		}
@@ -89,6 +88,25 @@ func createFallbackStageChannel(t *testing.T, db *gorm.DB, id int, group, modelN
 	}).Error)
 }
 
+// markFallbackChannels marks exactly the given channels as fallback channels and
+// refreshes the memory channel cache; nil or an empty slice marks none. The full
+// ChannelInfo is loaded before the marker is written so other channel_info keys
+// survive.
+func markFallbackChannels(t *testing.T, ids []int) {
+	t.Helper()
+	var channels []model.Channel
+	require.NoError(t, model.DB.Find(&channels).Error)
+	for i := range channels {
+		marked := slices.Contains(ids, channels[i].Id)
+		if channels[i].ChannelInfo.IsFallback == marked {
+			continue
+		}
+		channels[i].ChannelInfo.IsFallback = marked
+		require.NoError(t, channels[i].SaveChannelInfo())
+	}
+	model.InitChannelCache()
+}
+
 func fallbackPolicyReasons(events []service.PolicyEvent) []string {
 	reasons := make([]string, 0, len(events))
 	for _, event := range events {
@@ -101,7 +119,7 @@ func fallbackPolicyReasons(events []service.PolicyEvent) []string {
 // when no fallback pool is configured: no attempt, no event, no stage entry.
 func TestRunFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
 	_, c := setupFallbackStageTest(t)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
+	markFallbackChannels(t, nil)
 
 	calls := 0
 	result := runFallbackStage(c, "default", "fallback-empty-pool-model", func(channel *model.Channel) (*types.NewAPIError, bool) {
@@ -121,7 +139,7 @@ func TestRunFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
 func TestRunFallbackStageRecordsExhaustedWhenNoEligibleLayer(t *testing.T) {
 	db, c := setupFallbackStageTest(t)
 	createFallbackStageChannel(t, db, 55, "default", "fallback-other-model", 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{55}
+	markFallbackChannels(t, []int{55})
 	model.InitChannelCache()
 
 	calls := 0
@@ -143,7 +161,7 @@ func TestRunFallbackStageTriesLayersInPriorityOrder(t *testing.T) {
 	const modelName = "fallback-order-model"
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
 	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	var tried []int
@@ -167,7 +185,7 @@ func TestRunFallbackStageStopsAfterFirstSuccess(t *testing.T) {
 	const modelName = "fallback-success-model"
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
 	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	var tried []int
@@ -189,7 +207,7 @@ func TestRunFallbackStageStopsOnAbortWithoutRetryEvent(t *testing.T) {
 	const modelName = "fallback-abort-model"
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
 	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	calls := 0
@@ -216,7 +234,7 @@ func TestTaskFallbackFailureReportsLastAttemptError(t *testing.T) {
 	const modelName = "task-fallback-wiring-model"
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
 	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	c.Set("channel_id", 999)
@@ -293,15 +311,13 @@ func TestFallbackSequenceMatchesSpecExample(t *testing.T) {
 		KeySources:  []operation_setting.ChannelAffinityKeySource{{Type: "request_header", Key: "X-Session"}},
 		SessionMode: "inherit",
 	}}
-	fallbackPool := []int{66, 55}
-	affinity.FallbackChannelIDs = fallbackPool
-
 	// One channel per normal priority layer, so each layer selects deterministically.
 	for _, priority := range []int64{50, 40, 30, 20, 10} {
 		createFallbackStageChannel(t, db, int(priority), "default", modelName, priority)
 	}
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
 	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
+	markFallbackChannels(t, []int{66, 55})
 	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
 	model.InitChannelCache()
 
@@ -381,7 +397,7 @@ func TestNormalSuccessNeverTouchesFallback(t *testing.T) {
 
 	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	markFallbackChannels(t, []int{66})
 	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
 	model.InitChannelCache()
 	prepareFallbackRelayRequest(c, modelName)
@@ -421,7 +437,7 @@ func TestPinnedRequestDoesNotEnterFallback(t *testing.T) {
 
 	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	markFallbackChannels(t, []int{66})
 	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
 	model.InitChannelCache()
 	prepareFallbackRelayRequest(c, modelName)
@@ -465,7 +481,7 @@ func TestSingleFallbackChannelIsTried(t *testing.T) {
 
 	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
 	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	markFallbackChannels(t, []int{66})
 	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
 	model.InitChannelCache()
 	prepareFallbackRelayRequest(c, modelName)
@@ -493,7 +509,7 @@ func TestDistributorEmptyNormalPoolRecordsSingleFallbackExhausted(t *testing.T) 
 	db, c := setupFallbackStageTest(t)
 	// The pool member serves another model, so the pool cannot serve this request.
 	createFallbackStageChannel(t, db, 55, "default", "fallback-distributor-other-model", 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{55}
+	markFallbackChannels(t, []int{55})
 	model.InitChannelCache()
 	prepareFallbackRelayRequest(c, modelName)
 
@@ -581,8 +597,7 @@ func TestAutoGroupsRunFallbackOnceAfterAllGroups(t *testing.T) {
 	affinity.Enabled = false
 
 	run := func(pool []int) []string {
-		affinity.FallbackChannelIDs = pool
-		model.InitChannelCache()
+		markFallbackChannels(t, pool)
 
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)

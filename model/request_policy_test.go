@@ -219,6 +219,4 @@ func TestFallbackOptionsRoundTrip(t *testing.T) {
 	loadOptionsFromDatabase()
 	require.Equal(t, []int{66, 55}, CurrentRequestPolicy().Affinity.FallbackChannelIDs, "fallback pool survives a reload")
 	require.False(t, CurrentRequestPolicy().Affinity.FallbackEnabled, "the fallback switch survives a reload")
-	require.True(t, operation_setting.IsFallbackChannel(66))
-	require.False(t, operation_setting.IsFallbackChannel(999))
 }

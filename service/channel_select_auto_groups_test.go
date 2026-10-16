@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -389,21 +390,30 @@ func TestSelectChannelForRequestDescentAnchorFromAffinityHit(t *testing.T) {
 	assert.Equal(t, ids[2], next.Id, "重试应从锚点层的下一层推进，而不是回到最高层")
 }
 
-// withFallbackChannelIDs installs a global fallback pool for the test and
-// restores the previous setting on cleanup.
-func withFallbackChannelIDs(t *testing.T, ids []int) {
+// markFallbackChannels marks exactly the given channels as fallback channels and
+// refreshes the memory channel cache; nil or an empty slice marks none. The full
+// ChannelInfo is loaded before the marker is written so other channel_info keys
+// survive.
+func markFallbackChannels(t *testing.T, ids []int) {
 	t.Helper()
-	setting := operation_setting.GetChannelAffinitySetting()
-	original := setting.FallbackChannelIDs
-	setting.FallbackChannelIDs = ids
-	t.Cleanup(func() { setting.FallbackChannelIDs = original })
+	var channels []model.Channel
+	require.NoError(t, model.DB.Find(&channels).Error)
+	for i := range channels {
+		marked := slices.Contains(ids, channels[i].Id)
+		if channels[i].ChannelInfo.IsFallback == marked {
+			continue
+		}
+		channels[i].ChannelInfo.IsFallback = marked
+		require.NoError(t, channels[i].SaveChannelInfo())
+	}
+	model.InitChannelCache()
 }
 
 func TestNextFallbackChannelAdvancesLayerPointer(t *testing.T) {
 	const modelName = "fallback-advance-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8101, []int64{30, 20, 10})
-	withFallbackChannelIDs(t, ids)
+	markFallbackChannels(t, ids)
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -424,7 +434,7 @@ func TestNextFallbackChannelReturnsNilWhenExhausted(t *testing.T) {
 	const modelName = "fallback-exhausted-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8201, []int64{30, 20})
-	withFallbackChannelIDs(t, ids)
+	markFallbackChannels(t, ids)
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -443,7 +453,7 @@ func TestNextFallbackChannelWithoutPoolReturnsNil(t *testing.T) {
 	db := setupChannelSelectAutoGroupsTest(t)
 	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8301, []int64{30})
 	require.NotEmpty(t, ids)
-	withFallbackChannelIDs(t, nil)
+	markFallbackChannels(t, nil)
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -453,12 +463,33 @@ func TestNextFallbackChannelWithoutPoolReturnsNil(t *testing.T) {
 	assert.Nil(t, NextFallbackChannel(nil, "default", modelName), "nil 上下文必须返回 nil")
 }
 
+// The pool is open only when the global switch is on and at least one enabled
+// channel carries the fallback marker.
+func TestHasFallbackChannelsFollowsMarkerAndGlobalSwitch(t *testing.T) {
+	const modelName = "has-fallback-marker-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8351, []int64{30})
+	require.NotEmpty(t, ids)
+
+	markFallbackChannels(t, nil)
+	assert.False(t, HasFallbackChannels(), "no marked channel must not open the pool")
+
+	markFallbackChannels(t, ids)
+	assert.True(t, HasFallbackChannels())
+
+	setting := operation_setting.GetChannelAffinitySetting()
+	previous := setting.FallbackEnabled
+	setting.FallbackEnabled = false
+	t.Cleanup(func() { setting.FallbackEnabled = previous })
+	assert.False(t, HasFallbackChannels(), "the global fallback switch off must close the pool")
+}
+
 func TestFallbackGroupResolution(t *testing.T) {
 	const modelName = "fallback-group-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	vipIDs := createPriorityLayeredChannels(t, db, "vip", modelName, 8401, []int64{30})
 	defaultIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8411, []int64{30})
-	withFallbackChannelIDs(t, append(append([]int{}, vipIDs...), defaultIDs...))
+	markFallbackChannels(t, slices.Concat(vipIDs, defaultIDs))
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -512,7 +543,7 @@ func TestSelectChannelForRequestUsesFallbackWhenStrictAffinityUnavailable(t *tes
 	const modelName = "strict-fallback-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8601, []int64{30})
-	withFallbackChannelIDs(t, fallbackIDs)
+	markFallbackChannels(t, fallbackIDs)
 	model.InitChannelCache()
 
 	ctx := installStrictAffinityRule(t, modelName, "strict-fallback", fmt.Sprintf("strict-fallback-%d", time.Now().UnixNano()), 999999)
@@ -530,7 +561,7 @@ func TestSelectChannelForRequestUsesFallbackWhenNormalPoolEmpty(t *testing.T) {
 	const modelName = "empty-pool-fallback-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8701, []int64{30})
-	withFallbackChannelIDs(t, fallbackIDs)
+	markFallbackChannels(t, fallbackIDs)
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -550,7 +581,7 @@ func TestSelectChannelForRequestContinuesFallbackStage(t *testing.T) {
 	db := setupChannelSelectAutoGroupsTest(t)
 	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8801, []int64{30, 20})
 	normalIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8851, []int64{30})
-	withFallbackChannelIDs(t, fallbackIDs)
+	markFallbackChannels(t, fallbackIDs)
 	model.InitChannelCache()
 
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -579,7 +610,7 @@ func TestSelectChannelForRequestKeeps503WithoutFallbackPool(t *testing.T) {
 	const modelName = "strict-no-fallback-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	createPriorityLayeredChannels(t, db, "default", modelName, 8901, []int64{30})
-	withFallbackChannelIDs(t, nil)
+	markFallbackChannels(t, nil)
 	model.InitChannelCache()
 
 	ctx := installStrictAffinityRule(t, modelName, "strict-no-fallback", fmt.Sprintf("strict-no-fallback-%d", time.Now().UnixNano()), 999999)
@@ -604,7 +635,7 @@ func TestFallbackExhaustedEventRecorded(t *testing.T) {
 		// The pool member exists but serves another model, so HasFallbackChannels
 		// is true while no fallback layer is eligible for this request.
 		createPriorityLayeredChannels(t, db, "default", "fallback-other-model", 9101, []int64{30})
-		withFallbackChannelIDs(t, []int{9101})
+		markFallbackChannels(t, []int{9101})
 		model.InitChannelCache()
 
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -625,7 +656,7 @@ func TestFallbackExhaustedEventRecorded(t *testing.T) {
 		const modelName = "fallback-exhausted-no-pool-model"
 		db := setupChannelSelectAutoGroupsTest(t)
 		createPriorityLayeredChannels(t, db, "default", "fallback-other-model", 9201, []int64{30})
-		withFallbackChannelIDs(t, nil)
+		markFallbackChannels(t, nil)
 		model.InitChannelCache()
 
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -661,7 +692,7 @@ func TestStrictAffinityUnavailableRecordsFallbackExhausted(t *testing.T) {
 		// The pool member serves another model, so HasFallbackChannels is true
 		// while no fallback layer is eligible for this request.
 		createPriorityLayeredChannels(t, db, "default", "strict-other-model", 9401, []int64{30})
-		withFallbackChannelIDs(t, []int{9401})
+		markFallbackChannels(t, []int{9401})
 		model.InitChannelCache()
 
 		ctx := installStrictAffinityRule(t, modelName, "strict-exhausted", fmt.Sprintf("strict-exhausted-%d", time.Now().UnixNano()), 999999)
@@ -680,7 +711,7 @@ func TestStrictAffinityUnavailableRecordsFallbackExhausted(t *testing.T) {
 		const modelName = "strict-no-pool-exhausted-model"
 		db := setupChannelSelectAutoGroupsTest(t)
 		createPriorityLayeredChannels(t, db, "default", "strict-other-model", 9501, []int64{30})
-		withFallbackChannelIDs(t, nil)
+		markFallbackChannels(t, nil)
 		model.InitChannelCache()
 
 		ctx := installStrictAffinityRule(t, modelName, "strict-no-pool-exhausted", fmt.Sprintf("strict-no-pool-exhausted-%d", time.Now().UnixNano()), 999999)
@@ -702,7 +733,7 @@ func TestDescentRingUnchangedWithoutFallbackPool(t *testing.T) {
 	const modelName = "descent-no-fallback-model"
 	db := setupChannelSelectAutoGroupsTest(t)
 	ids := createPriorityLayeredChannels(t, db, "default", modelName, 9301, []int64{30, 20, 10})
-	withFallbackChannelIDs(t, nil)
+	markFallbackChannels(t, nil)
 	model.InitChannelCache()
 
 	param := descentTestContext(t, modelName, "default")

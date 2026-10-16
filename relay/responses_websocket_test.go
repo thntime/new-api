@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -705,7 +706,6 @@ func setupResponsesWSFallbackTest(t *testing.T) (*gorm.DB, *gin.Context) {
 	originalMemoryCacheEnabled := common.MemoryCacheEnabled
 	originalRetryTimes := common.RetryTimes
 	originalErrorLogEnabled := constant.ErrorLogEnabled
-	originalFallbackIDs := operation_setting.GetChannelAffinitySetting().FallbackChannelIDs
 
 	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))), &gorm.Config{})
 	require.NoError(t, err)
@@ -722,7 +722,6 @@ func setupResponsesWSFallbackTest(t *testing.T) (*gorm.DB, *gin.Context) {
 		common.MemoryCacheEnabled = originalMemoryCacheEnabled
 		common.RetryTimes = originalRetryTimes
 		constant.ErrorLogEnabled = originalErrorLogEnabled
-		operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = originalFallbackIDs
 		if originalMemoryCacheEnabled && originalDB != nil && originalDB.Migrator().HasTable(&model.Channel{}) {
 			model.InitChannelCache()
 		}
@@ -736,6 +735,25 @@ func setupResponsesWSFallbackTest(t *testing.T) (*gorm.DB, *gin.Context) {
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil)
 	return db, c
+}
+
+// markFallbackChannels marks exactly the given channels as fallback channels and
+// refreshes the memory channel cache; nil or an empty slice marks none. The full
+// ChannelInfo is loaded before the marker is written so other channel_info keys
+// survive.
+func markFallbackChannels(t *testing.T, ids []int) {
+	t.Helper()
+	var channels []model.Channel
+	require.NoError(t, model.DB.Find(&channels).Error)
+	for i := range channels {
+		marked := slices.Contains(ids, channels[i].Id)
+		if channels[i].ChannelInfo.IsFallback == marked {
+			continue
+		}
+		channels[i].ChannelInfo.IsFallback = marked
+		require.NoError(t, channels[i].SaveChannelInfo())
+	}
+	model.InitChannelCache()
 }
 
 func createResponsesWSFallbackChannel(t *testing.T, db *gorm.DB, id int, group, modelName string, priority int64) {
@@ -781,7 +799,7 @@ func countResponsesWSFallbackReasons(reasons []string, want string) int {
 func TestRunResponsesWSFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
 	require.NoError(t, i18n.Init())
 	_, c := setupResponsesWSFallbackTest(t)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
+	markFallbackChannels(t, nil)
 
 	calls := 0
 	result := runResponsesWSFallbackStage(c, "fallback-empty-pool-model", responsesWSFallbackRetryParam(c, "fallback-empty-pool-model"), responsesWSFallbackRelayInfo("fallback-empty-pool-model"), func(channel *model.Channel) (*types.NewAPIError, bool) {
@@ -802,7 +820,7 @@ func TestRunResponsesWSFallbackStageRecordsExhaustedWhenNoEligibleLayer(t *testi
 	require.NoError(t, i18n.Init())
 	db, c := setupResponsesWSFallbackTest(t)
 	createResponsesWSFallbackChannel(t, db, 55, "default", "fallback-other-model", 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{55}
+	markFallbackChannels(t, []int{55})
 	model.InitChannelCache()
 
 	calls := 0
@@ -825,7 +843,7 @@ func TestRunResponsesWSFallbackStageTriesLayersInPriorityOrder(t *testing.T) {
 	const modelName = "ws-fallback-order-model"
 	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
 	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	var tried []int
@@ -851,7 +869,7 @@ func TestRunResponsesWSFallbackStageStopsAfterFirstSuccess(t *testing.T) {
 	const modelName = "ws-fallback-success-model"
 	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
 	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	var tried []int
@@ -875,7 +893,7 @@ func TestRunResponsesWSFallbackStageStopsOnNonDialFailure(t *testing.T) {
 	const modelName = "ws-fallback-nondial-model"
 	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
 	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	markFallbackChannels(t, []int{66, 55})
 	model.InitChannelCache()
 
 	var tried []int
@@ -919,7 +937,6 @@ func setupResponsesWSRunCallTest(t *testing.T) (*gorm.DB, *gin.Context) {
 	originalLogConsumeEnabled := common.LogConsumeEnabled
 	originalCountToken := constant.CountToken
 	originalErrorLogEnabled := constant.ErrorLogEnabled
-	originalFallbackIDs := operation_setting.GetChannelAffinitySetting().FallbackChannelIDs
 	originalRatios := ratio_setting.ModelRatio2JSONString()
 	originalFreeModelPreConsume := operation_setting.GetQuotaSetting().EnableFreeModelPreConsume
 
@@ -943,7 +960,6 @@ func setupResponsesWSRunCallTest(t *testing.T) (*gorm.DB, *gin.Context) {
 		common.LogConsumeEnabled = originalLogConsumeEnabled
 		constant.CountToken = originalCountToken
 		constant.ErrorLogEnabled = originalErrorLogEnabled
-		operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = originalFallbackIDs
 		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(originalRatios))
 		operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = originalFreeModelPreConsume
 		if originalMemoryCacheEnabled && originalDB != nil && originalDB.Migrator().HasTable(&model.Channel{}) {
@@ -1043,7 +1059,7 @@ func TestResponsesWSRetriesWithFallbackChannel(t *testing.T) {
 	// Port 1 refuses connections, so the normal channel always fails to dial.
 	createResponsesWSRunCallChannel(t, db, 11, "http://127.0.0.1:1", 10)
 	createResponsesWSRunCallChannel(t, db, 22, upstream.URL, 5)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{22}
+	markFallbackChannels(t, []int{22})
 	model.InitChannelCache()
 
 	session := newResponsesWSRunCallSession(t)
@@ -1069,7 +1085,7 @@ func TestResponsesWSRetriesWithFallbackChannel(t *testing.T) {
 func TestResponsesWSWithoutFallbackPoolUnchanged(t *testing.T) {
 	require.NoError(t, i18n.Init())
 	db, c := setupResponsesWSRunCallTest(t)
-	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
+	markFallbackChannels(t, nil)
 	createResponsesWSRunCallChannel(t, db, 11, "http://127.0.0.1:1", 10)
 	model.InitChannelCache()
 

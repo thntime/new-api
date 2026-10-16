@@ -192,6 +192,29 @@ func TestUpstreamAddressesMaskOnlyConfiguredAddresses(t *testing.T) {
 	}
 }
 
+// seedFallbackPoolChannels inserts enabled channels into the shared test
+// database and marks them as fallback channels, so a retry-policy case runs with
+// a real configured pool. The rows are removed on cleanup.
+func seedFallbackPoolChannels(t *testing.T, ids ...int) {
+	t.Helper()
+	for _, id := range ids {
+		priority := int64(6)
+		channel := &model.Channel{
+			Id:       id,
+			Type:     constant.ChannelTypeOpenAI,
+			Key:      fmt.Sprintf("key-%d", id),
+			Name:     fmt.Sprintf("fallback-%d", id),
+			Status:   common.ChannelStatusEnabled,
+			Group:    "default",
+			Models:   "retry-policy-model",
+			Priority: &priority,
+		}
+		require.NoError(t, model.DB.Create(channel).Error)
+	}
+	t.Cleanup(func() { require.NoError(t, model.DB.Where("id IN ?", ids).Delete(&model.Channel{}).Error) })
+	markFallbackChannels(t, ids)
+}
+
 func TestDecideRelayRetryReasons(t *testing.T) {
 	upstream := func(status int) *types.NewAPIError {
 		return types.NewOpenAIError(errors.New("upstream"), types.ErrorCodeBadResponseStatusCode, status)
@@ -223,15 +246,15 @@ func TestDecideRelayRetryReasons(t *testing.T) {
 		{name: "strict session without fallback pool", err: upstream(http.StatusTooManyRequests), retries: 1, setup: func(c *gin.Context) {
 			c.Set(ginKeyChannelAffinitySkipRetry, true)
 			RequestPolicy(c).SessionModeSource = "global"
-			withFallbackChannelIDs(t, nil)
+			markFallbackChannels(t, nil)
 		}, want: PolicyDecision{Action: "stop", Reason: "strict_session", Source: "global"}},
 		{name: "strict session with fallback pool still stops at policy layer", err: upstream(http.StatusTooManyRequests), retries: 1, setup: func(c *gin.Context) {
 			c.Set(ginKeyChannelAffinitySkipRetry, true)
 			RequestPolicy(c).SessionModeSource = "global"
-			withFallbackChannelIDs(t, []int{1, 2})
+			seedFallbackPoolChannels(t, 8801, 8802)
 		}, want: PolicyDecision{Action: "stop", Reason: "strict_session", Source: "global"}},
 		{name: "attempt budget exhausted without fallback pool", err: upstream(http.StatusTooManyRequests), retries: 0, setup: func(c *gin.Context) {
-			withFallbackChannelIDs(t, nil)
+			markFallbackChannels(t, nil)
 		}, want: PolicyDecision{Action: "stop", Reason: "attempt_budget_exhausted", Source: "global"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

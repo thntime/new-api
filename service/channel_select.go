@@ -13,7 +13,6 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/gin-gonic/gin"
 )
 
@@ -461,7 +460,7 @@ func AppendUsedChannel(c *gin.Context, channelID int) {
 
 // HasFallbackChannels reports whether a global fallback channel pool is configured.
 func HasFallbackChannels() bool {
-	return len(operation_setting.GetFallbackChannelIDs()) > 0
+	return model.HasFallbackChannels()
 }
 
 // FallbackStageActive reports whether this request has already entered the
