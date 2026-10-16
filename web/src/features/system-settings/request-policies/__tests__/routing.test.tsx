@@ -57,24 +57,40 @@ beforeEach(() => {
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   currentOptions = { ...options }
-  vi.spyOn(api, 'get').mockImplementation(async (url) => ({
-    data: {
-      success: true,
-      data:
-        url === '/api/option/request_policy'
-          ? {
-              options: currentOptions,
-            }
-          : {
-              enabled: true,
-              total: 2,
-              unknown: 0,
-              by_rule_name: { 'Session rule': 2 },
-              cache_capacity: 100000,
-              cache_algo: 'lru',
-            },
-    },
-  }))
+  vi.spyOn(api, 'get').mockImplementation(async (url) => {
+    if (url === '/api/option/request_policy') {
+      return { data: { success: true, data: { options: currentOptions } } }
+    }
+    if (url === '/api/channel') {
+      return {
+        data: {
+          success: true,
+          data: {
+            items: [
+              { id: 55, name: 'Fallback Alpha' },
+              { id: 66, name: 'Fallback Beta' },
+            ],
+            total: 2,
+            page: 1,
+            page_size: 1000,
+          },
+        },
+      }
+    }
+    return {
+      data: {
+        success: true,
+        data: {
+          enabled: true,
+          total: 2,
+          unknown: 0,
+          by_rule_name: { 'Session rule': 2 },
+          cache_capacity: 100000,
+          cache_algo: 'lru',
+        },
+      },
+    }
+  })
   vi.spyOn(api, 'patch').mockImplementation(async (_url, request) => {
     currentOptions = {
       ...currentOptions,
@@ -842,3 +858,64 @@ it.each([
     expect(api.patch).not.toHaveBeenCalled()
   }
 )
+
+it('saves the fallback channel pool as a compact JSON array string', async () => {
+  const user = userEvent.setup()
+  show()
+  const input = await screen.findByRole('combobox', {
+    name: 'Select fallback channels',
+  })
+  await user.click(input)
+  await user.click(screen.getByRole('option', { name: '#66 Fallback Beta' }))
+  await user.click(screen.getByRole('option', { name: '#55 Fallback Alpha' }))
+  await user.keyboard('{Escape}')
+  expect(screen.getByText('#66 Fallback Beta')).toBeVisible()
+  expect(screen.getByText('#55 Fallback Alpha')).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Save Changes' }))
+  await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(1))
+  expect(vi.mocked(api.patch).mock.calls[0][1]).toEqual({
+    options: { 'channel_affinity_setting.fallback_channel_ids': '[66,55]' },
+  })
+})
+
+it('loads the stored fallback channel pool into the selector', async () => {
+  currentOptions = {
+    ...options,
+    'channel_affinity_setting.fallback_channel_ids': '[66,55]',
+  }
+  show()
+  expect(await screen.findByLabelText('Fallback channels')).toBeEnabled()
+  expect(await screen.findByText('#66 Fallback Beta')).toBeVisible()
+  expect(screen.getByText('#55 Fallback Alpha')).toBeVisible()
+})
+
+it('keeps the fallback channel pool editable while session affinity is disabled', async () => {
+  const user = userEvent.setup()
+  currentOptions = {
+    ...options,
+    'channel_affinity_setting.enabled': 'false',
+  }
+  show()
+  const input = await screen.findByRole('combobox', {
+    name: 'Select fallback channels',
+  })
+  expect(input).toBeEnabled()
+  await user.click(input)
+  await user.click(screen.getByRole('option', { name: '#66 Fallback Beta' }))
+  await user.keyboard('{Escape}')
+  expect(screen.getByText('#66 Fallback Beta')).toBeVisible()
+})
+
+it('leaves an unchanged fallback channel pool out of the save payload', async () => {
+  const user = userEvent.setup()
+  show()
+  fireEvent.change(
+    await screen.findByRole('spinbutton', { name: 'Maximum retries' }),
+    { target: { value: '5' } }
+  )
+  await user.click(screen.getByRole('button', { name: 'Save Changes' }))
+  await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(1))
+  expect(vi.mocked(api.patch).mock.calls[0][1]).toEqual({
+    options: { RetryTimes: '5' },
+  })
+})

@@ -7,11 +7,13 @@ import { toast } from 'sonner'
 
 import { ErrorState } from '@/components/error-state'
 import { LoadingState } from '@/components/loading-state'
+import { MultiSelect } from '@/components/multi-select'
 import { Accordion } from '@/components/ui/accordion'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,8 +22,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Skeleton } from '@/components/ui/skeleton'
+import { getChannels } from '@/features/channels/api'
+import type { Channel } from '@/features/channels/types'
 import { handleServerError } from '@/lib/handle-server-error'
 import { parseHttpStatusCodeRules } from '@/lib/http-status-code-rules'
+import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { SettingsAccordion } from '../components/settings-accordion'
 import { SettingsCard } from '../components/settings-card'
@@ -37,11 +43,30 @@ import { policyLabel } from './policy-label'
 import { RetrySection } from './retry-section'
 import {
   createRoutingPolicySchema,
+  parseFallbackChannelIds,
   routingPolicyFormValues,
   routingPolicyOptions,
   type RoutingPolicyFormValues,
 } from './routing-form'
 import { useSavePolicy } from './use-save-policy'
+
+// The picker offers every channel, so it walks the paginated channel list
+// (1000 per request) instead of showing only the first page.
+async function fetchAllChannels(): Promise<Channel[]> {
+  const pageSize = 1000
+  const first = requireServerSuccess(
+    await getChannels({ p: 1, page_size: pageSize })
+  )
+  const items = first.data?.items ?? []
+  const pages = Math.ceil((first.data?.total ?? items.length) / pageSize)
+  for (let p = 2; p <= pages; p++) {
+    const page = requireServerSuccess(
+      await getChannels({ p, page_size: pageSize })
+    )
+    items.push(...(page.data?.items ?? []))
+  }
+  return items
+}
 
 export function RoutingPolicySection() {
   const { t } = useTranslation()
@@ -100,6 +125,14 @@ function RoutingPolicyEditor(props: { config: PolicyConfig }) {
         }
         if (key === 'AutomaticRetryStatusCodes') {
           return value !== parseHttpStatusCodeRules(previous).normalized
+        }
+        if (key === 'channel_affinity_setting.fallback_channel_ids') {
+          // The server omits the key until the pool is first saved, so compare
+          // the parsed pools instead of the raw option strings.
+          return (
+            JSON.stringify(parseFallbackChannelIds(value)) !==
+            JSON.stringify(parseFallbackChannelIds(previous))
+          )
         }
         return value !== previous
       })
@@ -172,6 +205,21 @@ function AffinitySettings() {
     control: form.control,
     name: 'channel_affinity_setting.enabled',
   })
+  // The fallback pool works with session affinity off, so this query and the
+  // field below must not depend on `enabled`.
+  const channelsQuery = useQuery({
+    queryKey: ['request-policy-fallback-channels'],
+    queryFn: fetchAllChannels,
+    staleTime: Infinity,
+  })
+  const channelOptions = useMemo(
+    () =>
+      (channelsQuery.data ?? []).map((channel) => ({
+        value: String(channel.id),
+        label: `#${channel.id} ${channel.name}`,
+      })),
+    [channelsQuery.data]
+  )
   return (
     <SettingsCard
       title={t('Session defaults')}
@@ -278,6 +326,34 @@ function AffinitySettings() {
             )}
             description={t('Otherwise the binding is removed.')}
           />
+        )}
+      />
+      <FormField
+        control={form.control}
+        name='channel_affinity_setting.fallback_channel_ids'
+        render={({ field }) => (
+          <FormItem className='mt-4'>
+            <FormLabel>{t('Fallback channels')}</FormLabel>
+            {channelsQuery.isPending ? (
+              <Skeleton className='h-10 w-full' />
+            ) : (
+              <FormControl>
+                <MultiSelect
+                  options={channelOptions}
+                  selected={field.value.map(String)}
+                  onChange={(values) => field.onChange(values.map(Number))}
+                  allowCreate={false}
+                  placeholder={t('Select fallback channels')}
+                />
+              </FormControl>
+            )}
+            <FormDescription>
+              {t(
+                'Tried in priority order after every normal candidate fails, even when session affinity is off.'
+              )}
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
         )}
       />
       <Accordion className='mt-4'>

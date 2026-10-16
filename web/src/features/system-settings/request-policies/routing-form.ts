@@ -35,6 +35,7 @@ export function createRoutingPolicySchema(t: TFunction) {
           })
         }
       }),
+      fallback_channel_ids: z.array(z.number().int().positive()),
     }),
   })
 }
@@ -42,6 +43,21 @@ export function createRoutingPolicySchema(t: TFunction) {
 export type RoutingPolicyFormValues = z.infer<
   ReturnType<typeof createRoutingPolicySchema>
 >
+
+// Stored as a compact JSON array string and `[]` (or an absent key) when unset;
+// anything that is not a list of positive ids is treated as an empty pool.
+export function parseFallbackChannelIds(value: string | undefined): number[] {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(value || '[]')
+  } catch {
+    return []
+  }
+  if (!Array.isArray(parsed)) return []
+  return parsed.filter(
+    (id) => typeof id === 'number' && Number.isInteger(id) && id > 0
+  )
+}
 
 export function routingPolicyFormValues(
   options: Record<string, string>
@@ -62,6 +78,9 @@ export function routingPolicyFormValues(
         options['channel_affinity_setting.default_ttl_seconds']
       ),
       rules: options['channel_affinity_setting.rules'] || '[]',
+      fallback_channel_ids: parseFallbackChannelIds(
+        options['channel_affinity_setting.fallback_channel_ids']
+      ),
     },
   }
 }
@@ -77,6 +96,10 @@ export function routingPolicyOptions(
         `channel_affinity_setting.${key}`,
         String(value),
       ])
+    ),
+    // The pool is a JSON array on the wire; `String` would produce "1,2".
+    'channel_affinity_setting.fallback_channel_ids': JSON.stringify(
+      values.channel_affinity_setting.fallback_channel_ids
     ),
   }
 }
