@@ -11,12 +11,15 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
 	taskdto "github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/i18n"
+	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relay"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
@@ -241,6 +244,89 @@ func TestTaskFallbackFailureReportsLastAttemptError(t *testing.T) {
 	assert.Equal(t, "channel-55-failed", taskErr.Code, "the reported error must be the last fallback attempt")
 	require.NotNil(t, relayInfo.LastError)
 	assert.Equal(t, "channel-55-failed", relayInfo.LastError.Error(), "relayInfo.LastError must agree with the reported error")
+}
+
+// TestFallbackSequenceMatchesSpecExample drives one fully failing request
+// through the real relay loop and asserts the spec's example attempt order:
+// 50 -> 40 -> 30 -> 20 -> 10 -> 50 (descent wrap-around) -> 66 -> 55 (fallback
+// pool, its own priorities). The order is only reachable when the descent anchor
+// is established by the production selection path, so the request is primed
+// exactly like the distributor does.
+func TestFallbackSequenceMatchesSpecExample(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-sequence-model"
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, c := setupFallbackStageTest(t)
+	common.RetryTimes = 5
+
+	// A free model keeps billing preparation from reserving quota, and disabling
+	// the log paths keeps the fixture to channels and abilities only.
+	originalRatios := ratio_setting.ModelRatio2JSONString()
+	require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(fmt.Sprintf(`{%q:0}`, modelName)))
+	originalLogConsume, originalErrorLog, originalCountToken := common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken
+	common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken = false, false, false
+	originalFreeModelPreConsume := operation_setting.GetQuotaSetting().EnableFreeModelPreConsume
+	operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = false
+	t.Cleanup(func() {
+		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(originalRatios))
+		common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken = originalLogConsume, originalErrorLog, originalCountToken
+		operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = originalFreeModelPreConsume
+	})
+
+	// descent is resolved into the request only through a matching affinity rule,
+	// so the global mode needs an inheriting rule and a key source value.
+	affinity := operation_setting.GetChannelAffinitySetting()
+	originalAffinity := *affinity
+	t.Cleanup(func() { *affinity = originalAffinity })
+	affinity.Enabled = true
+	affinity.SessionMode = "descent"
+	affinity.Rules = []operation_setting.ChannelAffinityRule{{
+		Name:        "session",
+		ModelRegex:  []string{".*"},
+		KeySources:  []operation_setting.ChannelAffinityKeySource{{Type: "request_header", Key: "X-Session"}},
+		SessionMode: "inherit",
+	}}
+	fallbackPool := []int{66, 55}
+	affinity.FallbackChannelIDs = fallbackPool
+
+	// One channel per normal priority layer, so each layer selects deterministically.
+	for _, priority := range []int64{50, 40, 30, 20, 10} {
+		createFallbackStageChannel(t, db, int(priority), "default", modelName, priority)
+	}
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+	model.InitChannelCache()
+
+	body := `{"model":"` + modelName + `","messages":[{"role":"user","content":"hi"}]}`
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Request.Header.Set("X-Session", t.Name())
+	common.SetContextKey(c, constant.ContextKeyUsingGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyUserGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyTokenGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyUserId, 1)
+	common.SetContextKey(c, constant.ContextKeyTokenId, 1)
+
+	// Production selection: this remembers the descent anchor (priority 50) before
+	// the relay loop starts, which is what makes the wrap-around 10 -> 50 happen.
+	selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+		Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+	})
+	require.Nil(t, selectErr)
+	require.NotNil(t, selected)
+	require.Equal(t, 50, selected.Id)
+	require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+	Relay(c, types.RelayFormatOpenAI)
+
+	assert.Equal(t, []string{"50", "40", "30", "20", "10", "50", "66", "55"}, c.GetStringSlice("use_channel"))
 }
 
 func countReasons(reasons []string, want string) int {
