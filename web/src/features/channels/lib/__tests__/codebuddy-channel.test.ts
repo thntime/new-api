@@ -46,8 +46,8 @@ function codebuddyForm(overrides: Record<string, unknown> = {}) {
   }
 }
 
-describe('CodeBuddy channel', () => {
-  test('registers the channel type, ordering, model discovery, and icon metadata', () => {
+describe('CodeBuddy channel registration', () => {
+  test('registers the type, display order, model discovery, and presentation', () => {
     expect(CHANNEL_TYPE_CODEBUDDY).toBe(93)
     expect(CHANNEL_TYPES[CHANNEL_TYPE_CODEBUDDY]).toBe('CodeBuddy')
     expect(
@@ -56,16 +56,23 @@ describe('CodeBuddy channel', () => {
       )
     ).toStrictEqual({ value: CHANNEL_TYPE_CODEBUDDY, label: 'CodeBuddy' })
     expect(MODEL_FETCHABLE_TYPES.has(CHANNEL_TYPE_CODEBUDDY)).toBe(true)
-    expect(getChannelTypeIcon(CHANNEL_TYPE_CODEBUDDY)).toBe('CodeBuddy')
     expect(
       CHANNEL_PROVIDER_PRESENTATION[CHANNEL_TYPE_CODEBUDDY]?.descriptionKey
     ).toBe('Connect to CodeBuddy model services')
   })
+})
 
+describe('CodeBuddy default base URL', () => {
   test('declares no default base URL', () => {
     expect(
       CHANNEL_TYPE_DEFAULTS[CHANNEL_TYPE_CODEBUDDY]?.base_url
     ).toBeUndefined()
+  })
+})
+
+describe('CodeBuddy icon key', () => {
+  test('maps the channel type to the CodeBuddy lobe icon', () => {
+    expect(getChannelTypeIcon(CHANNEL_TYPE_CODEBUDDY)).toBe('CodeBuddy')
   })
 })
 
