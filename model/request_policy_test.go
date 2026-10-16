@@ -144,3 +144,52 @@ func TestRequestPolicyDatabaseMatrix(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestPolicyAcceptsFallbackChannelIDs(t *testing.T) {
+	options := map[string]string{"channel_affinity_setting.fallback_channel_ids": "[66,55]"}
+	snapshot, err := BuildRequestPolicy(options)
+	require.NoError(t, err)
+	require.Equal(t, []int{66, 55}, snapshot.Affinity.FallbackChannelIDs)
+}
+
+func TestRequestPolicyRejectsMalformedFallbackChannelIDs(t *testing.T) {
+	options := map[string]string{"channel_affinity_setting.fallback_channel_ids": `["a"]`}
+	_, err := BuildRequestPolicy(options)
+	require.Error(t, err)
+}
+
+func TestFallbackChannelIDsRoundTrip(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{NamingStrategy: schema.NamingStrategy{TablePrefix: "policy_test_"}})
+	require.NoError(t, err)
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+	previousDB, previousSnapshot := DB, CurrentRequestPolicy()
+	common.OptionMapRWMutex.Lock()
+	previousOptions := maps.Clone(common.OptionMap)
+	common.OptionMap = maps.Clone(previousSnapshot.Options)
+	common.OptionMapRWMutex.Unlock()
+	DB = db
+	t.Cleanup(func() {
+		require.NoError(t, db.Migrator().DropTable(&Option{}))
+		for k, v := range previousSnapshot.Options {
+			require.NoError(t, updateOptionMap(k, v))
+		}
+		requestPolicySnapshot.Store(previousSnapshot)
+		common.OptionMapRWMutex.Lock()
+		common.OptionMap = previousOptions
+		common.OptionMapRWMutex.Unlock()
+		DB = previousDB
+		require.NoError(t, sqlDB.Close())
+	})
+	require.NoError(t, db.AutoMigrate(&Option{}))
+
+	require.NoError(t, UpdateRequestPolicyOptions(map[string]string{"channel_affinity_setting.fallback_channel_ids": "[66,55]"}))
+	require.Equal(t, []int{66, 55}, CurrentRequestPolicy().Affinity.FallbackChannelIDs)
+
+	loadOptionsFromDatabase()
+	loadOptionsFromDatabase()
+	require.Equal(t, []int{66, 55}, CurrentRequestPolicy().Affinity.FallbackChannelIDs, "fallback pool survives a reload")
+	require.True(t, operation_setting.IsFallbackChannel(66))
+	require.False(t, operation_setting.IsFallbackChannel(999))
+}

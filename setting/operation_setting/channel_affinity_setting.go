@@ -1,6 +1,10 @@
 package operation_setting
 
-import "github.com/QuantumNous/new-api/setting/config"
+import (
+	"slices"
+
+	"github.com/QuantumNous/new-api/setting/config"
+)
 
 type ChannelAffinityKeySource struct {
 	Type string `json:"type"` // context_int, context_string, request_header, gjson
@@ -37,12 +41,14 @@ type ChannelAffinitySetting struct {
 	// Default for rules with SessionMode "inherit". Empty defaults to "prefer".
 	// "descent" prefers the original channel, then descends one priority layer at a
 	// time and wraps around from the lowest layer back to the highest.
-	SessionMode           string                `json:"session_mode"`
-	SwitchOnSuccess       bool                  `json:"switch_on_success"`
-	KeepOnChannelDisabled bool                  `json:"keep_on_channel_disabled"`
-	MaxEntries            int                   `json:"max_entries"`
-	DefaultTTLSeconds     int                   `json:"default_ttl_seconds"`
-	Rules                 []ChannelAffinityRule `json:"rules"`
+	SessionMode           string `json:"session_mode"`
+	SwitchOnSuccess       bool   `json:"switch_on_success"`
+	KeepOnChannelDisabled bool   `json:"keep_on_channel_disabled"`
+	MaxEntries            int    `json:"max_entries"`
+	DefaultTTLSeconds     int    `json:"default_ttl_seconds"`
+	// Global fallback channel pool, independent of Enabled and of any affinity rule.
+	FallbackChannelIDs []int                 `json:"fallback_channel_ids"`
+	Rules              []ChannelAffinityRule `json:"rules"`
 }
 
 // Keep Codex CLI passthrough aligned with upstream. Codex uses lower-case
@@ -164,4 +170,14 @@ func init() {
 
 func GetChannelAffinitySetting() *ChannelAffinitySetting {
 	return &channelAffinitySetting
+}
+
+// GetFallbackChannelIDs returns the global fallback channel pool; empty means no fallback.
+func GetFallbackChannelIDs() []int {
+	return channelAffinitySetting.FallbackChannelIDs
+}
+
+// IsFallbackChannel reports whether the channel belongs to the global fallback pool.
+func IsFallbackChannel(channelID int) bool {
+	return slices.Contains(channelAffinitySetting.FallbackChannelIDs, channelID)
 }
