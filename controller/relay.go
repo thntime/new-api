@@ -104,6 +104,34 @@ func renderErrorResponseOverride(c *gin.Context, newAPIError *types.NewAPIError,
 	return true
 }
 
+// runFallbackStage drives the fallback channel pool after the normal attempts are
+// exhausted. It returns nil when an attempt succeeded, or the last attempt error.
+func runFallbackStage(c *gin.Context, tokenGroup, modelName string, attempt func(*model.Channel) *types.NewAPIError) *types.NewAPIError {
+	if !service.HasFallbackChannels() {
+		return nil
+	}
+	service.EnterFallbackStage(c)
+	var lastErr *types.NewAPIError
+	attempts := 0
+	for {
+		channel := service.NextFallbackChannel(c, tokenGroup, modelName)
+		if channel == nil {
+			break
+		}
+		attempts++
+		err := attempt(channel)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		service.RecordPolicyFailure(c, channel.Id, err, service.PolicyDecision{Action: "retry", Reason: "fallback_retry", Source: "global"})
+	}
+	if attempts == 0 {
+		service.RequestPolicy(c).AddEvent(service.PolicyEvent{Decision: service.PolicyDecision{Action: "stop", Reason: "fallback_exhausted", Source: "global"}})
+	}
+	return lastErr
+}
+
 func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 
 	requestId := c.GetString(common.RequestIdKey)
@@ -198,45 +226,48 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 	relayInfo.RetryIndex = 0
 	relayInfo.LastError = nil
 
-	for ; retryParam.GetRetry() <= common.RetryTimes; retryParam.IncreaseRetry() {
+	// attempt runs one full channel attempt: it resets the per-attempt state,
+	// prepares billing and the request body, and dispatches by relay format.
+	attempt := func(channel *model.Channel) *types.NewAPIError {
 		relayInfo.StreamStatus = nil
 		relayInfo.PerformanceBusinessRejection = false
 		relayInfo.PerformanceOutputTokens = 0
 		relayInfo.RetryIndex = retryParam.GetRetry()
-		channel, channelErr := getChannel(c, relayInfo, retryParam)
-		if channelErr != nil {
-			logger.LogError(c, channelErr.Error())
-			newAPIError = channelErr
-			break
-		}
 		service.AppendUsedChannel(c, channel.Id)
 		if billingErr := service.PrepareTieredBillingForSelectedGroup(c, relayInfo); billingErr != nil {
-			newAPIError = billingErr
-			break
+			return billingErr
 		}
 
 		bodyStorage, bodyErr := common.GetBodyStorage(c)
 		if bodyErr != nil {
 			// Ensure consistent 413 for oversized bodies even when error occurs later (e.g., retry path)
 			if common.IsRequestBodyTooLargeError(bodyErr) || errors.Is(bodyErr, common.ErrRequestBodyTooLarge) {
-				newAPIError = types.NewErrorWithStatusCode(bodyErr, types.ErrorCodeReadRequestBodyFailed, http.StatusRequestEntityTooLarge, types.ErrOptionWithSkipRetry())
-			} else {
-				newAPIError = types.NewErrorWithStatusCode(bodyErr, types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
+				return types.NewErrorWithStatusCode(bodyErr, types.ErrorCodeReadRequestBodyFailed, http.StatusRequestEntityTooLarge, types.ErrOptionWithSkipRetry())
 			}
-			break
+			return types.NewErrorWithStatusCode(bodyErr, types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 		}
 		c.Request.Body = io.NopCloser(bodyStorage)
 
 		switch relayFormat {
 		case types.RelayFormatOpenAIRealtime:
-			newAPIError = relay.WssHelper(c, relayInfo)
+			return relay.WssHelper(c, relayInfo)
 		case types.RelayFormatClaude:
-			newAPIError = relay.ClaudeHelper(c, relayInfo)
+			return relay.ClaudeHelper(c, relayInfo)
 		case types.RelayFormatGemini:
-			newAPIError = geminiRelayHandler(c, relayInfo)
+			return geminiRelayHandler(c, relayInfo)
 		default:
-			newAPIError = relayHandler(c, relayInfo)
+			return relayHandler(c, relayInfo)
 		}
+	}
+
+	for ; retryParam.GetRetry() <= common.RetryTimes; retryParam.IncreaseRetry() {
+		channel, channelErr := getChannel(c, relayInfo, retryParam)
+		if channelErr != nil {
+			logger.LogError(c, channelErr.Error())
+			newAPIError = channelErr
+			break
+		}
+		newAPIError = attempt(channel)
 
 		if newAPIError == nil {
 			service.MarkRequestPolicySuccess(c, relayInfo.StreamStatus)
@@ -253,6 +284,39 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 
 		if decision.Action != "retry" {
 			break
+		}
+	}
+
+	// The fallback stage runs once after the normal attempts stop. A channel pin
+	// means "this channel only", so it never enters the fallback pool (design D8).
+	if newAPIError != nil && !service.GetChannelConstraints(c).SuppressesRetry() {
+		// RetryIndex stays at the normal stage's final value; the fallback stage
+		// is not a retry and must not advance it.
+		fallbackRetryIndex := relayInfo.RetryIndex
+		fallbackAttempt := func(channel *model.Channel) *types.NewAPIError {
+			relayInfo.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, relayInfo)
+			service.RequestPolicy(c).BeginAttempt(channel, service.FallbackGroup(c, retryParam.TokenGroup))
+			if setupErr := middleware.SetupContextForSelectedChannel(c, channel, relayInfo.OriginModelName); setupErr != nil {
+				return setupErr
+			}
+			err := attempt(channel)
+			relayInfo.RetryIndex = fallbackRetryIndex
+			if err == nil {
+				service.MarkRequestPolicySuccess(c, relayInfo.StreamStatus)
+				relayInfo.LastError = nil
+				newAPIError = nil
+				return nil
+			}
+			newAPIError = service.NormalizeViolationFeeError(err)
+			relayInfo.LastError = newAPIError
+			processChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, common.GetContextKeyString(c, constant.ContextKeyChannelKey), channel.GetAutoBan()), newAPIError, relayInfo)
+			return newAPIError
+		}
+		if fallbackErr := runFallbackStage(c, retryParam.TokenGroup, retryParam.ModelName, fallbackAttempt); fallbackErr != nil {
+			newAPIError = fallbackErr
+		}
+		if newAPIError == nil {
+			return
 		}
 	}
 
@@ -545,6 +609,26 @@ func executeTaskSubmissionWith(
 		Retry:       common.GetPointer(0),
 	}
 
+	// attempt runs one submission attempt: plugin diagnostics, usage accounting,
+	// the request body, and the submit call itself.
+	attempt := func(channel *model.Channel) *taskdto.TaskError {
+		diagnostics.attempt(retryParam.GetRetry()+1, channel, relayInfo.LockedChannel != nil)
+		service.AppendUsedChannel(c, channel.Id)
+		bodyStorage, bodyErr := common.GetBodyStorage(c)
+		if bodyErr != nil {
+			stage = "read_body"
+			if common.IsRequestBodyTooLargeError(bodyErr) || errors.Is(bodyErr, common.ErrRequestBodyTooLarge) {
+				return service.TaskErrorWrapperLocal(bodyErr, "read_request_body_failed", http.StatusRequestEntityTooLarge)
+			}
+			return service.TaskErrorWrapperLocal(bodyErr, "read_request_body_failed", http.StatusBadRequest)
+		}
+		c.Request.Body = io.NopCloser(bodyStorage)
+
+		stage = "submit"
+		result, taskErr = submit(c, relayInfo)
+		return taskErr
+	}
+
 	for ; retryParam.GetRetry() <= common.RetryTimes; retryParam.IncreaseRetry() {
 		stage = "select_channel"
 		if requestErr := c.Request.Context().Err(); requestErr != nil {
@@ -572,23 +656,8 @@ func executeTaskSubmissionWith(
 				break
 			}
 		}
-		diagnostics.attempt(retryParam.GetRetry()+1, channel, relayInfo.LockedChannel != nil)
+		taskErr = attempt(channel)
 
-		service.AppendUsedChannel(c, channel.Id)
-		bodyStorage, bodyErr := common.GetBodyStorage(c)
-		if bodyErr != nil {
-			stage = "read_body"
-			if common.IsRequestBodyTooLargeError(bodyErr) || errors.Is(bodyErr, common.ErrRequestBodyTooLarge) {
-				taskErr = service.TaskErrorWrapperLocal(bodyErr, "read_request_body_failed", http.StatusRequestEntityTooLarge)
-			} else {
-				taskErr = service.TaskErrorWrapperLocal(bodyErr, "read_request_body_failed", http.StatusBadRequest)
-			}
-			break
-		}
-		c.Request.Body = io.NopCloser(bodyStorage)
-
-		stage = "submit"
-		result, taskErr = submit(c, relayInfo)
 		if requestErr := c.Request.Context().Err(); requestErr != nil {
 			diagnostics.cancelled("after_submit", retryParam.GetRetry()+1)
 			taskErr = service.TaskErrorWrapperLocal(requestErr, "request_cancelled", http.StatusRequestTimeout)
@@ -616,6 +685,38 @@ func executeTaskSubmissionWith(
 		if !willRetry {
 			break
 		}
+	}
+
+	// The fallback stage runs once after the normal attempts stop. A locked
+	// channel or a channel pin means "this channel only", so neither enters the
+	// fallback pool. A successful fallback clears taskErr and the existing tail
+	// persists and settles the task; on failure the normal-stage error is kept.
+	if taskErr != nil && relayInfo.LockedChannel == nil && !service.GetChannelConstraints(c).SuppressesRetry() {
+		fallbackAttempt := func(channel *model.Channel) *types.NewAPIError {
+			relayInfo.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, relayInfo)
+			policy.BeginAttempt(channel, service.FallbackGroup(c, retryParam.TokenGroup))
+			if setupErr := middleware.SetupContextForSelectedChannel(c, channel, relayInfo.OriginModelName); setupErr != nil {
+				return setupErr
+			}
+			err := attempt(channel)
+			if err == nil {
+				taskErr = nil
+				diagnostics.attemptSucceeded(retryParam.GetRetry()+1, result)
+				return nil
+			}
+			apiErr := taskSubmissionAPIError(err)
+			relayInfo.LastError = apiErr
+			diagnostics.attemptFailed(retryParam.GetRetry()+1, channel, err, false)
+			if !err.LocalError {
+				processChannelError(c,
+					*types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey,
+						common.GetContextKeyString(c, constant.ContextKeyChannelKey), channel.GetAutoBan()),
+					apiErr,
+					relayInfo)
+			}
+			return apiErr
+		}
+		runFallbackStage(c, retryParam.TokenGroup, retryParam.ModelName, fallbackAttempt)
 	}
 
 	useChannel := c.GetStringSlice("use_channel")
