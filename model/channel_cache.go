@@ -209,27 +209,113 @@ func GetFallbackChannel(
 	return pickWeightedChannel(targetChannels), nil
 }
 
-// excludeFallbackChannels drops global fallback pool members from normal
-// candidates. The input slice is never mutated; an empty pool returns it as is.
+// excludeFallbackChannels drops fallback-marked channels from normal candidates.
+// The input slice is never mutated. Callers must hold channelSyncLock.
 func excludeFallbackChannels(ids []int) []int {
-	if len(ids) == 0 || len(operation_setting.GetFallbackChannelIDs()) == 0 {
+	if len(ids) == 0 {
 		return ids
 	}
 	kept := make([]int, 0, len(ids))
 	for _, id := range ids {
-		if !operation_setting.IsFallbackChannel(id) {
+		if !isFallbackChannelLocked(id) {
 			kept = append(kept, id)
 		}
 	}
 	return kept
 }
 
-// fallbackPoolMembers keeps only global fallback pool members. The input slice
-// is never mutated.
+// fallbackPoolMembers keeps only fallback-marked channels. The input slice is
+// never mutated. Callers must hold channelSyncLock.
 func fallbackPoolMembers(ids []int) []int {
 	return slices.DeleteFunc(slices.Clone(ids), func(id int) bool {
-		return !operation_setting.IsFallbackChannel(id)
+		return !isFallbackChannelLocked(id)
 	})
+}
+
+func fallbackEnabled() bool {
+	return operation_setting.GetChannelAffinitySetting().FallbackEnabled
+}
+
+// isFallbackChannelLocked reports whether the cached channel is an active
+// fallback channel. Callers must hold channelSyncLock (read or write).
+func isFallbackChannelLocked(channelID int) bool {
+	if !fallbackEnabled() {
+		return false
+	}
+	channel, ok := channelsIDM[channelID]
+	return ok && channel.ChannelInfo.IsFallback
+}
+
+// IsFallbackChannel reports whether the channel is marked as a fallback channel.
+// A non-positive id, the global fallback switch off, or an unknown channel all
+// yield false. The marker lives in the channel's own ChannelInfo, so the global
+// option array is no longer consulted.
+func IsFallbackChannel(channelID int) bool {
+	if channelID <= 0 {
+		return false
+	}
+	if !common.MemoryCacheEnabled {
+		if !fallbackEnabled() {
+			return false
+		}
+		flags, err := fallbackFlagsByIDs([]int{channelID})
+		if err != nil {
+			return false
+		}
+		return flags[channelID]
+	}
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+	return isFallbackChannelLocked(channelID)
+}
+
+// HasFallbackChannels reports whether the global switch is on and at least one
+// channel carries the fallback marker.
+func HasFallbackChannels() bool {
+	if !fallbackEnabled() {
+		return false
+	}
+	if !common.MemoryCacheEnabled {
+		// shortcut: without the memory cache this scans every enabled channel once.
+		// HasFallbackChannels is a low-frequency guard, not a per-request path, so
+		// the scan is acceptable; add an indexed marker column if that changes.
+		var channels []Channel
+		if err := DB.Select("id", "channel_info").Where("status = ?", common.ChannelStatusEnabled).Find(&channels).Error; err != nil {
+			return false
+		}
+		for i := range channels {
+			if channels[i].ChannelInfo.IsFallback {
+				return true
+			}
+		}
+		return false
+	}
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+	for _, channel := range channelsIDM {
+		if channel.ChannelInfo.IsFallback {
+			return true
+		}
+	}
+	return false
+}
+
+// fallbackFlagsByIDs reports which of the given channel ids carry the fallback
+// marker, using a single IN query. Ids absent from the table are absent from the
+// map, which reads as false.
+func fallbackFlagsByIDs(ids []int) (map[int]bool, error) {
+	flags := make(map[int]bool, len(ids))
+	if len(ids) == 0 {
+		return flags, nil
+	}
+	var channels []Channel
+	if err := DB.Select("id", "channel_info").Where("id IN ?", ids).Find(&channels).Error; err != nil {
+		return nil, err
+	}
+	for i := range channels {
+		flags[channels[i].Id] = channels[i].ChannelInfo.IsFallback
+	}
+	return flags, nil
 }
 
 func getRandomSatisfiedChannel(

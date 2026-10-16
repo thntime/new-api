@@ -8,7 +8,6 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -139,10 +138,16 @@ func getChannel(
 		return nil, err
 	}
 	abilities = filterAbilitiesByConstraints(abilities, model, filters)
-	// The global fallback pool is never reachable through normal selection.
-	abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
-		return !operation_setting.IsFallbackChannel(ability.ChannelId)
-	})
+	// Fallback-marked channels are never reachable through normal selection.
+	if fallbackEnabled() && len(abilities) > 0 {
+		flags, err := fallbackFlagsByIDs(abilityChannelIDs(abilities))
+		if err != nil {
+			return nil, err
+		}
+		abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
+			return !flags[ability.ChannelId]
+		})
+	}
 	if len(abilities) > 0 {
 		priorities := make([]int64, 0)
 		seen := make(map[int64]bool)
@@ -196,8 +201,15 @@ func getFallbackChannel(group string, model string, layerIndex int, filters []dt
 		return nil, err
 	}
 	abilities = filterAbilitiesByConstraints(abilities, model, filters)
+	if len(abilities) == 0 || !fallbackEnabled() {
+		return nil, nil
+	}
+	flags, err := fallbackFlagsByIDs(abilityChannelIDs(abilities))
+	if err != nil {
+		return nil, err
+	}
 	abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
-		return operation_setting.IsFallbackChannel(ability.ChannelId)
+		return flags[ability.ChannelId]
 	})
 	if len(abilities) == 0 {
 		return nil, nil
@@ -249,6 +261,20 @@ func getFallbackChannel(group string, model string, layerIndex int, filters []dt
 	return &channel, err
 }
 
+// abilityChannelIDs returns the distinct channel ids referenced by abilities.
+func abilityChannelIDs(abilities []Ability) []int {
+	ids := make([]int, 0, len(abilities))
+	seen := make(map[int]struct{}, len(abilities))
+	for _, ability := range abilities {
+		if _, ok := seen[ability.ChannelId]; ok {
+			continue
+		}
+		seen[ability.ChannelId] = struct{}{}
+		ids = append(ids, ability.ChannelId)
+	}
+	return ids
+}
+
 // filterAbilitiesByConstraints applies the same ChannelSatisfiesFilters
 // predicate used by the memory-cache path. A failed channel lookup fails
 // closed when a task-plugin identity is required and fails open otherwise.
@@ -257,15 +283,7 @@ func filterAbilitiesByConstraints(abilities []Ability, modelName string, filters
 		return nil
 	}
 
-	channelIds := make([]int, 0, len(abilities))
-	seen := make(map[int]struct{}, len(abilities))
-	for _, ability := range abilities {
-		if _, ok := seen[ability.ChannelId]; ok {
-			continue
-		}
-		seen[ability.ChannelId] = struct{}{}
-		channelIds = append(channelIds, ability.ChannelId)
-	}
+	channelIds := abilityChannelIDs(abilities)
 
 	var channels []*Channel
 	if err := DB.Where("id IN ?", channelIds).Find(&channels).Error; err != nil {
