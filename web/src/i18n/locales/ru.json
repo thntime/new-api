@@ -7498,6 +7498,11 @@
     "Invalid error status mapping rules: {{error}}": "Недопустимые правила сопоставления статусов: {{error}}",
     "Delete rule “{{name}}”?": "Удалить правило «{{name}}»?",
     "Save your changes to apply the removal.": "Сохраните изменения, чтобы применить удаление.",
-    "Status mapping rules": "Правила сопоставления статусов"
+    "Status mapping rules": "Правила сопоставления статусов",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "Подключение к моделям CodeBuddy",
+    "Select the access mode for this CodeBuddy channel": "Выберите способ подключения для этого канала CodeBuddy",
+    "Domestic": "Внутренний",
+    "International": "Международный"
   }
 }

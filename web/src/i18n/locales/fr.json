@@ -7498,6 +7498,11 @@
     "Invalid error status mapping rules: {{error}}": "Règles de mappage des statuts invalides : {{error}}",
     "Delete rule “{{name}}”?": "Supprimer la règle « {{name}} » ?",
     "Save your changes to apply the removal.": "Enregistrez vos modifications pour appliquer la suppression.",
-    "Status mapping rules": "Règles de mappage des statuts"
+    "Status mapping rules": "Règles de mappage des statuts",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "Connecter les services de modèles CodeBuddy",
+    "Select the access mode for this CodeBuddy channel": "Sélectionnez le mode d'accès pour ce canal CodeBuddy",
+    "Domestic": "National",
+    "International": "International"
   }
 }
