@@ -145,6 +145,31 @@ func TestRequestPolicyDatabaseMatrix(t *testing.T) {
 	}
 }
 
+// Global fallback switch: on by default, explicit true/false accepted, non-boolean
+// values rejected, and the legacy pool key stays accepted.
+func TestRequestPolicyFallbackEnabled(t *testing.T) {
+	snapshot, err := BuildRequestPolicy(nil)
+	require.NoError(t, err)
+	require.True(t, snapshot.Affinity.FallbackEnabled, "fallback is enabled by default")
+
+	snapshot, err = BuildRequestPolicy(map[string]string{"channel_affinity_setting.fallback_enabled": "false"})
+	require.NoError(t, err)
+	require.False(t, snapshot.Affinity.FallbackEnabled)
+
+	snapshot, err = BuildRequestPolicy(map[string]string{
+		"channel_affinity_setting.fallback_enabled":     "true",
+		"channel_affinity_setting.fallback_channel_ids": "[66,55]",
+	})
+	require.NoError(t, err)
+	require.True(t, snapshot.Affinity.FallbackEnabled)
+	require.Equal(t, []int{66, 55}, snapshot.Affinity.FallbackChannelIDs, "the legacy pool key stays accepted")
+
+	for _, value := range []string{"yes", "1", "", "TRUE"} {
+		_, err := BuildRequestPolicy(map[string]string{"channel_affinity_setting.fallback_enabled": value})
+		require.Error(t, err, "value %q must be rejected", value)
+	}
+}
+
 func TestRequestPolicyAcceptsFallbackChannelIDs(t *testing.T) {
 	options := map[string]string{"channel_affinity_setting.fallback_channel_ids": "[66,55]"}
 	snapshot, err := BuildRequestPolicy(options)
@@ -158,7 +183,7 @@ func TestRequestPolicyRejectsMalformedFallbackChannelIDs(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestFallbackChannelIDsRoundTrip(t *testing.T) {
+func TestFallbackOptionsRoundTrip(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{NamingStrategy: schema.NamingStrategy{TablePrefix: "policy_test_"}})
 	require.NoError(t, err)
 	sqlDB, err := db.DB()
@@ -187,9 +212,13 @@ func TestFallbackChannelIDsRoundTrip(t *testing.T) {
 	require.NoError(t, UpdateRequestPolicyOptions(map[string]string{"channel_affinity_setting.fallback_channel_ids": "[66,55]"}))
 	require.Equal(t, []int{66, 55}, CurrentRequestPolicy().Affinity.FallbackChannelIDs)
 
+	require.NoError(t, UpdateRequestPolicyOptions(map[string]string{"channel_affinity_setting.fallback_enabled": "false"}))
+	require.False(t, CurrentRequestPolicy().Affinity.FallbackEnabled)
+
 	loadOptionsFromDatabase()
 	loadOptionsFromDatabase()
 	require.Equal(t, []int{66, 55}, CurrentRequestPolicy().Affinity.FallbackChannelIDs, "fallback pool survives a reload")
+	require.False(t, CurrentRequestPolicy().Affinity.FallbackEnabled, "the fallback switch survives a reload")
 	require.True(t, operation_setting.IsFallbackChannel(66))
 	require.False(t, operation_setting.IsFallbackChannel(999))
 }

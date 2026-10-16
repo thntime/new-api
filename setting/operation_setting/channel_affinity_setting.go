@@ -46,6 +46,8 @@ type ChannelAffinitySetting struct {
 	KeepOnChannelDisabled bool   `json:"keep_on_channel_disabled"`
 	MaxEntries            int    `json:"max_entries"`
 	DefaultTTLSeconds     int    `json:"default_ttl_seconds"`
+	// Global fallback switch. Off disables the fallback pool everywhere.
+	FallbackEnabled bool `json:"fallback_enabled"`
 	// Global fallback channel pool, independent of Enabled and of any affinity rule.
 	FallbackChannelIDs []int                 `json:"fallback_channel_ids"`
 	Rules              []ChannelAffinityRule `json:"rules"`
@@ -126,6 +128,7 @@ func buildCodexPassHeaderTemplate() map[string]any {
 
 var channelAffinitySetting = ChannelAffinitySetting{
 	Enabled:               true,
+	FallbackEnabled:       true,
 	SwitchOnSuccess:       true,
 	KeepOnChannelDisabled: false,
 	MaxEntries:            100_000,
