@@ -10,7 +10,10 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	taskdto "github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/relay"
+	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
@@ -198,6 +201,46 @@ func TestRunFallbackStageStopsOnAbortWithoutRetryEvent(t *testing.T) {
 	reasons := fallbackPolicyReasons(service.RequestPolicy(c).Events())
 	assert.NotContains(t, reasons, "fallback_retry")
 	assert.NotContains(t, reasons, "fallback_exhausted")
+}
+
+// TestTaskFallbackFailureReportsLastAttemptError pins the task submission
+// fallback wiring: when every fallback layer fails, the reported error is the
+// last fallback attempt (agreeing with relayInfo.LastError and the HTTP path),
+// not the normal-stage error.
+func TestTaskFallbackFailureReportsLastAttemptError(t *testing.T) {
+	db, c := setupFallbackStageTest(t)
+	const modelName = "task-fallback-wiring-model"
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	model.InitChannelCache()
+
+	c.Set("channel_id", 999)
+	c.Set("channel_type", constant.ChannelTypeOpenAI)
+	c.Set("channel_name", "normal-channel")
+
+	relayInfo := &relaycommon.RelayInfo{
+		TokenGroup:      "default",
+		OriginModelName: modelName,
+		UsingGroup:      "default",
+		UserGroup:       "default",
+		TaskRelayInfo:   &relaycommon.TaskRelayInfo{},
+	}
+	// The submit failure carries the selected channel id, so the reported error
+	// identifies which attempt produced it. LocalError keeps processChannelError
+	// out of the test; it runs after the taskErr assignment under test.
+	submit := func(c *gin.Context, info *relaycommon.RelayInfo) (*relay.TaskSubmitResult, *taskdto.TaskError) {
+		code := fmt.Sprintf("channel-%d-failed", common.GetContextKeyInt(c, constant.ContextKeyChannelId))
+		return nil, &taskdto.TaskError{Code: code, Message: code, StatusCode: http.StatusInternalServerError, LocalError: true}
+	}
+
+	outcome, taskErr := executeTaskSubmissionWith(c, relayInfo, submit)
+
+	require.Nil(t, outcome)
+	require.NotNil(t, taskErr)
+	assert.Equal(t, "channel-55-failed", taskErr.Code, "the reported error must be the last fallback attempt")
+	require.NotNil(t, relayInfo.LastError)
+	assert.Equal(t, "channel-55-failed", relayInfo.LastError.Error(), "relayInfo.LastError must agree with the reported error")
 }
 
 func countReasons(reasons []string, want string) int {

@@ -710,7 +710,8 @@ func executeTaskSubmissionWith(
 	// The fallback stage runs once after the normal attempts stop. A locked
 	// channel or a channel pin means "this channel only", so neither enters the
 	// fallback pool. A successful fallback clears taskErr and the existing tail
-	// persists and settles the task; on failure the normal-stage error is kept.
+	// persists and settles the task; on failure the reported error is the last
+	// fallback attempt, matching the HTTP path and relayInfo.LastError.
 	if taskErr != nil && relayInfo.LockedChannel == nil && !service.GetChannelConstraints(c).SuppressesRetry() {
 		fallbackAttempt := func(channel *model.Channel) (*types.NewAPIError, bool) {
 			relayInfo.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, relayInfo)
@@ -728,6 +729,7 @@ func executeTaskSubmissionWith(
 				taskErr = err
 				return taskSubmissionAPIError(err), true
 			}
+			taskErr = err
 			apiErr := taskSubmissionAPIError(err)
 			relayInfo.LastError = apiErr
 			diagnostics.attemptFailed(retryParam.GetRetry()+1, channel, err, false)
