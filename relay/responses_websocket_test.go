@@ -21,6 +21,7 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/QuantumNous/new-api/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -783,9 +784,9 @@ func TestRunResponsesWSFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
 	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
 
 	calls := 0
-	result := runResponsesWSFallbackStage(c, "fallback-empty-pool-model", responsesWSFallbackRetryParam(c, "fallback-empty-pool-model"), responsesWSFallbackRelayInfo("fallback-empty-pool-model"), func(channel *model.Channel) *types.NewAPIError {
+	result := runResponsesWSFallbackStage(c, "fallback-empty-pool-model", responsesWSFallbackRetryParam(c, "fallback-empty-pool-model"), responsesWSFallbackRelayInfo("fallback-empty-pool-model"), func(channel *model.Channel) (*types.NewAPIError, bool) {
 		calls++
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
@@ -805,9 +806,9 @@ func TestRunResponsesWSFallbackStageRecordsExhaustedWhenNoEligibleLayer(t *testi
 	model.InitChannelCache()
 
 	calls := 0
-	result := runResponsesWSFallbackStage(c, "fallback-missing-model", responsesWSFallbackRetryParam(c, "fallback-missing-model"), responsesWSFallbackRelayInfo("fallback-missing-model"), func(channel *model.Channel) *types.NewAPIError {
+	result := runResponsesWSFallbackStage(c, "fallback-missing-model", responsesWSFallbackRetryParam(c, "fallback-missing-model"), responsesWSFallbackRelayInfo("fallback-missing-model"), func(channel *model.Channel) (*types.NewAPIError, bool) {
 		calls++
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
@@ -829,9 +830,9 @@ func TestRunResponsesWSFallbackStageTriesLayersInPriorityOrder(t *testing.T) {
 
 	var tried []int
 	upstreamErr := types.NewOpenAIError(errors.New("upstream failed"), types.ErrorCodeBadResponseStatusCode, http.StatusInternalServerError)
-	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) *types.NewAPIError {
+	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) (*types.NewAPIError, bool) {
 		tried = append(tried, channel.Id)
-		return upstreamErr
+		return upstreamErr, true
 	})
 
 	require.NotNil(t, result)
@@ -854,14 +855,42 @@ func TestRunResponsesWSFallbackStageStopsAfterFirstSuccess(t *testing.T) {
 	model.InitChannelCache()
 
 	var tried []int
-	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) *types.NewAPIError {
+	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) (*types.NewAPIError, bool) {
 		tried = append(tried, channel.Id)
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
 	assert.Equal(t, []int{66}, tried, "a successful layer must stop the fallback stage")
 	assert.NotContains(t, responsesWSFallbackReasons(service.RequestPolicy(c).Events()), "fallback_retry")
+}
+
+// TestRunResponsesWSFallbackStageStopsOnNonDialFailure covers a non-dial failure
+// (billing or payload preparation): it is not a channel failure, so the stage
+// stops immediately, blames no channel and never tries the next layer. This
+// mirrors the HTTP path's abort handling.
+func TestRunResponsesWSFallbackStageStopsOnNonDialFailure(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSFallbackTest(t)
+	const modelName = "ws-fallback-nondial-model"
+	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
+	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	model.InitChannelCache()
+
+	var tried []int
+	abortErr := types.NewOpenAIError(errors.New("body read failed"), types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest)
+	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) (*types.NewAPIError, bool) {
+		tried = append(tried, channel.Id)
+		return abortErr, false
+	})
+
+	require.NotNil(t, result)
+	assert.Same(t, abortErr, result, "a non-dial failure must be returned as-is")
+	assert.Equal(t, []int{66}, tried, "a non-dial failure must not attempt further layers")
+	reasons := responsesWSFallbackReasons(service.RequestPolicy(c).Events())
+	assert.NotContains(t, reasons, "fallback_retry")
+	assert.NotContains(t, reasons, "fallback_exhausted")
 }
 
 func responsesWSFallbackRetryParam(c *gin.Context, modelName string) *service.RetryParam {
@@ -872,4 +901,188 @@ func responsesWSFallbackRetryParam(c *gin.Context, modelName string) *service.Re
 // reads: the selected channel's api key lives on the embedded ChannelMeta.
 func responsesWSFallbackRelayInfo(modelName string) *relaycommon.RelayInfo {
 	return &relaycommon.RelayInfo{OriginModelName: modelName, UsingGroup: "default", ChannelMeta: &relaycommon.ChannelMeta{ApiKey: "sk-test"}}
+}
+
+// The integration cases below drive the real runCall wiring: a normal stage that
+// fails at the upstream dial, and the fallback stage that follows it.
+const responsesWSRunCallModel = "ws-runcall-model"
+
+// setupResponsesWSRunCallTest installs the globals the full runCall path needs:
+// an isolated channel cache, a free test model (no user, token or log row is
+// required) and a primed gin context.
+func setupResponsesWSRunCallTest(t *testing.T) (*gorm.DB, *gin.Context) {
+	t.Helper()
+
+	originalDB := model.DB
+	originalMemoryCacheEnabled := common.MemoryCacheEnabled
+	originalRetryTimes := common.RetryTimes
+	originalLogConsumeEnabled := common.LogConsumeEnabled
+	originalCountToken := constant.CountToken
+	originalErrorLogEnabled := constant.ErrorLogEnabled
+	originalFallbackIDs := operation_setting.GetChannelAffinitySetting().FallbackChannelIDs
+	originalRatios := ratio_setting.ModelRatio2JSONString()
+	originalFreeModelPreConsume := operation_setting.GetQuotaSetting().EnableFreeModelPreConsume
+
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&model.Channel{}, &model.Ability{}))
+	model.DB = db
+	common.MemoryCacheEnabled = true
+	common.RetryTimes = 0
+	common.LogConsumeEnabled = false
+	constant.CountToken = false
+	constant.ErrorLogEnabled = false
+	// A zero ratio makes the model free, so billing preparation reserves nothing.
+	require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(fmt.Sprintf(`{%q:0}`, responsesWSRunCallModel)))
+	operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = false
+
+	t.Cleanup(func() {
+		model.DB = originalDB
+		common.MemoryCacheEnabled = originalMemoryCacheEnabled
+		common.RetryTimes = originalRetryTimes
+		common.LogConsumeEnabled = originalLogConsumeEnabled
+		constant.CountToken = originalCountToken
+		constant.ErrorLogEnabled = originalErrorLogEnabled
+		operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = originalFallbackIDs
+		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(originalRatios))
+		operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = originalFreeModelPreConsume
+		if originalMemoryCacheEnabled && originalDB != nil && originalDB.Migrator().HasTable(&model.Channel{}) {
+			model.InitChannelCache()
+		}
+		sqlDB, err := db.DB()
+		if err == nil {
+			require.NoError(t, sqlDB.Close())
+		}
+	})
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"model":"`+responsesWSRunCallModel+`","input":"hi"}`))
+	common.SetContextKey(c, constant.ContextKeyUsingGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyUserGroup, "default")
+	return db, c
+}
+
+func createResponsesWSRunCallChannel(t *testing.T, db *gorm.DB, id int, baseURL string, priority int64) {
+	t.Helper()
+	weight := uint(100)
+	channel := &model.Channel{
+		Id:       id,
+		Type:     constant.ChannelTypeOpenAI,
+		Key:      fmt.Sprintf("key-%d", id),
+		Status:   common.ChannelStatusEnabled,
+		Name:     fmt.Sprintf("channel-%d", id),
+		Weight:   &weight,
+		Models:   responsesWSRunCallModel,
+		Group:    "default",
+		Priority: &priority,
+		BaseURL:  &baseURL,
+	}
+	channel.SetSetting(dto.ChannelSettings{ResponsesWebSocketEnabled: true})
+	require.NoError(t, db.Create(channel).Error)
+	require.NoError(t, db.Create(&model.Ability{Group: "default", Model: responsesWSRunCallModel, ChannelId: id, Enabled: true, Priority: &priority, Weight: weight}).Error)
+}
+
+// newResponsesWSRunCallSession builds a session whose cancel runs before any
+// upstream cleanup, so the target reader goroutine exits through s.ctx.
+func newResponsesWSRunCallSession(t *testing.T) *responsesWSSession {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	return &responsesWSSession{ctx: ctx, cancel: cancel, requestID: "responses-ws-runcall"}
+}
+
+func newResponsesWSRunCallState() *responsesWSCallState {
+	return &responsesWSCallState{inbox: make(chan responsesWSMessage), controls: make(chan responsesWSControl, 1), done: make(chan struct{})}
+}
+
+func responsesWSRunCallCreate(t *testing.T) responsesWSCreateRequest {
+	t.Helper()
+	body := []byte(`{"model":"` + responsesWSRunCallModel + `","input":"hi"}`)
+	var request dto.OpenAIResponsesRequest
+	require.NoError(t, common.Unmarshal(body, &request))
+	return responsesWSCreateRequest{Request: request, Body: body}
+}
+
+// newResponsesWSRunCallUpstream is a stub upstream that records the credential
+// of each connection and completes the first create it receives.
+func newResponsesWSRunCallUpstream(t *testing.T) (*httptest.Server, chan string) {
+	t.Helper()
+	credentials := make(chan string, 1)
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !websocket.IsWebSocketUpgrade(r) {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		ws, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+		if !assert.NoError(t, err) {
+			return
+		}
+		defer ws.Close()
+		if _, _, err := ws.ReadMessage(); !assert.NoError(t, err) {
+			return
+		}
+		credentials <- r.Header.Get("Authorization")
+		if !assert.NoError(t, ws.WriteMessage(websocket.TextMessage, []byte(`{"type":"response.completed","response":{"id":"r1","status":"completed"}}`))) {
+			return
+		}
+		_, _, _ = ws.ReadMessage()
+	}))
+	t.Cleanup(upstream.Close)
+	return upstream, credentials
+}
+
+// TestResponsesWSRetriesWithFallbackChannel pins the full runCall wiring: the
+// normal channel fails at the dial, the fallback pool then dials its channel and
+// the request proceeds on that connection.
+func TestResponsesWSRetriesWithFallbackChannel(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSRunCallTest(t)
+	upstream, credentials := newResponsesWSRunCallUpstream(t)
+
+	// Port 1 refuses connections, so the normal channel always fails to dial.
+	createResponsesWSRunCallChannel(t, db, 11, "http://127.0.0.1:1", 10)
+	createResponsesWSRunCallChannel(t, db, 22, upstream.URL, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{22}
+	model.InitChannelCache()
+
+	session := newResponsesWSRunCallSession(t)
+	state := newResponsesWSRunCallState()
+	session.current = state
+
+	apiErr := session.runCall(c, state, responsesWSRunCallCreate(t))
+	require.Nil(t, apiErr)
+	assert.Equal(t, 22, session.lockedChannelID, "the fallback channel must own the connection")
+	assert.Equal(t, []string{"11", "22"}, c.GetStringSlice("use_channel"))
+	assert.True(t, service.FallbackStageActive(c))
+	select {
+	case credential := <-credentials:
+		assert.Equal(t, "Bearer key-22", credential)
+	case <-time.After(3 * time.Second):
+		t.Fatal("the fallback channel was not dialed")
+	}
+}
+
+// TestResponsesWSWithoutFallbackPoolUnchanged pins the unchanged runCall
+// behaviour when no fallback pool is configured: the normal-stage error ends the
+// request, no fallback layer is entered and no fallback event is recorded.
+func TestResponsesWSWithoutFallbackPoolUnchanged(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSRunCallTest(t)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
+	createResponsesWSRunCallChannel(t, db, 11, "http://127.0.0.1:1", 10)
+	model.InitChannelCache()
+
+	session := newResponsesWSRunCallSession(t)
+	state := newResponsesWSRunCallState()
+	session.current = state
+
+	apiErr := session.runCall(c, state, responsesWSRunCallCreate(t))
+	require.NotNil(t, apiErr)
+	assert.Equal(t, types.ErrorCodeDoRequestFailed, apiErr.GetErrorCode())
+	assert.Equal(t, []string{"11"}, c.GetStringSlice("use_channel"))
+	assert.False(t, service.FallbackStageActive(c))
+	reasons := responsesWSFallbackReasons(service.RequestPolicy(c).Events())
+	assert.NotContains(t, reasons, "fallback_retry")
+	assert.NotContains(t, reasons, "fallback_exhausted")
 }

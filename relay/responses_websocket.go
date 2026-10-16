@@ -291,39 +291,37 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 		}
 	} else {
 		retry := &service.RetryParam{Ctx: c, TokenGroup: common.GetContextKeyString(c, appconstant.ContextKeyUsingGroup), ModelName: modelName, RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0)}
-		// dialFailed marks a failed upstream dial: the only attempt failure the
-		// normal loop turns into a retry decision. Billing, payload and target
-		// failures stop the request with their own error instead.
-		dialFailed := false
 		// attemptConnected reports that an attempt established the upstream
 		// connection, so a successful fallback layer can clear the error left by
 		// the exhausted normal stage.
 		attemptConnected := false
 		// attempt runs one channel attempt after the channel was selected: it
 		// prepares billing, builds the upstream create event, dials the upstream
-		// and, on success, locks the session to that channel.
-		attempt := func(channel *appmodel.Channel) *types.NewAPIError {
+		// and, on success, locks the session to that channel. The second result
+		// reports a failed upstream dial, the only attempt failure that may be
+		// retried or handed to the fallback pool; billing, payload and target
+		// failures stop the request with their own error.
+		attempt := func(channel *appmodel.Channel) (*types.NewAPIError, bool) {
 			service.AppendUsedChannel(c, channel.Id)
-			dialFailed = false
 			if info == nil {
 				info = relaycommon.GenRelayInfoResponses(c, &create.Request)
 				info.IsStream = true
 				common.SetContextKey(c, appconstant.ContextKeyIsStream, true)
 				if err := PrepareRequestBilling(c, info); err != nil {
-					return err
+					return err, false
 				}
 				billingPrepared = true
 			} else {
 				info.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, info)
 				if err := service.PrepareTieredBillingForSelectedGroup(c, info); err != nil {
-					return err
+					return err, false
 				}
 			}
 			info.RetryIndex = retry.GetRetry()
 			policy.BeginAttempt(channel, info.UsingGroup)
 			payload, err := buildResponsesWSCreatePayload(c, info, create.Request, create.Generate, create.StreamID)
 			if err != nil {
-				return err
+				return err, false
 			}
 			adaptor := GetAdaptor(info.ApiType)
 			adaptor.Init(info)
@@ -332,15 +330,14 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 				apiErr := service.NormalizeViolationFeeError(types.NewError(dialErr, types.ErrorCodeDoRequestFailed))
 				service.ResetStatusCode(apiErr, c.GetString("status_code_mapping"))
 				info.LastError = apiErr
-				dialFailed = true
-				return apiErr
+				return apiErr, true
 			}
 			if !s.setTarget(target) {
-				return types.NewError(context.Canceled, types.ErrorCodeBadResponse, types.ErrOptionWithSkipRetry())
+				return types.NewError(context.Canceled, types.ErrorCodeBadResponse, types.ErrOptionWithSkipRetry()), false
 			}
 			if err := s.writeTarget(websocket.TextMessage, payload); err != nil {
 				state.closeCode = websocket.CloseInternalServerErr
-				return types.NewError(err, types.ErrorCodeBadResponse, types.ErrOptionWithSkipRetry())
+				return types.NewError(err, types.ErrorCodeBadResponse, types.ErrOptionWithSkipRetry()), false
 			}
 			s.lockedModel, s.lockedChannelID, s.lockedGroup = modelName, channel.Id, info.UsingGroup
 			s.lockedKey, s.lockedKeyIndex = info.ApiKey, info.ChannelMultiKeyIndex
@@ -361,7 +358,7 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 			s.registerChannelClose(channel.Id)
 			s.startTargetReader(target)
 			attemptConnected = true
-			return nil
+			return nil, false
 		}
 		for ; retry.GetRetry() <= common.RetryTimes; retry.IncreaseRetry() {
 			var channel *appmodel.Channel
@@ -369,7 +366,8 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 			if apiErr != nil {
 				return apiErr
 			}
-			apiErr = attempt(channel)
+			var dialFailed bool
+			apiErr, dialFailed = attempt(channel)
 			if apiErr == nil {
 				break
 			}
@@ -382,7 +380,9 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 			if decision.Action == "retry" {
 				continue
 			}
-			return apiErr
+			// The normal stage stops here; the fallback pool runs below instead of
+			// ending the request, exactly like the HTTP relay.
+			break
 		}
 		// The fallback pool runs once after the normal attempts stop. A channel
 		// pin means "this channel only", so it never enters the fallback pool.
@@ -986,10 +986,12 @@ func selectResponsesWSChannel(c *gin.Context, modelName string, retryParam *serv
 }
 
 // runResponsesWSFallbackStage drives the fallback channel pool for the Responses
-// WebSocket path after the normal attempts are exhausted. It returns nil when a
-// fallback layer connected or when no fallback layer was eligible, and the last
-// fallback attempt error when every layer failed.
-func runResponsesWSFallbackStage(c *gin.Context, modelName string, retry *service.RetryParam, info *relaycommon.RelayInfo, attempt func(*appmodel.Channel) *types.NewAPIError) *types.NewAPIError {
+// WebSocket path after the normal attempts are exhausted. The attempt callback's
+// second result reports a failed upstream dial; a non-dial failure stops the
+// stage without blaming the channel, mirroring the HTTP relay's abort handling.
+// It returns nil when a fallback layer connected or when no fallback layer was
+// eligible, and the last attempt error when every tried layer failed.
+func runResponsesWSFallbackStage(c *gin.Context, modelName string, retry *service.RetryParam, info *relaycommon.RelayInfo, attempt func(*appmodel.Channel) (*types.NewAPIError, bool)) *types.NewAPIError {
 	if !service.HasFallbackChannels() {
 		return nil
 	}
@@ -1002,11 +1004,16 @@ func runResponsesWSFallbackStage(c *gin.Context, modelName string, retry *servic
 			break
 		}
 		attempts++
-		err := attempt(channel)
+		err, dialFailed := attempt(channel)
 		if err == nil {
 			return nil
 		}
 		lastErr = err
+		if !dialFailed {
+			// A billing or payload failure is not a channel failure: stop the
+			// stage without recording fallback_retry or trying the next layer.
+			return lastErr
+		}
 		service.RecordPolicyFailure(c, channel.Id, err, service.PolicyDecision{Action: "retry", Reason: "fallback_retry", Source: "global"})
 		service.ProcessChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, info.ApiKey, channel.GetAutoBan()), err, info)
 	}
