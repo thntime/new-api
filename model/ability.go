@@ -8,6 +8,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/dto"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -138,6 +139,10 @@ func getChannel(
 		return nil, err
 	}
 	abilities = filterAbilitiesByConstraints(abilities, model, filters)
+	// The global fallback pool is never reachable through normal selection.
+	abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
+		return !operation_setting.IsFallbackChannel(ability.ChannelId)
+	})
 	if len(abilities) > 0 {
 		priorities := make([]int64, 0)
 		seen := make(map[int64]bool)

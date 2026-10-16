@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/logger"
 	kitdto "github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 )
 
@@ -147,6 +148,21 @@ func GetRandomSatisfiedChannelDescending(
 	return getRandomSatisfiedChannel(group, model, retry, filters, &anchorPriority)
 }
 
+// excludeFallbackChannels drops global fallback pool members from normal
+// candidates. The input slice is never mutated; an empty pool returns it as is.
+func excludeFallbackChannels(ids []int) []int {
+	if len(ids) == 0 || len(operation_setting.GetFallbackChannelIDs()) == 0 {
+		return ids
+	}
+	kept := make([]int, 0, len(ids))
+	for _, id := range ids {
+		if !operation_setting.IsFallbackChannel(id) {
+			kept = append(kept, id)
+		}
+	}
+	return kept
+}
+
 func getRandomSatisfiedChannel(
 	group string,
 	model string,
@@ -164,11 +180,13 @@ func getRandomSatisfiedChannel(
 
 	// First, try to find channels with the exact model name.
 	channels, _ := filterCandidateIDs(group2model2channels[group][model], model, filters)
+	channels = excludeFallbackChannels(channels)
 
 	// If no channels found, try to find channels with the normalized model name.
 	if len(channels) == 0 {
 		normalizedModel := ratio_setting.RoutingMatchModelName(model)
 		channels, _ = filterCandidateIDs(group2model2channels[group][normalizedModel], model, filters)
+		channels = excludeFallbackChannels(channels)
 	}
 
 	if len(channels) == 0 {
