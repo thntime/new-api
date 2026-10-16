@@ -26,3 +26,10 @@ func TestWanEndpointsDistinguishImagesFromVideos(t *testing.T) {
 		})
 	}
 }
+
+func TestCodeBuddyChannelEndpointTypes(t *testing.T) {
+	endpoints := common.GetEndpointTypesByChannelType(constant.ChannelTypeCodeBuddy, "any-model")
+	assert.Contains(t, endpoints, constant.EndpointTypeOpenAI)
+	assert.Contains(t, endpoints, constant.EndpointTypeOpenAIResponse)
+	assert.Contains(t, endpoints, constant.EndpointTypeAnthropic)
+}
