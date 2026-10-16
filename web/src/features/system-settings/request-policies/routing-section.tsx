@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 
 import { ErrorState } from '@/components/error-state'
 import { LoadingState } from '@/components/loading-state'
-import { MultiSelect } from '@/components/multi-select'
 import { Accordion } from '@/components/ui/accordion'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -21,12 +20,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Skeleton } from '@/components/ui/skeleton'
-import { getChannels } from '@/features/channels/api'
-import type { Channel } from '@/features/channels/types'
 import { handleServerError } from '@/lib/handle-server-error'
 import { parseHttpStatusCodeRules } from '@/lib/http-status-code-rules'
-import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { SettingsAccordion } from '../components/settings-accordion'
 import { SettingsCard } from '../components/settings-card'
@@ -42,30 +37,11 @@ import { policyLabel } from './policy-label'
 import { RetrySection } from './retry-section'
 import {
   createRoutingPolicySchema,
-  parseFallbackChannelIds,
   routingPolicyFormValues,
   routingPolicyOptions,
   type RoutingPolicyFormValues,
 } from './routing-form'
 import { useSavePolicy } from './use-save-policy'
-
-// The picker offers every channel, so it walks the paginated channel list
-// (1000 per request) instead of showing only the first page.
-async function fetchAllChannels(): Promise<Channel[]> {
-  const pageSize = 1000
-  const first = requireServerSuccess(
-    await getChannels({ p: 1, page_size: pageSize })
-  )
-  const items = first.data?.items ?? []
-  const pages = Math.ceil((first.data?.total ?? items.length) / pageSize)
-  for (let p = 2; p <= pages; p++) {
-    const page = requireServerSuccess(
-      await getChannels({ p, page_size: pageSize })
-    )
-    items.push(...(page.data?.items ?? []))
-  }
-  return items
-}
 
 export function RoutingPolicySection() {
   const { t } = useTranslation()
@@ -124,14 +100,6 @@ function RoutingPolicyEditor(props: { config: PolicyConfig }) {
         }
         if (key === 'AutomaticRetryStatusCodes') {
           return value !== parseHttpStatusCodeRules(previous).normalized
-        }
-        if (key === 'channel_affinity_setting.fallback_channel_ids') {
-          // The server omits the key until the pool is first saved, so compare
-          // the parsed pools instead of the raw option strings.
-          return (
-            JSON.stringify(parseFallbackChannelIds(value)) !==
-            JSON.stringify(parseFallbackChannelIds(previous))
-          )
         }
         return value !== previous
       })
@@ -235,39 +203,41 @@ function AffinitySettings() {
                 onValueChange={field.onChange}
                 className='gap-2 sm:grid-cols-2'
               >
-                {(['off', 'prefer', 'strict', 'descent'] as const).map((mode) => (
-                  <div key={mode} className='rounded-lg border'>
-                    <Label
-                      htmlFor={`global-session-${mode}`}
-                      className='hover:bg-muted/30 flex h-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 font-normal'
-                    >
-                      <RadioGroupItem
-                        id={`global-session-${mode}`}
-                        aria-labelledby={`global-session-${mode}-label`}
-                        aria-describedby={
-                          mode === 'prefer'
-                            ? 'global-session-prefer-description'
-                            : undefined
-                        }
-                        value={mode}
-                        onClick={() => field.onChange(mode)}
-                      />
-                      <span className='flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1'>
-                        <span id={`global-session-${mode}-label`}>
-                          {policyLabel(t, mode)}
-                        </span>
-                        {mode === 'prefer' ? (
-                          <span
-                            id='global-session-prefer-description'
-                            className='text-muted-foreground text-xs font-normal'
-                          >
-                            {t('Reduces cache hit rate')}
+                {(['off', 'prefer', 'strict', 'descent'] as const).map(
+                  (mode) => (
+                    <div key={mode} className='rounded-lg border'>
+                      <Label
+                        htmlFor={`global-session-${mode}`}
+                        className='hover:bg-muted/30 flex h-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 font-normal'
+                      >
+                        <RadioGroupItem
+                          id={`global-session-${mode}`}
+                          aria-labelledby={`global-session-${mode}-label`}
+                          aria-describedby={
+                            mode === 'prefer'
+                              ? 'global-session-prefer-description'
+                              : undefined
+                          }
+                          value={mode}
+                          onClick={() => field.onChange(mode)}
+                        />
+                        <span className='flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1'>
+                          <span id={`global-session-${mode}-label`}>
+                            {policyLabel(t, mode)}
                           </span>
-                        ) : null}
-                      </span>
-                    </Label>
-                  </div>
-                ))}
+                          {mode === 'prefer' ? (
+                            <span
+                              id='global-session-prefer-description'
+                              className='text-muted-foreground text-xs font-normal'
+                            >
+                              {t('Reduces cache hit rate')}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Label>
+                    </div>
+                  )
+                )}
               </RadioGroup>
             </FormControl>
             <SettingsControlChildren
@@ -362,58 +332,30 @@ function AffinitySettings() {
 }
 
 // Kept out of the session defaults card on purpose: the pool applies to every
-// request and no routing rule can inherit or override it.
+// request and no routing rule can inherit or override it. The pool itself is
+// whatever channels carry the fallback marker, so this card only hosts the
+// master switch.
 function FallbackChannelPool() {
   const { t } = useTranslation()
   const form = useFormContext<RoutingPolicyFormValues>()
-  // The fallback pool works with session affinity off, so this query and the
-  // field below must not depend on `enabled`.
-  const channelsQuery = useQuery({
-    queryKey: ['request-policy-fallback-channels'],
-    queryFn: fetchAllChannels,
-    staleTime: Infinity,
-  })
-  const channelOptions = useMemo(
-    () =>
-      (channelsQuery.data ?? []).map((channel) => ({
-        value: String(channel.id),
-        label: `#${channel.id} ${channel.name}`,
-      })),
-    [channelsQuery.data]
-  )
   return (
     <SettingsCard
       title={t('Fallback channels')}
       description={t(
-        'Applies to every request: tried in priority order after all normal candidates fail, even when session affinity is off. Routing rules do not inherit or override this pool.'
+        'Fallback channels are the ones marked on each channel, tried in priority order after all normal candidates fail, even when session affinity is off. Routing rules do not inherit or override this pool. Turning off the switch disables fallback entirely.'
       )}
       className='shadow-none'
     >
       <FormField
         control={form.control}
-        name='channel_affinity_setting.fallback_channel_ids'
+        name='channel_affinity_setting.fallback_enabled'
         render={({ field }) => (
-          <FormItem>
-            {/* The card title is the visible label; keep a screen-reader-only
-                label so the combobox keeps its accessible name. */}
-            <FormLabel className='sr-only'>
-              {t('Fallback channels')}
-            </FormLabel>
-            {channelsQuery.isPending ? (
-              <Skeleton className='h-10 w-full' />
-            ) : (
-              <FormControl>
-                <MultiSelect
-                  options={channelOptions}
-                  selected={field.value.map(String)}
-                  onChange={(values) => field.onChange(values.map(Number))}
-                  allowCreate={false}
-                  placeholder={t('Select fallback channels')}
-                />
-              </FormControl>
-            )}
-            <FormMessage />
-          </FormItem>
+          <SettingsSwitchField
+            controlId='channel_affinity_setting.fallback_enabled'
+            checked={field.value}
+            onCheckedChange={field.onChange}
+            label={t('Enable fallback channels')}
+          />
         )}
       />
     </SettingsCard>

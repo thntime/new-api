@@ -66,7 +66,7 @@ export const defaultRequestPolicySettings: RequestPolicySettings = {
   'channel_affinity_setting.max_entries': 100000,
   'channel_affinity_setting.default_ttl_seconds': 3600,
   'channel_affinity_setting.rules': '[]',
-  'channel_affinity_setting.fallback_channel_ids': [],
+  'channel_affinity_setting.fallback_enabled': true,
   CheckSensitiveEnabled: false,
   CheckSensitiveOnPromptEnabled: false,
   SensitiveWords: '',

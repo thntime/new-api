@@ -32,6 +32,7 @@ const options = {
   'channel_affinity_setting.keep_on_channel_disabled': 'false',
   'channel_affinity_setting.max_entries': '100000',
   'channel_affinity_setting.default_ttl_seconds': '3600',
+  'channel_affinity_setting.fallback_enabled': 'true',
   'channel_affinity_setting.rules': JSON.stringify([
     {
       name: 'Session rule',
@@ -60,22 +61,6 @@ beforeEach(() => {
   vi.spyOn(api, 'get').mockImplementation(async (url) => {
     if (url === '/api/option/request_policy') {
       return { data: { success: true, data: { options: currentOptions } } }
-    }
-    if (url === '/api/channel') {
-      return {
-        data: {
-          success: true,
-          data: {
-            items: [
-              { id: 55, name: 'Fallback Alpha' },
-              { id: 66, name: 'Fallback Beta' },
-            ],
-            total: 2,
-            page: 1,
-            page_size: 1000,
-          },
-        },
-      }
     }
     return {
       data: {
@@ -411,7 +396,9 @@ it('selecting the descending session mode saves descent and keeps it after the r
   expect(vi.mocked(api.patch).mock.calls[0][1]).toEqual({
     options: { 'channel_affinity_setting.session_mode': 'descent' },
   })
-  expect(currentOptions['channel_affinity_setting.session_mode']).toBe('descent')
+  expect(currentOptions['channel_affinity_setting.session_mode']).toBe(
+    'descent'
+  )
   expect(
     screen.getByRole('radio', {
       name: 'Prefer the original channel, then descend through priority layers',
@@ -859,66 +846,73 @@ it.each([
   }
 )
 
-it('saves the fallback channel pool as a compact JSON array string', async () => {
+it('saves only the fallback toggle when the master switch is flipped', async () => {
   const user = userEvent.setup()
   show()
-  const input = await screen.findByRole('combobox', {
-    name: 'Select fallback channels',
-  })
-  await user.click(input)
-  await user.click(screen.getByRole('option', { name: '#66 Fallback Beta' }))
-  await user.click(screen.getByRole('option', { name: '#55 Fallback Alpha' }))
-  await user.keyboard('{Escape}')
-  expect(screen.getByText('#66 Fallback Beta')).toBeVisible()
-  expect(screen.getByText('#55 Fallback Alpha')).toBeVisible()
+  await user.click(
+    await screen.findByRole('switch', { name: 'Enable fallback channels' })
+  )
   await user.click(screen.getByRole('button', { name: 'Save Changes' }))
   await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(1))
   expect(vi.mocked(api.patch).mock.calls[0][1]).toEqual({
-    options: { 'channel_affinity_setting.fallback_channel_ids': '[66,55]' },
+    options: { 'channel_affinity_setting.fallback_enabled': 'false' },
   })
 })
 
-it('loads the stored fallback channel pool into the selector', async () => {
+it('loads the stored fallback toggle state', async () => {
   currentOptions = {
     ...options,
-    'channel_affinity_setting.fallback_channel_ids': '[66,55]',
+    'channel_affinity_setting.fallback_enabled': 'false',
   }
   show()
-  expect(await screen.findByLabelText('Fallback channels')).toBeEnabled()
-  expect(await screen.findByText('#66 Fallback Beta')).toBeVisible()
-  expect(screen.getByText('#55 Fallback Alpha')).toBeVisible()
+  expect(
+    await screen.findByRole('switch', { name: 'Enable fallback channels' })
+  ).not.toBeChecked()
 })
 
-it('keeps the fallback channel pool editable while session affinity is disabled', async () => {
-  const user = userEvent.setup()
+it('defaults the fallback toggle to on when the option is absent', async () => {
+  currentOptions = { ...options }
+  delete currentOptions['channel_affinity_setting.fallback_enabled']
+  show()
+  expect(
+    await screen.findByRole('switch', { name: 'Enable fallback channels' })
+  ).toBeChecked()
+})
+
+it('keeps the fallback toggle editable while session affinity is disabled', async () => {
   currentOptions = {
     ...options,
     'channel_affinity_setting.enabled': 'false',
   }
   show()
-  const input = await screen.findByRole('combobox', {
-    name: 'Select fallback channels',
-  })
-  expect(input).toBeEnabled()
-  await user.click(input)
-  await user.click(screen.getByRole('option', { name: '#66 Fallback Beta' }))
-  await user.keyboard('{Escape}')
-  expect(screen.getByText('#66 Fallback Beta')).toBeVisible()
+  expect(
+    await screen.findByRole('switch', { name: 'Enable fallback channels' })
+  ).toBeEnabled()
+})
+
+it('does not render the fallback channel picker', async () => {
+  show()
+  expect(
+    await screen.findByRole('switch', { name: 'Enable fallback channels' })
+  ).toBeVisible()
+  expect(
+    screen.queryByRole('combobox', { name: 'Select fallback channels' })
+  ).not.toBeInTheDocument()
 })
 
 it('keeps the fallback channel pool outside the session defaults card', async () => {
   show()
-  const combobox = await screen.findByRole('combobox', {
-    name: 'Select fallback channels',
+  const toggle = await screen.findByRole('switch', {
+    name: 'Enable fallback channels',
   })
   const sessionDefaultsCard = (
     await screen.findByText('Session defaults')
   ).closest('[data-slot="card"]')
   expect(sessionDefaultsCard).not.toBeNull()
-  expect(sessionDefaultsCard).not.toContainElement(combobox)
+  expect(sessionDefaultsCard).not.toContainElement(toggle)
 })
 
-it('leaves an unchanged fallback channel pool out of the save payload', async () => {
+it('leaves an unchanged fallback toggle out of the save payload', async () => {
   const user = userEvent.setup()
   show()
   fireEvent.change(
