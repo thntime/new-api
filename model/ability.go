@@ -142,11 +142,15 @@ func getChannel(
 	if fallbackEnabled() && len(abilities) > 0 {
 		flags, err := fallbackFlagsByIDs(abilityChannelIDs(abilities))
 		if err != nil {
-			return nil, err
+			// Deliberate degradation (design Failure Paths): a failed flag lookup
+			// keeps normal selection working by skipping the exclusion, instead of
+			// failing a request that the old in-memory pool could never fail.
+			common.SysError(common.LogText("channel_cache: fallback flag lookup failed, skipping exclusion: %s", err.Error()))
+		} else {
+			abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
+				return !flags[ability.ChannelId]
+			})
 		}
-		abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
-			return !flags[ability.ChannelId]
-		})
 	}
 	if len(abilities) > 0 {
 		priorities := make([]int64, 0)
@@ -206,7 +210,9 @@ func getFallbackChannel(group string, model string, layerIndex int, filters []dt
 	}
 	flags, err := fallbackFlagsByIDs(abilityChannelIDs(abilities))
 	if err != nil {
-		return nil, err
+		// Deliberate degradation (design Failure Paths): a failed batch channel
+		// read means no usable fallback channel, not a relay failure.
+		return nil, nil
 	}
 	abilities = lo.Filter(abilities, func(ability Ability, _ int) bool {
 		return flags[ability.ChannelId]

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"slices"
 	"sort"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 const fallbackTestGroup = "fallback-pool-test"
@@ -452,6 +454,39 @@ func TestDatabaseFallbackSelectionMatchesMemoryCache(t *testing.T) {
 		dbFallback = append(dbFallback, channel.Id)
 	}
 	assert.Equal(t, memoryFallback, dbFallback, "both paths must select the same fallback channels")
+}
+
+// Failure Paths (design): a failed batch channel read on the DB direct path is
+// treated as "no usable fallback channels", never as a request failure.
+func TestDatabaseFallbackFlagLookupFailureDegrades(t *testing.T) {
+	truncateTables(t)
+	previousMemoryCache := common.MemoryCacheEnabled
+	common.MemoryCacheEnabled = false
+	t.Cleanup(func() { common.MemoryCacheEnabled = previousMemoryCache })
+	insertFallbackTestChannels(t, []int{66, 55})
+
+	// Fail only the fallback flag lookup: it is the sole query selecting
+	// channel_info, so the earlier ability and constraint queries stay intact.
+	callbackName := "test:inject_fallback_flag_failure"
+	injectedErr := errors.New("injected fallback flag lookup failure")
+	require.NoError(t, DB.Callback().Query().Before("gorm:query").Register(callbackName, func(tx *gorm.DB) {
+		if slices.Contains(tx.Statement.Selects, "channel_info") {
+			tx.AddError(injectedErr)
+		}
+	}))
+	t.Cleanup(func() { _ = DB.Callback().Query().Remove(callbackName) })
+
+	// Normal selection must survive the failure and skip the fallback exclusion,
+	// so the marked channel stays selectable in its own priority layer.
+	channel, err := GetChannel(fallbackTestGroup, fallbackTestModel, 5, nil)
+	require.NoError(t, err, "a flag lookup failure must not fail normal selection")
+	require.NotNil(t, channel)
+	assert.Equal(t, 66, channel.Id, "the failed lookup skips exclusion instead of aborting")
+
+	// The fallback path degrades to "no usable fallback channel".
+	fallback, err := GetFallbackChannel(fallbackTestGroup, fallbackTestModel, 0, nil)
+	require.NoError(t, err, "a flag lookup failure must not surface as a relay error")
+	assert.Nil(t, fallback, "a failed lookup yields no fallback channel")
 }
 
 func TestIsFallbackChannelAndHasFallbackChannelsDatabasePath(t *testing.T) {
