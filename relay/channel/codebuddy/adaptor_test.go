@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/relay"
 	"github.com/QuantumNous/new-api/relay/channel/codebuddy"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	relayconstant "github.com/QuantumNous/new-api/relay/constant"
@@ -99,4 +101,8 @@ func TestSetupRequestHeaderByFormat(t *testing.T) {
 func TestGetChannelName(t *testing.T) {
 	a := &codebuddy.Adaptor{}
 	require.Equal(t, "CodeBuddy", a.GetChannelName())
+}
+
+func TestGetAdaptorReturnsCodeBuddy(t *testing.T) {
+	assert.IsType(t, &codebuddy.Adaptor{}, relay.GetAdaptor(constant.APITypeCodeBuddy))
 }

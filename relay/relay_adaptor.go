@@ -16,6 +16,7 @@ import (
 	"github.com/QuantumNous/new-api/relay/channel/claude"
 	"github.com/QuantumNous/new-api/relay/channel/cline"
 	"github.com/QuantumNous/new-api/relay/channel/cloudflare"
+	"github.com/QuantumNous/new-api/relay/channel/codebuddy"
 	"github.com/QuantumNous/new-api/relay/channel/codex"
 	"github.com/QuantumNous/new-api/relay/channel/cohere"
 	"github.com/QuantumNous/new-api/relay/channel/commandcode"
@@ -132,6 +133,8 @@ func GetAdaptor(apiType int) channel.Adaptor {
 		return &commandcode.Adaptor{}
 	case constant.APITypeCline:
 		return &cline.Adaptor{}
+	case constant.APITypeCodeBuddy:
+		return &codebuddy.Adaptor{}
 	}
 	return nil
 }
