@@ -97,9 +97,9 @@ func TestRunFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
 	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
 
 	calls := 0
-	result := runFallbackStage(c, "default", "fallback-empty-pool-model", func(channel *model.Channel) *types.NewAPIError {
+	result := runFallbackStage(c, "default", "fallback-empty-pool-model", func(channel *model.Channel) (*types.NewAPIError, bool) {
 		calls++
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
@@ -118,9 +118,9 @@ func TestRunFallbackStageRecordsExhaustedWhenNoEligibleLayer(t *testing.T) {
 	model.InitChannelCache()
 
 	calls := 0
-	result := runFallbackStage(c, "default", "fallback-missing-model", func(channel *model.Channel) *types.NewAPIError {
+	result := runFallbackStage(c, "default", "fallback-missing-model", func(channel *model.Channel) (*types.NewAPIError, bool) {
 		calls++
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
@@ -141,9 +141,9 @@ func TestRunFallbackStageTriesLayersInPriorityOrder(t *testing.T) {
 
 	var tried []int
 	upstreamErr := types.NewOpenAIError(errors.New("upstream failed"), types.ErrorCodeBadResponseStatusCode, http.StatusInternalServerError)
-	result := runFallbackStage(c, "default", modelName, func(channel *model.Channel) *types.NewAPIError {
+	result := runFallbackStage(c, "default", modelName, func(channel *model.Channel) (*types.NewAPIError, bool) {
 		tried = append(tried, channel.Id)
-		return upstreamErr
+		return upstreamErr, false
 	})
 
 	require.NotNil(t, result)
@@ -164,14 +164,40 @@ func TestRunFallbackStageStopsAfterFirstSuccess(t *testing.T) {
 	model.InitChannelCache()
 
 	var tried []int
-	result := runFallbackStage(c, "default", modelName, func(channel *model.Channel) *types.NewAPIError {
+	result := runFallbackStage(c, "default", modelName, func(channel *model.Channel) (*types.NewAPIError, bool) {
 		tried = append(tried, channel.Id)
-		return nil
+		return nil, false
 	})
 
 	require.Nil(t, result)
 	assert.Equal(t, []int{66}, tried, "a successful layer must stop the fallback stage")
 	assert.NotContains(t, fallbackPolicyReasons(service.RequestPolicy(c).Events()), "fallback_retry")
+}
+
+// TestRunFallbackStageStopsOnAbortWithoutRetryEvent covers a layer that reports
+// a hard stop (billing/request-body failure): the stage returns that error
+// immediately, records no fallback_retry, and never attempts the next layer.
+func TestRunFallbackStageStopsOnAbortWithoutRetryEvent(t *testing.T) {
+	db, c := setupFallbackStageTest(t)
+	const modelName = "fallback-abort-model"
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	model.InitChannelCache()
+
+	calls := 0
+	abortErr := types.NewOpenAIError(errors.New("body read failed"), types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest)
+	result := runFallbackStage(c, "default", modelName, func(channel *model.Channel) (*types.NewAPIError, bool) {
+		calls++
+		return abortErr, true
+	})
+
+	require.NotNil(t, result)
+	assert.Same(t, abortErr, result, "a stop result must be returned as-is")
+	assert.Equal(t, 1, calls, "a stop result must not attempt further layers")
+	reasons := fallbackPolicyReasons(service.RequestPolicy(c).Events())
+	assert.NotContains(t, reasons, "fallback_retry")
+	assert.NotContains(t, reasons, "fallback_exhausted")
 }
 
 func countReasons(reasons []string, want string) int {
