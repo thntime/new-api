@@ -666,6 +666,90 @@ func TestAutoGroupsRunFallbackOnceAfterAllGroups(t *testing.T) {
 	assert.Equal(t, narrowed, withoutPool, "the normal segment must not depend on the pool")
 }
 
+// Design D3: with the global fallback switch off the whole request path must be
+// identical to a deployment where no channel carries the marker: same attempt
+// order, same policy events, no fallback stage and never any fallback_* event.
+// The pool-active run proves the fixture can tell the two apart.
+func TestFallbackSwitchOffMatchesUnmarkedPool(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-switch-off-model"
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, _ := setupFallbackStageTest(t)
+	common.RetryTimes = 5
+	prepareFreeModelRelay(t, modelName)
+
+	// descent is resolved into the request only through a matching affinity rule.
+	affinity := operation_setting.GetChannelAffinitySetting()
+	originalAffinity := *affinity
+	t.Cleanup(func() { *affinity = originalAffinity })
+	affinity.Enabled = true
+	affinity.SessionMode = "descent"
+	affinity.Rules = []operation_setting.ChannelAffinityRule{{
+		Name:        "session",
+		ModelRegex:  []string{".*"},
+		KeySources:  []operation_setting.ChannelAffinityKeySource{{Type: "request_header", Key: "X-Session"}},
+		SessionMode: "inherit",
+	}}
+
+	for _, priority := range []int64{50, 40, 30, 20, 10} {
+		createFallbackStageChannel(t, db, int(priority), "default", modelName, priority)
+	}
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	createFallbackStageChannel(t, db, 55, "default", modelName, 5)
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+
+	run := func(marked []int, fallbackEnabled bool, session string) ([]string, []string, bool) {
+		affinity.FallbackEnabled = fallbackEnabled
+		markFallbackChannels(t, marked)
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		body := `{"model":"` + modelName + `","messages":[{"role":"user","content":"hi"}]}`
+		c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request.Header.Set("X-Session", session)
+		common.SetContextKey(c, constant.ContextKeyUsingGroup, "default")
+		common.SetContextKey(c, constant.ContextKeyUserGroup, "default")
+		common.SetContextKey(c, constant.ContextKeyTokenGroup, "default")
+		common.SetContextKey(c, constant.ContextKeyUserId, 1)
+		common.SetContextKey(c, constant.ContextKeyTokenId, 1)
+
+		selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+			Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+		})
+		require.Nil(t, selectErr)
+		require.NotNil(t, selected)
+		require.Equal(t, 50, selected.Id, "the first attempt must be the top normal layer")
+		require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+		Relay(c, types.RelayFormatOpenAI)
+		return c.GetStringSlice("use_channel"), fallbackPolicyReasons(service.RequestPolicy(c).Events()), service.FallbackStageActive(c)
+	}
+
+	poolOn, poolOnEvents, poolOnStage := run([]int{66, 55}, true, t.Name()+"-pool")
+	markedOff, markedOffEvents, markedOffStage := run([]int{66, 55}, false, t.Name()+"-off")
+	unmarkedOn, unmarkedOnEvents, unmarkedOnStage := run(nil, true, t.Name()+"-unmarked")
+
+	// Guard against a vacuous equality: with the switch on the fixture must enter
+	// the pool and differ from the unmarked run.
+	assert.True(t, poolOnStage, "the pool-active run must enter the fallback stage")
+	assert.Contains(t, poolOnEvents, "fallback_retry", "the pool-active run must record fallback attempts")
+	assert.NotEqual(t, unmarkedOn, poolOn, "the fixture must be able to enter the pool")
+
+	assert.Equal(t, unmarkedOn, markedOff, "switch off must not change the attempt order")
+	assert.Equal(t, unmarkedOnEvents, markedOffEvents, "switch off must not change the decision events")
+	assert.Equal(t, unmarkedOnStage, markedOffStage, "switch off must not change the stage state")
+	assert.False(t, markedOffStage, "switch off must never enter the fallback stage")
+	assert.NotContains(t, markedOffEvents, "fallback_retry")
+	assert.NotContains(t, markedOffEvents, "fallback_exhausted")
+}
+
 func countReasons(reasons []string, want string) int {
 	count := 0
 	for _, reason := range reasons {

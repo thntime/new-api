@@ -752,6 +752,103 @@ func TestDescentRingUnchangedWithoutFallbackPool(t *testing.T) {
 	assert.Equal(t, []int{ids[2], ids[0], ids[1]}, ring, "未配置兜底池时 descent 环序必须逐位不变")
 }
 
+// Design D3: with the global fallback switch off, channels carrying the marker
+// must leave request selection identical to an unmarked deployment. The two
+// exits that consult the pool are covered: the strict affinity-unavailable
+// branch must not record fallback_exhausted, and an empty normal candidate pool
+// must fail exactly like an unmarked pool. Each subtest compares switch-off with
+// marked channels against switch-on with nothing marked.
+func TestFallbackSwitchOffMatchesUnmarkedPool(t *testing.T) {
+	type selectionOutcome struct {
+		channelID int
+		group     string
+		status    int
+		message   string
+		messageID string
+		noChannel bool
+		stage     bool
+		reasons   []string
+		exhausted int
+	}
+	record := func(ctx *gin.Context, channel *model.Channel, group string, selectErr *ChannelSelectError) selectionOutcome {
+		outcome := selectionOutcome{channelID: -1, group: group, stage: FallbackStageActive(ctx)}
+		for _, event := range RequestPolicy(ctx).Events() {
+			outcome.reasons = append(outcome.reasons, event.Decision.Reason)
+			if event.Decision.Reason == "fallback_exhausted" {
+				outcome.exhausted++
+			}
+		}
+		if channel != nil {
+			outcome.channelID = channel.Id
+		}
+		if selectErr != nil {
+			outcome.status = selectErr.StatusCode
+			outcome.message = selectErr.Message
+			outcome.messageID = selectErr.MessageID
+			outcome.noChannel = selectErr.NoAvailableChannel
+		}
+		return outcome
+	}
+
+	affinitySetting := operation_setting.GetChannelAffinitySetting()
+	previousFallbackEnabled := affinitySetting.FallbackEnabled
+	t.Cleanup(func() { affinitySetting.FallbackEnabled = previousFallbackEnabled })
+
+	t.Run("strict affinity unavailable", func(t *testing.T) {
+		const modelName = "switch-off-strict-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		ids := createPriorityLayeredChannels(t, db, "default", modelName, 9601, []int64{30})
+		require.NotEmpty(t, ids)
+
+		run := func(marked []int, fallbackEnabled bool) selectionOutcome {
+			affinitySetting.FallbackEnabled = fallbackEnabled
+			markFallbackChannels(t, marked)
+			ctx := installStrictAffinityRule(t, modelName, "switch-off-strict", fmt.Sprintf("switch-off-strict-%d", time.Now().UnixNano()), 999999)
+			param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+			channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+			return record(ctx, channel, group, selectErr)
+		}
+
+		markedOff := run(ids, false)
+		unmarkedOn := run(nil, true)
+
+		require.Equal(t, -1, markedOff.channelID, "switch off must not select the marked channel through the pool")
+		require.Equal(t, http.StatusServiceUnavailable, markedOff.status)
+		require.Equal(t, "strict_session_binding_unavailable", markedOff.message)
+		require.Zero(t, markedOff.exhausted, "switch off must not record fallback_exhausted")
+		require.False(t, markedOff.stage, "switch off must not enter the fallback stage")
+		assert.Equal(t, unmarkedOn, markedOff, "switch off must match an unmarked pool")
+	})
+
+	t.Run("empty normal candidate pool", func(t *testing.T) {
+		const modelName = "switch-off-empty-pool-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		// The pool member serves another model, so this request finds neither a
+		// normal candidate nor an eligible pool layer for its own model.
+		ids := createPriorityLayeredChannels(t, db, "default", "switch-off-other-model", 9701, []int64{30})
+		require.NotEmpty(t, ids)
+
+		run := func(marked []int, fallbackEnabled bool) selectionOutcome {
+			affinitySetting.FallbackEnabled = fallbackEnabled
+			markFallbackChannels(t, marked)
+			ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+			param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+			channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+			return record(ctx, channel, group, selectErr)
+		}
+
+		markedOff := run(ids, false)
+		unmarkedOn := run(nil, true)
+
+		require.Equal(t, -1, markedOff.channelID)
+		require.Equal(t, http.StatusServiceUnavailable, markedOff.status)
+		require.True(t, markedOff.noChannel)
+		require.Zero(t, markedOff.exhausted, "switch off must not record fallback_exhausted")
+		require.False(t, markedOff.stage)
+		assert.Equal(t, unmarkedOn, markedOff, "switch off must match an unmarked pool")
+	})
+}
+
 func intPtr(v int) *int {
 	return &v
 }

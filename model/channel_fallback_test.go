@@ -505,3 +505,81 @@ func TestIsFallbackChannelAndHasFallbackChannelsDatabasePath(t *testing.T) {
 	assert.False(t, IsFallbackChannel(66))
 	assert.False(t, HasFallbackChannels())
 }
+
+// Design D3: with the global switch off a marked channel must behave exactly as
+// if nothing were marked. Both the memory cache and the DB direct path are
+// compared against the unmarked pool: normal selection keeps every channel and
+// the fallback pool offers no layer.
+func TestFallbackSwitchOffMatchesUnmarkedPool(t *testing.T) {
+	fixture := []fallbackTestChannel{
+		{id: 50, priority: 50, weight: 1},
+		{id: 40, priority: 40, weight: 1},
+		{id: 66, priority: 6, weight: 1},
+		{id: 55, priority: 5, weight: 1},
+	}
+	normalIDs := func(pick func(retry int) (*Channel, error)) []int {
+		ids := make([]int, 0, 7)
+		for retry := range 7 {
+			channel, err := pick(retry)
+			require.NoError(t, err)
+			if channel == nil {
+				break
+			}
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+	poolIDs := func() []int {
+		ids := make([]int, 0, 2)
+		for layer := range 2 {
+			channel, err := GetFallbackChannel(fallbackTestGroup, fallbackTestModel, layer, nil)
+			require.NoError(t, err)
+			if channel == nil {
+				break
+			}
+			ids = append(ids, channel.Id)
+		}
+		return ids
+	}
+	memoryNormal := func(retry int) (*Channel, error) {
+		return GetRandomSatisfiedChannel(fallbackTestGroup, fallbackTestModel, retry, nil)
+	}
+	databaseNormal := func(retry int) (*Channel, error) {
+		return GetChannel(fallbackTestGroup, fallbackTestModel, retry, nil)
+	}
+
+	// (a) switch off with the channels marked, (b) switch on with nothing marked.
+	setFallbackTestCache(t, fixture)
+	markFallbackChannels(t, []int{66, 55})
+	setFallbackEnabled(t, false)
+	memoryOffNormal, memoryOffPool := normalIDs(memoryNormal), poolIDs()
+
+	setFallbackTestCache(t, fixture)
+	setFallbackEnabled(t, true)
+	memoryOnNormal, memoryOnPool := normalIDs(memoryNormal), poolIDs()
+
+	assert.Equal(t, memoryOnNormal, memoryOffNormal, "switch off must not change memory normal selection")
+	assert.Subset(t, memoryOffNormal, []int{66, 55}, "the marked channels stay in normal selection")
+	assert.Equal(t, memoryOnPool, memoryOffPool, "switch off must not offer a memory fallback layer")
+	assert.Empty(t, memoryOffPool)
+
+	truncateTables(t)
+	previousMemoryCache := common.MemoryCacheEnabled
+	common.MemoryCacheEnabled = false
+	t.Cleanup(func() { common.MemoryCacheEnabled = previousMemoryCache })
+
+	insertFallbackTestChannels(t, []int{66, 55})
+	setFallbackEnabled(t, false)
+	databaseOffNormal, databaseOffPool := normalIDs(databaseNormal), poolIDs()
+
+	require.NoError(t, DB.Exec("DELETE FROM channels").Error)
+	require.NoError(t, DB.Exec("DELETE FROM abilities").Error)
+	insertFallbackTestChannels(t, nil)
+	setFallbackEnabled(t, true)
+	databaseOnNormal, databaseOnPool := normalIDs(databaseNormal), poolIDs()
+
+	assert.Equal(t, databaseOnNormal, databaseOffNormal, "switch off must not change DB normal selection")
+	assert.Subset(t, databaseOffNormal, []int{66, 55}, "the marked channels stay in DB normal selection")
+	assert.Equal(t, databaseOnPool, databaseOffPool, "switch off must not offer a DB fallback layer")
+	assert.Empty(t, databaseOffPool)
+}
