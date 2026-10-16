@@ -329,6 +329,159 @@ func TestFallbackSequenceMatchesSpecExample(t *testing.T) {
 	assert.Equal(t, []string{"50", "40", "30", "20", "10", "50", "66", "55"}, c.GetStringSlice("use_channel"))
 }
 
+// prepareFreeModelRelay makes modelName free and silences the log paths so the
+// relay loop can run against an in-memory channel cache, restoring every global
+// on cleanup.
+func prepareFreeModelRelay(t *testing.T, modelName string) {
+	t.Helper()
+	originalRatios := ratio_setting.ModelRatio2JSONString()
+	require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(fmt.Sprintf(`{%q:0}`, modelName)))
+	originalLogConsume, originalErrorLog, originalCountToken := common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken
+	common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken = false, false, false
+	originalFreeModelPreConsume := operation_setting.GetQuotaSetting().EnableFreeModelPreConsume
+	operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = false
+	t.Cleanup(func() {
+		require.NoError(t, ratio_setting.UpdateModelRatioByJSONString(originalRatios))
+		common.LogConsumeEnabled, constant.ErrorLogEnabled, constant.CountToken = originalLogConsume, originalErrorLog, originalCountToken
+		operation_setting.GetQuotaSetting().EnableFreeModelPreConsume = originalFreeModelPreConsume
+	})
+}
+
+// prepareFallbackRelayRequest primes c exactly like the distributor does for the
+// shared fallback relay tests.
+func prepareFallbackRelayRequest(c *gin.Context, modelName string) {
+	body := `{"model":"` + modelName + `","messages":[{"role":"user","content":"hi"}]}`
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+	common.SetContextKey(c, constant.ContextKeyUsingGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyUserGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyTokenGroup, "default")
+	common.SetContextKey(c, constant.ContextKeyUserId, 1)
+	common.SetContextKey(c, constant.ContextKeyTokenId, 1)
+}
+
+// A successful normal-layer attempt must never reach the fallback pool: the
+// pool channel is not attempted and no fallback decision event is recorded.
+func TestNormalSuccessNeverTouchesFallback(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-normal-success-model"
+
+	successBody := `{"id":"chatcmpl-1","object":"chat.completion","model":"` + modelName + `","choices":[{"index":0,"message":{"role":"assistant","content":"hello"},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":1,"total_tokens":4}}`
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(successBody))
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, c := setupFallbackStageTest(t)
+	common.RetryTimes = 5
+	prepareFreeModelRelay(t, modelName)
+
+	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+	model.InitChannelCache()
+	prepareFallbackRelayRequest(c, modelName)
+
+	selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+		Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+	})
+	require.Nil(t, selectErr)
+	require.NotNil(t, selected)
+	require.Equal(t, 50, selected.Id, "a normal channel must win over the pool")
+	require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+	Relay(c, types.RelayFormatOpenAI)
+
+	assert.Equal(t, []string{"50"}, c.GetStringSlice("use_channel"), "a successful normal attempt must not touch the pool")
+	assert.False(t, service.FallbackStageActive(c))
+	reasons := fallbackPolicyReasons(service.RequestPolicy(c).Events())
+	assert.NotContains(t, reasons, "fallback_retry")
+	assert.NotContains(t, reasons, "fallback_exhausted")
+}
+
+// A channel pin means "this channel only": after the pinned attempt fails the
+// request must stop without entering the fallback pool (design D8).
+func TestPinnedRequestDoesNotEnterFallback(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-pinned-model"
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, c := setupFallbackStageTest(t)
+	common.RetryTimes = 5
+	prepareFreeModelRelay(t, modelName)
+
+	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+	model.InitChannelCache()
+	prepareFallbackRelayRequest(c, modelName)
+
+	service.GetChannelConstraints(c).AddPin(taskdto.ChannelPin{
+		ChannelId: 50, Source: taskdto.PinSourceToken, Rank: taskdto.PinRankToken, RetryMode: taskdto.PinRetrySingleAttempt,
+	})
+
+	selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+		Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+	})
+	require.Nil(t, selectErr)
+	require.NotNil(t, selected)
+	require.Equal(t, 50, selected.Id)
+	require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+	Relay(c, types.RelayFormatOpenAI)
+
+	assert.Equal(t, []string{"50"}, c.GetStringSlice("use_channel"), "a pinned request must not try the fallback pool")
+	assert.False(t, service.FallbackStageActive(c))
+	reasons := fallbackPolicyReasons(service.RequestPolicy(c).Events())
+	assert.NotContains(t, reasons, "fallback_retry")
+	assert.NotContains(t, reasons, "fallback_exhausted")
+}
+
+// A fallback pool holding a single channel is still tried once the normal
+// attempts stop; the pool is not treated as empty.
+func TestSingleFallbackChannelIsTried(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-single-channel-model"
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, c := setupFallbackStageTest(t)
+	common.RetryTimes = 0
+	prepareFreeModelRelay(t, modelName)
+
+	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66}
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+	model.InitChannelCache()
+	prepareFallbackRelayRequest(c, modelName)
+
+	selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+		Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+	})
+	require.Nil(t, selectErr)
+	require.NotNil(t, selected)
+	require.Equal(t, 50, selected.Id)
+	require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+	Relay(c, types.RelayFormatOpenAI)
+
+	assert.Equal(t, []string{"50", "66"}, c.GetStringSlice("use_channel"), "a single-channel pool must still be tried")
+}
+
 func countReasons(reasons []string, want string) int {
 	count := 0
 	for _, reason := range reasons {

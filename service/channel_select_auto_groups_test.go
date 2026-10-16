@@ -539,9 +539,10 @@ func TestSelectChannelForRequestUsesFallbackWhenNormalPoolEmpty(t *testing.T) {
 	channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
 	require.Nil(t, selectErr, "正常候选池为空且有兜底渠道时不得返回无可用渠道")
 	require.NotNil(t, channel)
-	assert.Equal(t, fallbackIDs[0], channel.Id)
+	assert.Equal(t, fallbackIDs[0], channel.Id, "池内仅 1 台兜底渠道仍必须被尝试")
 	assert.Equal(t, "default", group)
 	assert.True(t, FallbackStageActive(ctx))
+	assert.Empty(t, RequestPolicy(ctx).Events(), "使用兜底渠道不得记录 fallback_exhausted")
 }
 
 func TestSelectChannelForRequestContinuesFallbackStage(t *testing.T) {
@@ -591,6 +592,77 @@ func TestSelectChannelForRequestKeeps503WithoutFallbackPool(t *testing.T) {
 	assert.Equal(t, "strict_session_binding_unavailable", selectErr.Message)
 	assert.Equal(t, "", group)
 	assert.False(t, FallbackStageActive(ctx), "未配置兜底池时不得进入兜底阶段")
+}
+
+// The spec scenario 候选池为空且无兜底渠道 requires one fallback_exhausted decision
+// event when a configured pool cannot serve an otherwise empty normal pool. An
+// unconfigured pool must stay byte-for-byte unchanged and record nothing (D10).
+func TestFallbackExhaustedEventRecorded(t *testing.T) {
+	t.Run("configured pool with no eligible layer", func(t *testing.T) {
+		const modelName = "fallback-exhausted-event-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		// The pool member exists but serves another model, so HasFallbackChannels
+		// is true while no fallback layer is eligible for this request.
+		createPriorityLayeredChannels(t, db, "default", "fallback-other-model", 9101, []int64{30})
+		withFallbackChannelIDs(t, []int{9101})
+		model.InitChannelCache()
+
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+		channel, _, selectErr := SelectChannelForRequest(ctx, modelName, param)
+		require.Nil(t, channel)
+		require.NotNil(t, selectErr)
+		assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+		assert.True(t, selectErr.NoAvailableChannel)
+
+		events := RequestPolicy(ctx).Events()
+		require.Len(t, events, 1, "exactly one fallback_exhausted event must be recorded")
+		assert.Equal(t, PolicyDecision{Action: "stop", Reason: "fallback_exhausted", Source: "global"}, events[0].Decision)
+	})
+
+	t.Run("no configured pool records nothing", func(t *testing.T) {
+		const modelName = "fallback-exhausted-no-pool-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		createPriorityLayeredChannels(t, db, "default", "fallback-other-model", 9201, []int64{30})
+		withFallbackChannelIDs(t, nil)
+		model.InitChannelCache()
+
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+		channel, _, selectErr := SelectChannelForRequest(ctx, modelName, param)
+		require.Nil(t, channel)
+		require.NotNil(t, selectErr)
+		assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+		assert.True(t, selectErr.NoAvailableChannel)
+		assert.Empty(t, RequestPolicy(ctx).Events(), "an unconfigured pool must not record events")
+	})
+}
+
+// Without a configured fallback pool the descent ring must be unchanged: the
+// pool must not alter layer order or wrap-around.
+func TestDescentRingUnchangedWithoutFallbackPool(t *testing.T) {
+	const modelName = "descent-no-fallback-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 9301, []int64{30, 20, 10})
+	withFallbackChannelIDs(t, nil)
+	model.InitChannelCache()
+
+	param := descentTestContext(t, modelName, "default")
+	seed, _, err := CacheGetRandomSatisfiedChannelWithPriority(param, 1)
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+	require.Equal(t, ids[1], seed.Id, "锚点层由首次选中的渠道决定")
+
+	ring := make([]int, 0, len(ids))
+	for retry := 1; retry <= len(ids); retry++ {
+		got, _, err := CacheGetRandomSatisfiedChannelWithPriority(param, retry)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		ring = append(ring, got.Id)
+	}
+	assert.Equal(t, []int{ids[2], ids[0], ids[1]}, ring, "未配置兜底池时 descent 环序必须逐位不变")
 }
 
 func intPtr(v int) *int {
