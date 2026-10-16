@@ -51,6 +51,7 @@ func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Header, info *rel
 			anthropicVersion = "2023-06-01"
 		}
 		req.Set("anthropic-version", anthropicVersion)
+		claude.CommonClaudeHeadersOperation(c, req, info)
 		return nil
 	}
 	req.Set("Authorization", "Bearer "+info.ApiKey)

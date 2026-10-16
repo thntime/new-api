@@ -106,3 +106,19 @@ func TestGetChannelName(t *testing.T) {
 func TestGetAdaptorReturnsCodeBuddy(t *testing.T) {
 	assert.IsType(t, &codebuddy.Adaptor{}, relay.GetAdaptor(constant.APITypeCodeBuddy))
 }
+
+func TestSetupRequestHeaderForwardsAnthropicBeta(t *testing.T) {
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/messages", nil)
+	c.Request.Header.Add("anthropic-beta", "fast-mode-2026-02-01")
+	c.Request.Header.Add("anthropic-beta", "thinking-binding-controls-2026-08-01")
+
+	a := &codebuddy.Adaptor{}
+	info := &relaycommon.RelayInfo{
+		RelayFormat: types.RelayFormatClaude,
+		ChannelMeta: &relaycommon.ChannelMeta{ApiKey: "sk-cb-test"},
+	}
+	header := http.Header{}
+	require.NoError(t, a.SetupRequestHeader(c, &header, info))
+	assert.Equal(t, []string{"fast-mode-2026-02-01,thinking-binding-controls-2026-08-01"}, header.Values("anthropic-beta"))
+}
