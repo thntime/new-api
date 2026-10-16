@@ -395,6 +395,104 @@ func TestMidjourneyPolicyAcceptance(t *testing.T) {
 	}
 }
 
+// A fallback-pool channel must not be written into the affinity cache even when
+// it is the channel that finished the request, including when SwitchOnSuccess
+// resolves the final channel from the context.
+func TestRecordChannelAffinitySkipsFallbackChannel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	setting := operation_setting.GetChannelAffinitySetting()
+	require.NotNil(t, setting)
+	previous := *setting
+	t.Cleanup(func() { *setting = previous })
+	setting.Enabled = true
+	setting.SwitchOnSuccess = true
+	setting.FallbackChannelIDs = []int{6066}
+
+	cacheKeySuffix := fmt.Sprintf("fallback-affinity-%d", time.Now().UnixNano())
+	cache := getChannelAffinityCache()
+	t.Cleanup(func() { _, _ = cache.DeleteMany([]string{cacheKeySuffix}) })
+
+	// The passed-in id is a normal channel, but SwitchOnSuccess overrides it with
+	// the fallback channel stored under "channel_id"; the final written id is what
+	// must be judged.
+	ctx := buildChannelAffinityTemplateContextForTest(channelAffinityMeta{
+		CacheKey:   channelAffinityCacheNamespace + ":" + cacheKeySuffix,
+		TTLSeconds: 60,
+		RuleName:   "fallback-affinity-rule",
+	})
+	ctx.Set("channel_id", 6066)
+
+	RecordChannelAffinity(ctx, 4242)
+
+	_, found, err := cache.Get(cacheKeySuffix)
+	require.NoError(t, err)
+	require.False(t, found)
+}
+
+// A normal channel keeps the existing behavior and is written to the cache.
+func TestRecordChannelAffinityStillWritesNormalChannel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	setting := operation_setting.GetChannelAffinitySetting()
+	require.NotNil(t, setting)
+	previous := *setting
+	t.Cleanup(func() { *setting = previous })
+	setting.Enabled = true
+	setting.SwitchOnSuccess = true
+	setting.FallbackChannelIDs = []int{6066}
+
+	cacheKeySuffix := fmt.Sprintf("normal-affinity-%d", time.Now().UnixNano())
+	cache := getChannelAffinityCache()
+	t.Cleanup(func() { _, _ = cache.DeleteMany([]string{cacheKeySuffix}) })
+
+	ctx := buildChannelAffinityTemplateContextForTest(channelAffinityMeta{
+		CacheKey:   channelAffinityCacheNamespace + ":" + cacheKeySuffix,
+		TTLSeconds: 60,
+		RuleName:   "normal-affinity-rule",
+	})
+	ctx.Set("channel_id", 4242)
+
+	RecordChannelAffinity(ctx, 4242)
+
+	cached, found, err := cache.Get(cacheKeySuffix)
+	require.NoError(t, err)
+	require.True(t, found)
+	assert.Equal(t, 4242, cached)
+}
+
+// In descent mode a fallback-pool channel must not become the ring anchor, while
+// a normal channel is still recorded with the first-writer-wins semantics.
+func TestRememberDescentAnchorSkipsFallbackChannel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	setting := operation_setting.GetChannelAffinitySetting()
+	require.NotNil(t, setting)
+	previous := *setting
+	t.Cleanup(func() { *setting = previous })
+	setting.FallbackChannelIDs = []int{6066}
+
+	priority := int64(30)
+
+	t.Run("fallback channel is not anchored", func(t *testing.T) {
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		RequestPolicy(ctx).SessionMode = "descent"
+		rememberDescentAnchor(ctx, "default", &model.Channel{Id: 6066, Priority: &priority})
+		_, _, ok := descentAnchor(ctx)
+		require.False(t, ok)
+	})
+
+	t.Run("normal channel is anchored", func(t *testing.T) {
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		RequestPolicy(ctx).SessionMode = "descent"
+		rememberDescentAnchor(ctx, "vip", &model.Channel{Id: 4242, Priority: &priority})
+		group, gotPriority, ok := descentAnchor(ctx)
+		require.True(t, ok)
+		assert.Equal(t, "vip", group)
+		assert.Equal(t, priority, gotPriority)
+	})
+}
+
 func TestSessionRulesInheritOrOverrideGlobalDefault(t *testing.T) {
 	setting := operation_setting.GetChannelAffinitySetting()
 	previous := *setting

@@ -742,6 +742,10 @@ func RecordChannelAffinity(c *gin.Context, channelID int) {
 			channelID = successChannelID
 		}
 	}
+	// Fallback-pool channels never participate in channel affinity.
+	if operation_setting.IsFallbackChannel(channelID) {
+		return
+	}
 	cacheKey, ttlSeconds, ok := getChannelAffinityContext(c)
 	if !ok {
 		return
@@ -1055,7 +1059,7 @@ type descentAnchorState struct {
 // rememberDescentAnchor 记录本次请求的环形锚点层：仅当会话模式为 descent 且尚未
 // 记录时写入（先写者胜），其余情况为无副作用的空操作，因此调用点无需分支。
 func rememberDescentAnchor(c *gin.Context, group string, channel *model.Channel) {
-	if c == nil || channel == nil || RequestPolicy(c).SessionMode != "descent" {
+	if c == nil || channel == nil || operation_setting.IsFallbackChannel(channel.Id) || RequestPolicy(c).SessionMode != "descent" {
 		return
 	}
 	if _, exists := c.Get(ginKeyChannelAffinityDescent); exists {
