@@ -7501,6 +7501,11 @@
     "Invalid error status mapping rules: {{error}}": "無効なステータスマッピングルール: {{error}}",
     "Delete rule “{{name}}”?": "ルール「{{name}}」を削除しますか？",
     "Save your changes to apply the removal.": "変更を保存すると削除が適用されます。",
-    "Status mapping rules": "ステータスマッピングルール"
+    "Status mapping rules": "ステータスマッピングルール",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "CodeBuddy のモデルサービスに接続",
+    "Select the access mode for this CodeBuddy channel": "この CodeBuddy チャネルのアクセスモードを選択",
+    "Domestic": "国内",
+    "International": "国際"
   }
 }

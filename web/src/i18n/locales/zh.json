@@ -7501,6 +7501,11 @@
     "Invalid error status mapping rules: {{error}}": "无效的状态映射规则：{{error}}",
     "Delete rule “{{name}}”?": "删除规则“{{name}}”？",
     "Save your changes to apply the removal.": "保存后删除才会生效。",
-    "Status mapping rules": "状态映射规则"
+    "Status mapping rules": "状态映射规则",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "接入 CodeBuddy 模型服务",
+    "Select the access mode for this CodeBuddy channel": "为此 CodeBuddy 渠道选择接入方式",
+    "Domestic": "国内",
+    "International": "国际"
   }
 }

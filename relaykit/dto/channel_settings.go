@@ -212,6 +212,12 @@ type ChannelOtherSettings struct {
 	// rejection. Empty follows the default allow policy. Accepted values:
 	// "", "allow", "safe", "strict".
 	ToolLossPolicy string `json:"tool_loss_policy,omitempty"`
+	// CodeBuddyRegion marks whether the CodeBuddy channel connects through the
+	// domestic ("cn") or international ("intl") access route. Empty leaves the
+	// route unset. The value is only a region marker: it never rewrites the API
+	// base URL or the request, unlike EndpointProfile which selects a plan
+	// endpoint.
+	CodeBuddyRegion string `json:"codebuddy_region,omitempty"`
 }
 
 // ResolveProxy returns the proxy URL to use for the given model.
@@ -254,6 +260,20 @@ func (s *ChannelOtherSettings) ValidateToolLossPolicy() error {
 		return nil
 	default:
 		return fmt.Errorf("invalid tool_loss_policy: %s", s.ToolLossPolicy)
+	}
+}
+
+// ValidateCodeBuddyRegion validates the CodeBuddy access region marker. Empty
+// (or blank) leaves the region unset.
+func (s *ChannelOtherSettings) ValidateCodeBuddyRegion() error {
+	if s == nil {
+		return nil
+	}
+	switch strings.TrimSpace(s.CodeBuddyRegion) {
+	case "", "cn", "intl":
+		return nil
+	default:
+		return fmt.Errorf("invalid codebuddy_region: %s", s.CodeBuddyRegion)
 	}
 }
 

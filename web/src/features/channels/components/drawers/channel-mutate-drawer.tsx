@@ -146,6 +146,7 @@ import {
 import {
   ADD_MODE_OPTIONS,
   CHANNEL_TYPE_CLINE,
+  CHANNEL_TYPE_CODEBUDDY,
   CHANNEL_TYPE_COMMANDCODE,
   CHANNEL_TYPE_SENSENOVA,
   CLAUDE_FIELD_PASSTHROUGH_TYPES,
@@ -4737,6 +4738,52 @@ export function ChannelMutateDrawer({
                     </Select>
                     <FormDescription>
                       {t('Select the access mode for this Cline channel')}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Access mode for CodeBuddy (93): domestic or international.
+                Like the Cline branch above, the region marker is a settings
+                field only; switching it must not rewrite base_url. */}
+            {currentType === CHANNEL_TYPE_CODEBUDDY && (
+              <FormField
+                control={form.control}
+                name='codebuddy_region'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Access Mode')}</FormLabel>
+                    <Select
+                      disabled={sensitiveLocked}
+                      items={[
+                        { value: 'cn', label: t('Domestic') },
+                        { value: 'intl', label: t('International') },
+                      ]}
+                      onValueChange={(value) => {
+                        const region =
+                          value === 'cn' || value === 'intl' ? value : ''
+                        field.onChange(region)
+                      }}
+                      value={field.value ?? ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent alignItemWithTrigger={false}>
+                        <SelectGroup>
+                          <SelectItem value='cn'>{t('Domestic')}</SelectItem>
+                          <SelectItem value='intl'>
+                            {t('International')}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t('Select the access mode for this CodeBuddy channel')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

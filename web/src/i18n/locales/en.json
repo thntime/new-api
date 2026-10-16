@@ -7501,6 +7501,11 @@
     "Invalid error status mapping rules: {{error}}": "Invalid error status mapping rules: {{error}}",
     "Delete rule “{{name}}”?": "Delete rule “{{name}}”?",
     "Save your changes to apply the removal.": "Save your changes to apply the removal.",
-    "Status mapping rules": "Status mapping rules"
+    "Status mapping rules": "Status mapping rules",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "Connect to CodeBuddy model services",
+    "Select the access mode for this CodeBuddy channel": "Select the access mode for this CodeBuddy channel",
+    "Domestic": "Domestic",
+    "International": "International"
   }
 }

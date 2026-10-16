@@ -1087,6 +1087,11 @@ func (channel *Channel) ValidateSettings() error {
 	if err := channelOtherSettings.ValidateToolLossPolicy(); err != nil {
 		return err
 	}
+	if channel.Type == constant.ChannelTypeCodeBuddy {
+		if err := channelOtherSettings.ValidateCodeBuddyRegion(); err != nil {
+			return err
+		}
+	}
 	if endpointProfile := channelOtherSettings.EndpointProfile; endpointProfile != "" {
 		profiles, supportedType := constant.ChannelSpecialPlanProfiles[channel.Type]
 		if !supportedType {

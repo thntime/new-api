@@ -7501,6 +7501,11 @@
     "Invalid error status mapping rules: {{error}}": "Quy tắc ánh xạ trạng thái không hợp lệ: {{error}}",
     "Delete rule “{{name}}”?": "Xóa quy tắc “{{name}}”?",
     "Save your changes to apply the removal.": "Lưu thay đổi để áp dụng việc xóa.",
-    "Status mapping rules": "Quy tắc ánh xạ trạng thái"
+    "Status mapping rules": "Quy tắc ánh xạ trạng thái",
+    "CodeBuddy": "CodeBuddy",
+    "Connect to CodeBuddy model services": "Kết nối với dịch vụ mô hình CodeBuddy",
+    "Select the access mode for this CodeBuddy channel": "Chọn chế độ truy cập cho kênh CodeBuddy này",
+    "Domestic": "Trong nước",
+    "International": "Quốc tế"
   }
 }

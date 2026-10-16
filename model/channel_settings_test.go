@@ -255,3 +255,19 @@ func TestInferencePresetSettingsAndDatabaseRoundTrip(t *testing.T) {
 		})
 	}
 }
+
+func TestChannelValidateSettingsRejectsInvalidCodeBuddyRegion(t *testing.T) {
+	channel := &Channel{Type: constant.ChannelTypeCodeBuddy}
+	channel.SetOtherSettings(dto.ChannelOtherSettings{CodeBuddyRegion: "eu"})
+	require.Error(t, channel.ValidateSettings())
+
+	channel.SetOtherSettings(dto.ChannelOtherSettings{CodeBuddyRegion: "cn"})
+	require.NoError(t, channel.ValidateSettings())
+
+	channel.SetOtherSettings(dto.ChannelOtherSettings{CodeBuddyRegion: ""})
+	require.NoError(t, channel.ValidateSettings())
+
+	other := &Channel{Type: constant.ChannelTypeCline}
+	other.SetOtherSettings(dto.ChannelOtherSettings{CodeBuddyRegion: "eu"})
+	require.NoError(t, other.ValidateSettings())
+}

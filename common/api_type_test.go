@@ -12,3 +12,9 @@ func TestClineChannelType2APIType(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, constant.APITypeCline, apiType)
 }
+
+func TestCodeBuddyChannelType2APIType(t *testing.T) {
+	apiType, ok := ChannelType2APIType(constant.ChannelTypeCodeBuddy)
+	require.True(t, ok)
+	require.Equal(t, constant.APITypeCodeBuddy, apiType)
+}

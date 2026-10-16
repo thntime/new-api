@@ -398,3 +398,7 @@ func TestInitChannelMetaResetsPerAttemptStreamStateAndPreservesRequestState(t *t
 func ptr[T any](value T) *T {
 	return &value
 }
+
+func TestStreamSupportedChannelsIncludesCodeBuddy(t *testing.T) {
+	require.True(t, streamSupportedChannels[constant.ChannelTypeCodeBuddy])
+}
