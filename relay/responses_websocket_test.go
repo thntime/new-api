@@ -23,9 +23,11 @@ import (
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 // normalizeResponsesWSTestMessage runs the read-loop envelope parse followed by
@@ -690,4 +692,184 @@ func TestResponsesWSErrorAttribution(t *testing.T) {
 			assert.Equal(t, tc.controlError, controlError)
 		})
 	}
+}
+
+// setupResponsesWSFallbackTest installs an isolated in-memory channel cache and
+// a fresh gin context for the Responses WebSocket fallback stage, restoring
+// every global it touches on cleanup.
+func setupResponsesWSFallbackTest(t *testing.T) (*gorm.DB, *gin.Context) {
+	t.Helper()
+
+	originalDB := model.DB
+	originalMemoryCacheEnabled := common.MemoryCacheEnabled
+	originalRetryTimes := common.RetryTimes
+	originalErrorLogEnabled := constant.ErrorLogEnabled
+	originalFallbackIDs := operation_setting.GetChannelAffinitySetting().FallbackChannelIDs
+
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&model.Channel{}, &model.Ability{}))
+	model.DB = db
+	common.MemoryCacheEnabled = true
+	common.RetryTimes = 0
+	// The fallback stage records channel errors through ProcessChannelError;
+	// keep it out of a database that only holds channels and abilities.
+	constant.ErrorLogEnabled = false
+
+	t.Cleanup(func() {
+		model.DB = originalDB
+		common.MemoryCacheEnabled = originalMemoryCacheEnabled
+		common.RetryTimes = originalRetryTimes
+		constant.ErrorLogEnabled = originalErrorLogEnabled
+		operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = originalFallbackIDs
+		if originalMemoryCacheEnabled && originalDB != nil && originalDB.Migrator().HasTable(&model.Channel{}) {
+			model.InitChannelCache()
+		}
+		sqlDB, err := db.DB()
+		if err == nil {
+			require.NoError(t, sqlDB.Close())
+		}
+	})
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil)
+	return db, c
+}
+
+func createResponsesWSFallbackChannel(t *testing.T, db *gorm.DB, id int, group, modelName string, priority int64) {
+	t.Helper()
+	weight := uint(100)
+	channel := &model.Channel{
+		Id:       id,
+		Type:     constant.ChannelTypeOpenAI,
+		Key:      fmt.Sprintf("key-%d", id),
+		Status:   common.ChannelStatusEnabled,
+		Name:     fmt.Sprintf("channel-%d", id),
+		Weight:   &weight,
+		Models:   modelName,
+		Group:    group,
+		Priority: &priority,
+	}
+	channel.SetSetting(dto.ChannelSettings{ResponsesWebSocketEnabled: true})
+	require.NoError(t, db.Create(channel).Error)
+	require.NoError(t, db.Create(&model.Ability{Group: group, Model: modelName, ChannelId: id, Enabled: true, Priority: &priority, Weight: weight}).Error)
+}
+
+func responsesWSFallbackReasons(events []service.PolicyEvent) []string {
+	reasons := make([]string, 0, len(events))
+	for _, event := range events {
+		reasons = append(reasons, event.Decision.Reason)
+	}
+	return reasons
+}
+
+func countResponsesWSFallbackReasons(reasons []string, want string) int {
+	count := 0
+	for _, reason := range reasons {
+		if reason == want {
+			count++
+		}
+	}
+	return count
+}
+
+// TestRunResponsesWSFallbackStageWithoutPoolSkipsEverything covers the unchanged
+// behaviour when no fallback pool is configured: no attempt, no event, no stage
+// entry.
+func TestRunResponsesWSFallbackStageWithoutPoolSkipsEverything(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	_, c := setupResponsesWSFallbackTest(t)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = nil
+
+	calls := 0
+	result := runResponsesWSFallbackStage(c, "fallback-empty-pool-model", responsesWSFallbackRetryParam(c, "fallback-empty-pool-model"), responsesWSFallbackRelayInfo("fallback-empty-pool-model"), func(channel *model.Channel) *types.NewAPIError {
+		calls++
+		return nil
+	})
+
+	require.Nil(t, result)
+	assert.Zero(t, calls, "an unconfigured pool must not attempt any channel")
+	assert.Empty(t, service.RequestPolicy(c).Events(), "an unconfigured pool must not record events")
+	assert.False(t, service.FallbackStageActive(c), "an unconfigured pool must not enter the fallback stage")
+}
+
+// TestRunResponsesWSFallbackStageRecordsExhaustedWhenNoEligibleLayer covers a
+// configured pool with no eligible layer for this request: no attempt and one
+// fallback_exhausted event.
+func TestRunResponsesWSFallbackStageRecordsExhaustedWhenNoEligibleLayer(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSFallbackTest(t)
+	createResponsesWSFallbackChannel(t, db, 55, "default", "fallback-other-model", 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{55}
+	model.InitChannelCache()
+
+	calls := 0
+	result := runResponsesWSFallbackStage(c, "fallback-missing-model", responsesWSFallbackRetryParam(c, "fallback-missing-model"), responsesWSFallbackRelayInfo("fallback-missing-model"), func(channel *model.Channel) *types.NewAPIError {
+		calls++
+		return nil
+	})
+
+	require.Nil(t, result)
+	assert.Zero(t, calls, "an ineligible pool must not attempt any channel")
+	assert.Equal(t, []string{"fallback_exhausted"}, responsesWSFallbackReasons(service.RequestPolicy(c).Events()))
+}
+
+// TestRunResponsesWSFallbackStageTriesLayersInPriorityOrder covers two failing
+// fallback layers: they are attempted highest priority first and the last error
+// is returned.
+func TestRunResponsesWSFallbackStageTriesLayersInPriorityOrder(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSFallbackTest(t)
+	const modelName = "ws-fallback-order-model"
+	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
+	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	model.InitChannelCache()
+
+	var tried []int
+	upstreamErr := types.NewOpenAIError(errors.New("upstream failed"), types.ErrorCodeBadResponseStatusCode, http.StatusInternalServerError)
+	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) *types.NewAPIError {
+		tried = append(tried, channel.Id)
+		return upstreamErr
+	})
+
+	require.NotNil(t, result)
+	assert.Same(t, upstreamErr, result, "the last fallback attempt error is reported")
+	assert.Equal(t, []int{66, 55}, tried, "fallback layers must be attempted in descending priority")
+	reasons := responsesWSFallbackReasons(service.RequestPolicy(c).Events())
+	assert.Equal(t, 2, countResponsesWSFallbackReasons(reasons, "fallback_retry"))
+	assert.NotContains(t, reasons, "fallback_exhausted")
+}
+
+// TestRunResponsesWSFallbackStageStopsAfterFirstSuccess covers a first-layer
+// success: the stage returns nil and the remaining layer is never attempted.
+func TestRunResponsesWSFallbackStageStopsAfterFirstSuccess(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db, c := setupResponsesWSFallbackTest(t)
+	const modelName = "ws-fallback-success-model"
+	createResponsesWSFallbackChannel(t, db, 66, "default", modelName, 6)
+	createResponsesWSFallbackChannel(t, db, 55, "default", modelName, 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{66, 55}
+	model.InitChannelCache()
+
+	var tried []int
+	result := runResponsesWSFallbackStage(c, modelName, responsesWSFallbackRetryParam(c, modelName), responsesWSFallbackRelayInfo(modelName), func(channel *model.Channel) *types.NewAPIError {
+		tried = append(tried, channel.Id)
+		return nil
+	})
+
+	require.Nil(t, result)
+	assert.Equal(t, []int{66}, tried, "a successful layer must stop the fallback stage")
+	assert.NotContains(t, responsesWSFallbackReasons(service.RequestPolicy(c).Events()), "fallback_retry")
+}
+
+func responsesWSFallbackRetryParam(c *gin.Context, modelName string) *service.RetryParam {
+	return &service.RetryParam{Ctx: c, ModelName: modelName, TokenGroup: "default", Retry: common.GetPointer(0)}
+}
+
+// responsesWSFallbackRelayInfo is the minimal relay info the fallback stage
+// reads: the selected channel's api key lives on the embedded ChannelMeta.
+func responsesWSFallbackRelayInfo(modelName string) *relaycommon.RelayInfo {
+	return &relaycommon.RelayInfo{OriginModelName: modelName, UsingGroup: "default", ChannelMeta: &relaycommon.ChannelMeta{ApiKey: "sk-test"}}
 }

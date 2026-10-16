@@ -291,47 +291,48 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 		}
 	} else {
 		retry := &service.RetryParam{Ctx: c, TokenGroup: common.GetContextKeyString(c, appconstant.ContextKeyUsingGroup), ModelName: modelName, RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0)}
-		for ; retry.GetRetry() <= common.RetryTimes; retry.IncreaseRetry() {
-			var channel *appmodel.Channel
-			channel, apiErr = selectResponsesWSChannel(c, modelName, retry)
-			if apiErr != nil {
-				return apiErr
-			}
+		// dialFailed marks a failed upstream dial: the only attempt failure the
+		// normal loop turns into a retry decision. Billing, payload and target
+		// failures stop the request with their own error instead.
+		dialFailed := false
+		// attemptConnected reports that an attempt established the upstream
+		// connection, so a successful fallback layer can clear the error left by
+		// the exhausted normal stage.
+		attemptConnected := false
+		// attempt runs one channel attempt after the channel was selected: it
+		// prepares billing, builds the upstream create event, dials the upstream
+		// and, on success, locks the session to that channel.
+		attempt := func(channel *appmodel.Channel) *types.NewAPIError {
 			service.AppendUsedChannel(c, channel.Id)
+			dialFailed = false
 			if info == nil {
 				info = relaycommon.GenRelayInfoResponses(c, &create.Request)
 				info.IsStream = true
 				common.SetContextKey(c, appconstant.ContextKeyIsStream, true)
-				if apiErr = PrepareRequestBilling(c, info); apiErr != nil {
-					return apiErr
+				if err := PrepareRequestBilling(c, info); err != nil {
+					return err
 				}
 				billingPrepared = true
 			} else {
 				info.PriceData.GroupRatioInfo = helper.HandleGroupRatio(c, info)
-				if apiErr = service.PrepareTieredBillingForSelectedGroup(c, info); apiErr != nil {
-					return apiErr
+				if err := service.PrepareTieredBillingForSelectedGroup(c, info); err != nil {
+					return err
 				}
 			}
 			info.RetryIndex = retry.GetRetry()
 			policy.BeginAttempt(channel, info.UsingGroup)
-			var payload []byte
-			payload, apiErr = buildResponsesWSCreatePayload(c, info, create.Request, create.Generate, create.StreamID)
-			if apiErr != nil {
-				return apiErr
+			payload, err := buildResponsesWSCreatePayload(c, info, create.Request, create.Generate, create.StreamID)
+			if err != nil {
+				return err
 			}
 			adaptor := GetAdaptor(info.ApiType)
 			adaptor.Init(info)
 			target, dialErr := relaychannel.DoWssRequest(adaptor, c, info, nil)
 			if dialErr != nil {
-				apiErr = service.NormalizeViolationFeeError(types.NewError(dialErr, types.ErrorCodeDoRequestFailed))
+				apiErr := service.NormalizeViolationFeeError(types.NewError(dialErr, types.ErrorCodeDoRequestFailed))
 				service.ResetStatusCode(apiErr, c.GetString("status_code_mapping"))
 				info.LastError = apiErr
-				decision := service.DecideRelayRetry(c, apiErr, common.RetryTimes-retry.GetRetry())
-				service.RecordPolicyFailure(c, channel.Id, apiErr, decision)
-				service.ProcessChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, info.ApiKey, channel.GetAutoBan()), apiErr, info)
-				if decision.Action == "retry" {
-					continue
-				}
+				dialFailed = true
 				return apiErr
 			}
 			if !s.setTarget(target) {
@@ -359,8 +360,40 @@ func (s *responsesWSSession) runCall(c *gin.Context, state *responsesWSCallState
 			}
 			s.registerChannelClose(channel.Id)
 			s.startTargetReader(target)
-			apiErr = nil
-			break
+			attemptConnected = true
+			return nil
+		}
+		for ; retry.GetRetry() <= common.RetryTimes; retry.IncreaseRetry() {
+			var channel *appmodel.Channel
+			channel, apiErr = selectResponsesWSChannel(c, modelName, retry)
+			if apiErr != nil {
+				return apiErr
+			}
+			apiErr = attempt(channel)
+			if apiErr == nil {
+				break
+			}
+			if !dialFailed {
+				return apiErr
+			}
+			decision := service.DecideRelayRetry(c, apiErr, common.RetryTimes-retry.GetRetry())
+			service.RecordPolicyFailure(c, channel.Id, apiErr, decision)
+			service.ProcessChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, info.ApiKey, channel.GetAutoBan()), apiErr, info)
+			if decision.Action == "retry" {
+				continue
+			}
+			return apiErr
+		}
+		// The fallback pool runs once after the normal attempts stop. A channel
+		// pin means "this channel only", so it never enters the fallback pool.
+		if apiErr != nil && !service.GetChannelConstraints(c).SuppressesRetry() {
+			if fallbackErr := runResponsesWSFallbackStage(c, modelName, retry, info, attempt); fallbackErr != nil {
+				apiErr = fallbackErr
+			} else if attemptConnected {
+				// A fallback layer connected, so the normal-stage error no longer
+				// ends this request.
+				apiErr = nil
+			}
 		}
 		if apiErr != nil {
 			return apiErr
@@ -950,4 +983,35 @@ func selectResponsesWSChannel(c *gin.Context, modelName string, retryParam *serv
 		return nil, err
 	}
 	return channel, nil
+}
+
+// runResponsesWSFallbackStage drives the fallback channel pool for the Responses
+// WebSocket path after the normal attempts are exhausted. It returns nil when a
+// fallback layer connected or when no fallback layer was eligible, and the last
+// fallback attempt error when every layer failed.
+func runResponsesWSFallbackStage(c *gin.Context, modelName string, retry *service.RetryParam, info *relaycommon.RelayInfo, attempt func(*appmodel.Channel) *types.NewAPIError) *types.NewAPIError {
+	if !service.HasFallbackChannels() {
+		return nil
+	}
+	service.EnterFallbackStage(c)
+	var lastErr *types.NewAPIError
+	attempts := 0
+	for {
+		channel, selectErr := selectResponsesWSChannel(c, modelName, retry)
+		if selectErr != nil || channel == nil {
+			break
+		}
+		attempts++
+		err := attempt(channel)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		service.RecordPolicyFailure(c, channel.Id, err, service.PolicyDecision{Action: "retry", Reason: "fallback_retry", Source: "global"})
+		service.ProcessChannelError(c, *types.NewChannelError(channel.Id, channel.Type, channel.Name, channel.ChannelInfo.IsMultiKey, info.ApiKey, channel.GetAutoBan()), err, info)
+	}
+	if attempts == 0 {
+		service.RequestPolicy(c).AddEvent(service.PolicyEvent{Decision: service.PolicyDecision{Action: "stop", Reason: "fallback_exhausted", Source: "global"}})
+	}
+	return lastErr
 }
