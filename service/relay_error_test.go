@@ -218,6 +218,21 @@ func TestDecideRelayRetryReasons(t *testing.T) {
 			RequestPolicy(c).SessionModeSource = "global"
 		}, want: PolicyDecision{Action: "stop", Reason: "strict_session", Source: "global"}},
 		{name: "nil error", retries: 1, want: PolicyDecision{Action: "stop", Reason: "request_completed", Source: "system"}},
+		// Fallback-pool guardrails: DecideRelayRetry must not consult the pool,
+		// so the strict stop and the budget stop stay byte-identical.
+		{name: "strict session without fallback pool", err: upstream(http.StatusTooManyRequests), retries: 1, setup: func(c *gin.Context) {
+			c.Set(ginKeyChannelAffinitySkipRetry, true)
+			RequestPolicy(c).SessionModeSource = "global"
+			withFallbackChannelIDs(t, nil)
+		}, want: PolicyDecision{Action: "stop", Reason: "strict_session", Source: "global"}},
+		{name: "strict session with fallback pool still stops at policy layer", err: upstream(http.StatusTooManyRequests), retries: 1, setup: func(c *gin.Context) {
+			c.Set(ginKeyChannelAffinitySkipRetry, true)
+			RequestPolicy(c).SessionModeSource = "global"
+			withFallbackChannelIDs(t, []int{1, 2})
+		}, want: PolicyDecision{Action: "stop", Reason: "strict_session", Source: "global"}},
+		{name: "attempt budget exhausted without fallback pool", err: upstream(http.StatusTooManyRequests), retries: 0, setup: func(c *gin.Context) {
+			withFallbackChannelIDs(t, nil)
+		}, want: PolicyDecision{Action: "stop", Reason: "attempt_budget_exhausted", Source: "global"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, _ := gin.CreateTestContext(httptest.NewRecorder())

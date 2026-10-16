@@ -343,6 +343,18 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 	}
 
 	usingGroup := retry.TokenGroup
+	// Once a request has entered the fallback stage, every later attempt of the
+	// same request stays on the fallback pool and never returns to the normal
+	// candidate pool. An exhausted pool ends the request.
+	if FallbackStageActive(c) {
+		if fallback := NextFallbackChannel(c, usingGroup, modelName); fallback != nil {
+			return fallback, FallbackGroup(c, usingGroup), nil
+		}
+		return nil, "", &ChannelSelectError{
+			StatusCode: http.StatusServiceUnavailable, Code: types.ErrorCodeModelNotFound, MessageID: i18n.MsgDistributorNoAvailableChannel,
+			Params: map[string]any{"Group": usingGroup, "Model": modelName}, NoAvailableChannel: true,
+		}
+	}
 	var channel *model.Channel
 	var selectGroup string
 	if retry.GetRetry() == 0 {
@@ -377,6 +389,9 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 				ClearCurrentChannelAffinityCache(c)
 			}
 			if !affinityUsable && RequestPolicy(c).SessionMode == "strict" {
+				if fallback := NextFallbackChannel(c, usingGroup, modelName); fallback != nil {
+					return fallback, FallbackGroup(c, usingGroup), nil
+				}
 				return nil, "", &ChannelSelectError{StatusCode: http.StatusServiceUnavailable, Message: "strict_session_binding_unavailable"}
 			}
 		}
@@ -386,6 +401,9 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 		var err error
 		channel, selectGroup, err = CacheGetRandomSatisfiedChannel(retry)
 		if err != nil {
+			if fallback := NextFallbackChannel(c, usingGroup, modelName); fallback != nil {
+				return fallback, FallbackGroup(c, usingGroup), nil
+			}
 			showGroup := usingGroup
 			if usingGroup == "auto" {
 				showGroup = fmt.Sprintf("auto(%s)", selectGroup)
@@ -396,6 +414,9 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 			}
 		}
 		if channel == nil {
+			if fallback := NextFallbackChannel(c, usingGroup, modelName); fallback != nil {
+				return fallback, FallbackGroup(c, usingGroup), nil
+			}
 			return nil, selectGroup, &ChannelSelectError{
 				StatusCode: http.StatusServiceUnavailable, Code: types.ErrorCodeModelNotFound, MessageID: i18n.MsgDistributorNoAvailableChannel,
 				Params: map[string]any{"Group": usingGroup, "Model": modelName}, NoAvailableChannel: true,
@@ -455,6 +476,23 @@ func EnterFallbackStage(c *gin.Context) {
 	c.Set(channelFallbackStageKey, 0)
 }
 
+// FallbackGroup resolves the group fallback channels are filtered by: the
+// token group, or for an "auto" request the group already selected this
+// request and otherwise the first enabled auto group ("" when none is enabled).
+func FallbackGroup(c *gin.Context, tokenGroup string) string {
+	if tokenGroup != "auto" {
+		return tokenGroup
+	}
+	if group := common.GetContextKeyString(c, constant.ContextKeyAutoGroup); group != "" {
+		return group
+	}
+	autoGroups := GetRequestAutoGroups(c, common.GetContextKeyString(c, constant.ContextKeyUserGroup))
+	if len(autoGroups) == 0 {
+		return ""
+	}
+	return autoGroups[0]
+}
+
 // NextFallbackChannel returns the next channel from the global fallback pool at
 // the request's current fallback layer and advances the layer pointer. It
 // returns nil when there is no pool, no eligible group, or the pool is
@@ -464,18 +502,9 @@ func NextFallbackChannel(c *gin.Context, tokenGroup string, modelName string) *m
 	if c == nil || !HasFallbackChannels() {
 		return nil
 	}
-	// D6: an auto request uses the group already selected for this request,
-	// or the first auto group when none has been selected yet.
-	group := tokenGroup
-	if group == "auto" {
-		group = common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
-		if group == "" {
-			autoGroups := GetRequestAutoGroups(c, common.GetContextKeyString(c, constant.ContextKeyUserGroup))
-			if len(autoGroups) == 0 {
-				return nil
-			}
-			group = autoGroups[0]
-		}
+	group := FallbackGroup(c, tokenGroup)
+	if group == "" {
+		return nil
 	}
 	EnterFallbackStage(c)
 	idx := 0

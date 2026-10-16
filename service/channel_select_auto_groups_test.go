@@ -10,6 +10,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
@@ -477,6 +478,119 @@ func TestFallbackGroupResolution(t *testing.T) {
 	channel = NextFallbackChannel(autoCtx, "auto", modelName)
 	require.NotNil(t, channel)
 	assert.Equal(t, vipIDs[0], channel.Id, "未选中分组时取第一个 auto 分组")
+}
+
+// installStrictAffinityRule installs a strict-mode affinity rule whose cached
+// channel is preferChannelID, so the first attempt's affinity binding is
+// unavailable when that id cannot be used. The returned context carries the
+// matching affinity header.
+func installStrictAffinityRule(t *testing.T, modelName, ruleName, affinityValue string, preferChannelID int) *gin.Context {
+	t.Helper()
+	rule := operation_setting.ChannelAffinityRule{
+		Name:        ruleName,
+		ModelRegex:  []string{".*"},
+		KeySources:  []operation_setting.ChannelAffinityKeySource{{Type: "request_header", Key: "X-Affinity-Key"}},
+		SessionMode: "strict",
+	}
+	cacheKeySuffix := buildChannelAffinityCacheKeySuffix(rule, modelName, "default", affinityValue)
+	cache := getChannelAffinityCache()
+	require.NoError(t, cache.SetWithTTL(cacheKeySuffix, preferChannelID, time.Minute))
+	t.Cleanup(func() { _, _ = cache.DeleteMany([]string{cacheKeySuffix}) })
+
+	affinitySetting := operation_setting.GetChannelAffinitySetting()
+	originalRules := affinitySetting.Rules
+	affinitySetting.Rules = append([]operation_setting.ChannelAffinityRule{rule}, originalRules...)
+	t.Cleanup(func() { affinitySetting.Rules = originalRules })
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", nil)
+	ctx.Request.Header.Set("X-Affinity-Key", affinityValue)
+	return ctx
+}
+
+func TestSelectChannelForRequestUsesFallbackWhenStrictAffinityUnavailable(t *testing.T) {
+	const modelName = "strict-fallback-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8601, []int64{30})
+	withFallbackChannelIDs(t, fallbackIDs)
+	model.InitChannelCache()
+
+	ctx := installStrictAffinityRule(t, modelName, "strict-fallback", fmt.Sprintf("strict-fallback-%d", time.Now().UnixNano()), 999999)
+	param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+	channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, selectErr, "有合格兜底渠道时 strict 亲和不可用不得返回 503")
+	require.NotNil(t, channel)
+	assert.Equal(t, fallbackIDs[0], channel.Id)
+	assert.Equal(t, "default", group)
+	assert.True(t, FallbackStageActive(ctx))
+}
+
+func TestSelectChannelForRequestUsesFallbackWhenNormalPoolEmpty(t *testing.T) {
+	const modelName = "empty-pool-fallback-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8701, []int64{30})
+	withFallbackChannelIDs(t, fallbackIDs)
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+	channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, selectErr, "正常候选池为空且有兜底渠道时不得返回无可用渠道")
+	require.NotNil(t, channel)
+	assert.Equal(t, fallbackIDs[0], channel.Id)
+	assert.Equal(t, "default", group)
+	assert.True(t, FallbackStageActive(ctx))
+}
+
+func TestSelectChannelForRequestContinuesFallbackStage(t *testing.T) {
+	const modelName = "continue-fallback-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	fallbackIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8801, []int64{30, 20})
+	normalIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8851, []int64{30})
+	withFallbackChannelIDs(t, fallbackIDs)
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+	require.NotNil(t, NextFallbackChannel(ctx, "default", modelName))
+	require.True(t, FallbackStageActive(ctx))
+
+	second, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, selectErr)
+	require.NotNil(t, second)
+	assert.Equal(t, fallbackIDs[1], second.Id, "已处于兜底阶段时必须返回下一兜底层")
+	assert.Equal(t, "default", group)
+	require.NotEqual(t, normalIDs[0], second.Id)
+
+	exhausted, exhaustedGroup, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, exhausted)
+	require.NotNil(t, selectErr, "兜底层耗尽后必须返回无可用渠道错误，不得回落到正常候选")
+	assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+	assert.Equal(t, i18n.MsgDistributorNoAvailableChannel, selectErr.MessageID)
+	assert.True(t, selectErr.NoAvailableChannel)
+	assert.Equal(t, "", exhaustedGroup)
+}
+
+func TestSelectChannelForRequestKeeps503WithoutFallbackPool(t *testing.T) {
+	const modelName = "strict-no-fallback-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	createPriorityLayeredChannels(t, db, "default", modelName, 8901, []int64{30})
+	withFallbackChannelIDs(t, nil)
+	model.InitChannelCache()
+
+	ctx := installStrictAffinityRule(t, modelName, "strict-no-fallback", fmt.Sprintf("strict-no-fallback-%d", time.Now().UnixNano()), 999999)
+	param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+	channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+	require.Nil(t, channel)
+	require.NotNil(t, selectErr)
+	assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+	assert.Equal(t, "strict_session_binding_unavailable", selectErr.Message)
+	assert.Equal(t, "", group)
+	assert.False(t, FallbackStageActive(ctx), "未配置兜底池时不得进入兜底阶段")
 }
 
 func intPtr(v int) *int {
