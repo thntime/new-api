@@ -750,6 +750,84 @@ func TestFallbackSwitchOffMatchesUnmarkedPool(t *testing.T) {
 	assert.NotContains(t, markedOffEvents, "fallback_exhausted")
 }
 
+// TestFallbackMarkerToggleViaChannelUpdateTakesEffectOnNextRequest covers the
+// console path end to end: the marker is toggled through the real channel update
+// handler (PUT /api/channel, channel_info.is_fallback), and the very next relay
+// request must select according to the new state with no restart.
+func TestFallbackMarkerToggleViaChannelUpdateTakesEffectOnNextRequest(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-toggle-model"
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, _ := setupFallbackStageTest(t)
+	common.RetryTimes = 0
+	prepareFreeModelRelay(t, modelName)
+
+	// The update handler records an audit log, which resolves the operator name
+	// through the user cache; keep it on the DB path so no Redis client is needed.
+	originalRedisEnabled := common.RedisEnabled
+	common.RedisEnabled = false
+	t.Cleanup(func() { common.RedisEnabled = originalRedisEnabled })
+
+	// Affinity rules left by other tests must not steer the selection.
+	affinity := operation_setting.GetChannelAffinitySetting()
+	originalAffinity := *affinity
+	t.Cleanup(func() { *affinity = originalAffinity })
+	affinity.Enabled = false
+	affinity.FallbackEnabled = true
+
+	createFallbackStageChannel(t, db, 50, "default", modelName, 50)
+	createFallbackStageChannel(t, db, 66, "default", modelName, 6)
+	markFallbackChannels(t, nil)
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+	model.InitChannelCache()
+
+	// The real console update path, not the test fixture: a body carrying only
+	// is_fallback must toggle the stored marker.
+	toggle := func(marked bool) {
+		body := fmt.Sprintf(
+			`{"id":66,"type":%d,"name":"channel-66","key":"key-66","models":%q,"group":"default","channel_info":{"is_fallback":%t}}`,
+			constant.ChannelTypeOpenAI, modelName, marked,
+		)
+		recorder := putUpdateChannel(t, 1, common.RoleRootUser, body)
+		require.Contains(t, recorder.Body.String(), `"success":true`, recorder.Body.String())
+		stored, err := model.GetChannelById(66, true)
+		require.NoError(t, err)
+		require.Equal(t, marked, stored.ChannelInfo.IsFallback, "the update handler must persist the marker")
+	}
+
+	run := func(session string) []string {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		prepareFallbackRelayRequest(c, modelName)
+		c.Request.Header.Set("X-Session", session)
+
+		selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+			Ctx: c, ModelName: modelName, TokenGroup: "default", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+		})
+		require.Nil(t, selectErr)
+		require.NotNil(t, selected)
+		require.Equal(t, 50, selected.Id, "the first attempt must be the normal channel")
+		require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+		Relay(c, types.RelayFormatOpenAI)
+		return c.GetStringSlice("use_channel")
+	}
+
+	assert.Equal(t, []string{"50"}, run(t.Name()+"-unmarked"), "an unmarked channel must not be attempted")
+
+	toggle(true)
+	assert.Equal(t, []string{"50", "66"}, run(t.Name()+"-marked"), "the next request must attempt the freshly marked channel")
+
+	toggle(false)
+	assert.Equal(t, []string{"50"}, run(t.Name()+"-cleared"), "the next request must drop the cleared marker")
+}
+
 func countReasons(reasons []string, want string) int {
 	count := 0
 	for _, reason := range reasons {
