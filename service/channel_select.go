@@ -392,6 +392,11 @@ func SelectChannelForRequest(c *gin.Context, modelName string, retry *RetryParam
 				if fallback := NextFallbackChannel(c, usingGroup, modelName); fallback != nil {
 					return fallback, FallbackGroup(c, usingGroup), nil
 				}
+				// A configured pool that cannot serve this request must be
+				// distinguishable from no pool at all (design D6/D10).
+				if HasFallbackChannels() {
+					RequestPolicy(c).AddEvent(PolicyEvent{Decision: PolicyDecision{Action: "stop", Reason: "fallback_exhausted", Source: "global"}})
+				}
 				return nil, "", &ChannelSelectError{StatusCode: http.StatusServiceUnavailable, Message: "strict_session_binding_unavailable"}
 			}
 		}

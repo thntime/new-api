@@ -640,6 +640,62 @@ func TestFallbackExhaustedEventRecorded(t *testing.T) {
 	})
 }
 
+// The strict affinity-unavailable exit also represents "normal candidates
+// unavailable" (spec 正常候选池为空时进入兜底阶段). A configured pool that cannot
+// serve the request must record one fallback_exhausted event; an unconfigured
+// pool must record nothing (D10).
+func TestStrictAffinityUnavailableRecordsFallbackExhausted(t *testing.T) {
+	countExhausted := func(events []PolicyEvent) int {
+		n := 0
+		for _, event := range events {
+			if event.Decision.Reason == "fallback_exhausted" {
+				n++
+			}
+		}
+		return n
+	}
+
+	t.Run("configured pool with no eligible layer", func(t *testing.T) {
+		const modelName = "strict-fallback-exhausted-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		// The pool member serves another model, so HasFallbackChannels is true
+		// while no fallback layer is eligible for this request.
+		createPriorityLayeredChannels(t, db, "default", "strict-other-model", 9401, []int64{30})
+		withFallbackChannelIDs(t, []int{9401})
+		model.InitChannelCache()
+
+		ctx := installStrictAffinityRule(t, modelName, "strict-exhausted", fmt.Sprintf("strict-exhausted-%d", time.Now().UnixNano()), 999999)
+		param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+		channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+		require.Nil(t, channel)
+		require.NotNil(t, selectErr)
+		assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+		assert.Equal(t, "strict_session_binding_unavailable", selectErr.Message)
+		assert.Equal(t, "", group)
+		assert.Equal(t, 1, countExhausted(RequestPolicy(ctx).Events()), "exactly one fallback_exhausted event must be recorded")
+	})
+
+	t.Run("no configured pool records nothing", func(t *testing.T) {
+		const modelName = "strict-no-pool-exhausted-model"
+		db := setupChannelSelectAutoGroupsTest(t)
+		createPriorityLayeredChannels(t, db, "default", "strict-other-model", 9501, []int64{30})
+		withFallbackChannelIDs(t, nil)
+		model.InitChannelCache()
+
+		ctx := installStrictAffinityRule(t, modelName, "strict-no-pool-exhausted", fmt.Sprintf("strict-no-pool-exhausted-%d", time.Now().UnixNano()), 999999)
+		param := &RetryParam{Ctx: ctx, TokenGroup: "default", ModelName: modelName, Retry: intPtr(0)}
+
+		channel, group, selectErr := SelectChannelForRequest(ctx, modelName, param)
+		require.Nil(t, channel)
+		require.NotNil(t, selectErr)
+		assert.Equal(t, http.StatusServiceUnavailable, selectErr.StatusCode)
+		assert.Equal(t, "strict_session_binding_unavailable", selectErr.Message)
+		assert.Equal(t, "", group)
+		assert.Zero(t, countExhausted(RequestPolicy(ctx).Events()), "an unconfigured pool must not record fallback_exhausted")
+	})
+}
+
 // Without a configured fallback pool the descent ring must be unchanged: the
 // pool must not alter layer order or wrap-around.
 func TestDescentRingUnchangedWithoutFallbackPool(t *testing.T) {

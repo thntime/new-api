@@ -482,6 +482,47 @@ func TestSingleFallbackChannelIsTried(t *testing.T) {
 	assert.Equal(t, []string{"50", "66"}, c.GetStringSlice("use_channel"), "a single-channel pool must still be tried")
 }
 
+// Through the real request path a configured-but-ineligible pool must record
+// exactly one fallback_exhausted event: the distributor aborts on the 503 and
+// the deferred termination recorder must not append a second stop event.
+func TestDistributorEmptyNormalPoolRecordsSingleFallbackExhausted(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "fallback-distributor-exhausted-model"
+	db, c := setupFallbackStageTest(t)
+	// The pool member serves another model, so the pool cannot serve this request.
+	createFallbackStageChannel(t, db, 55, "default", "fallback-distributor-other-model", 5)
+	operation_setting.GetChannelAffinitySetting().FallbackChannelIDs = []int{55}
+	model.InitChannelCache()
+	prepareFallbackRelayRequest(c, modelName)
+
+	gin.SetMode(gin.TestMode)
+	var captured *gin.Context
+	engine := gin.New()
+	engine.Use(func(ctx *gin.Context) {
+		captured = ctx
+		common.SetContextKey(ctx, constant.ContextKeyUsingGroup, "default")
+		common.SetContextKey(ctx, constant.ContextKeyUserGroup, "default")
+		common.SetContextKey(ctx, constant.ContextKeyTokenGroup, "default")
+		ctx.Next()
+	})
+	engine.POST("/v1/chat/completions", middleware.Distribute(), func(ctx *gin.Context) {
+		Relay(ctx, types.RelayFormatOpenAI)
+	})
+
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, c.Request)
+
+	require.NotNil(t, captured)
+	assert.Equal(t, http.StatusServiceUnavailable, recorder.Code)
+	assert.True(t, captured.IsAborted(), "the request must be aborted before the relay handler")
+
+	events := service.RequestPolicy(captured).Events()
+	require.Len(t, events, 1, "the request path must record exactly one decision event")
+	assert.Equal(t, "fallback_exhausted", events[0].Decision.Reason)
+	assert.NotContains(t, fallbackPolicyReasons(events), "fallback_retry")
+}
+
 func countReasons(reasons []string, want string) int {
 	count := 0
 	for _, reason := range reasons {
