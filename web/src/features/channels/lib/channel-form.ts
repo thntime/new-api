@@ -336,6 +336,7 @@ export const channelFormSchema = z
     vertex_key_type: z.enum(['json', 'api_key']).optional(), // Vertex AI specific
     vertex_project_id: z.string().optional(), // Vertex AI specific (api_key mode only)
     aws_key_type: z.enum(['ak_sk', 'api_key']).optional(), // AWS specific
+    aws_api_type: z.enum(['invoke_model', 'mantle']).optional(),
     azure_responses_version: z.string().optional(), // Azure specific
     endpoint_profile: z
       .enum(['coding', 'coding-intl', 'clinepass', ''])
@@ -549,6 +550,7 @@ export const CHANNEL_FORM_DEFAULT_VALUES: ChannelFormValues = {
   vertex_key_type: 'json',
   vertex_project_id: '',
   aws_key_type: 'ak_sk',
+  aws_api_type: 'invoke_model',
   azure_responses_version: '',
   endpoint_profile: '',
   // Field passthrough controls
@@ -634,6 +636,7 @@ export function transformChannelToFormDefaults(
   let endpointProfile: 'coding' | 'coding-intl' | 'clinepass' | '' = ''
   let isEnterpriseAccount = false
   let awsKeyType: 'ak_sk' | 'api_key' = 'ak_sk'
+  let awsApiType: 'invoke_model' | 'mantle' = 'invoke_model'
   let allowServiceTier = false
   let disableStore = false
   let allowSafetyIdentifier = false
@@ -664,6 +667,7 @@ export function transformChannelToFormDefaults(
           : ''
       isEnterpriseAccount = parsed.openrouter_enterprise === true
       awsKeyType = parsed.aws_key_type || 'ak_sk'
+      awsApiType = parsed.aws_api_type || 'invoke_model'
       allowServiceTier = parsed.allow_service_tier === true
       disableStore = parsed.disable_store === true
       allowSafetyIdentifier = parsed.allow_safety_identifier === true
@@ -739,6 +743,7 @@ export function transformChannelToFormDefaults(
     azure_responses_version: azureResponsesVersion,
     aws_key_type: awsKeyType,
     endpoint_profile: endpointProfile,
+    aws_api_type: awsApiType,
     allow_service_tier: allowServiceTier,
     disable_store: disableStore,
     allow_include_obfuscation: allowIncludeObfuscation,
@@ -855,11 +860,13 @@ function buildSettingsJSON(formData: ChannelFormValues): string {
     delete settingsObj.openrouter_enterprise
   }
 
-  // Add aws_key_type for AWS channels (type 33)
+  // AWS interface selection is opt-in; existing channels retain InvokeModel.
   if (formData.type === 33) {
     settingsObj.aws_key_type = formData.aws_key_type || 'ak_sk'
-  } else if ('aws_key_type' in settingsObj) {
+    settingsObj.aws_api_type = formData.aws_api_type || 'invoke_model'
+  } else {
     delete settingsObj.aws_key_type
+    delete settingsObj.aws_api_type
   }
 
   // Add endpoint_profile for Coding Plan capable channels
