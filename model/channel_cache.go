@@ -270,7 +270,9 @@ func IsFallbackChannel(channelID int) bool {
 }
 
 // HasFallbackChannels reports whether the global switch is on and at least one
-// channel carries the fallback marker.
+// enabled channel carries the fallback marker. Marker detection and channel
+// availability are separate questions: a disabled marked channel keeps its
+// IsFallbackChannel result but does not open the fallback stage.
 func HasFallbackChannels() bool {
 	if !fallbackEnabled() {
 		return false
@@ -293,7 +295,7 @@ func HasFallbackChannels() bool {
 	channelSyncLock.RLock()
 	defer channelSyncLock.RUnlock()
 	for _, channel := range channelsIDM {
-		if channel.ChannelInfo.IsFallback {
+		if channel.Status == common.ChannelStatusEnabled && channel.ChannelInfo.IsFallback {
 			return true
 		}
 	}

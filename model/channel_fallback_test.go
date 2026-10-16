@@ -21,6 +21,7 @@ type fallbackTestChannel struct {
 	priority    int64
 	weight      uint
 	channelType int
+	disabled    bool
 }
 
 // setFallbackTestCache fills the in-memory candidate cache directly, keeping the
@@ -39,7 +40,11 @@ func setFallbackTestCache(t *testing.T, channels []fallbackTestChannel) {
 	for _, item := range sorted {
 		priority := item.priority
 		weight := item.weight
-		channel := &Channel{Id: item.id, Priority: &priority, Weight: &weight, Type: item.channelType}
+		status := common.ChannelStatusEnabled
+		if item.disabled {
+			status = common.ChannelStatusManuallyDisabled
+		}
+		channel := &Channel{Id: item.id, Priority: &priority, Weight: &weight, Type: item.channelType, Status: status}
 		ids = append(ids, item.id)
 		byID[item.id] = channel
 	}
@@ -111,6 +116,26 @@ func insertFallbackTestChannels(t *testing.T, fallbackIDs []int) {
 		}
 		require.NoError(t, channel.Insert())
 	}
+}
+
+// insertFallbackTestChannel inserts one DB-path channel with the given status and
+// fallback marker.
+func insertFallbackTestChannel(t *testing.T, id, status int, isFallback bool) {
+	t.Helper()
+	priority := int64(6)
+	weight := uint(1)
+	channel := Channel{
+		Id:          id,
+		Type:        constant.ChannelTypeOpenAI,
+		Status:      status,
+		Name:        "fallback-db",
+		Models:      fallbackTestModel,
+		Group:       fallbackTestGroup,
+		Priority:    &priority,
+		Weight:      &weight,
+		ChannelInfo: ChannelInfo{IsFallback: isFallback},
+	}
+	require.NoError(t, channel.Insert())
 }
 
 func TestNormalSelectionExcludesFallbackChannels(t *testing.T) {
@@ -344,6 +369,24 @@ func TestHasFallbackChannelsReflectsMarkedChannels(t *testing.T) {
 
 	setFallbackEnabled(t, false)
 	assert.False(t, HasFallbackChannels(), "the global switch off hides the pool")
+}
+
+// The availability guard counts only enabled channels, so a marker on a disabled
+// channel does not open the fallback stage. The marker itself is still reported:
+// marker detection and availability are separate questions.
+func TestHasFallbackChannelsIgnoresDisabledChannels(t *testing.T) {
+	setFallbackTestCache(t, []fallbackTestChannel{
+		{id: 66, priority: 6, weight: 1, disabled: true},
+	})
+	markFallbackChannels(t, []int{66})
+	assert.True(t, IsFallbackChannel(66), "the marker is independent of channel status")
+	assert.False(t, HasFallbackChannels(), "a disabled fallback channel is not usable")
+
+	truncateTables(t)
+	common.MemoryCacheEnabled = false
+	insertFallbackTestChannel(t, 66, common.ChannelStatusManuallyDisabled, true)
+	assert.True(t, IsFallbackChannel(66), "the DB path reports the marker too")
+	assert.False(t, HasFallbackChannels(), "the DB path also ignores the disabled channel")
 }
 
 func TestFallbackSwitchOffKeepsMarkedChannelsSelectableNormally(t *testing.T) {
