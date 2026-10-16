@@ -388,6 +388,97 @@ func TestSelectChannelForRequestDescentAnchorFromAffinityHit(t *testing.T) {
 	assert.Equal(t, ids[2], next.Id, "重试应从锚点层的下一层推进，而不是回到最高层")
 }
 
+// withFallbackChannelIDs installs a global fallback pool for the test and
+// restores the previous setting on cleanup.
+func withFallbackChannelIDs(t *testing.T, ids []int) {
+	t.Helper()
+	setting := operation_setting.GetChannelAffinitySetting()
+	original := setting.FallbackChannelIDs
+	setting.FallbackChannelIDs = ids
+	t.Cleanup(func() { setting.FallbackChannelIDs = original })
+}
+
+func TestNextFallbackChannelAdvancesLayerPointer(t *testing.T) {
+	const modelName = "fallback-advance-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8101, []int64{30, 20, 10})
+	withFallbackChannelIDs(t, ids)
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	require.True(t, HasFallbackChannels())
+	require.False(t, FallbackStageActive(ctx))
+
+	first := NextFallbackChannel(ctx, "default", modelName)
+	require.NotNil(t, first)
+	assert.Equal(t, ids[0], first.Id, "首次必须返回优先级最高层的兜底渠道")
+	assert.True(t, FallbackStageActive(ctx), "取得兜底渠道后请求应处于兜底阶段")
+
+	second := NextFallbackChannel(ctx, "default", modelName)
+	require.NotNil(t, second)
+	assert.Equal(t, ids[1], second.Id, "再次调用必须推进到下一层")
+}
+
+func TestNextFallbackChannelReturnsNilWhenExhausted(t *testing.T) {
+	const modelName = "fallback-exhausted-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8201, []int64{30, 20})
+	withFallbackChannelIDs(t, ids)
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	first := NextFallbackChannel(ctx, "default", modelName)
+	second := NextFallbackChannel(ctx, "default", modelName)
+	require.NotNil(t, first)
+	require.NotNil(t, second)
+	assert.NotEqual(t, first.Id, second.Id, "不得重复返回同一层")
+
+	assert.Nil(t, NextFallbackChannel(ctx, "default", modelName), "层耗尽后返回 nil")
+	assert.Nil(t, NextFallbackChannel(ctx, "default", modelName), "耗尽后不得回绕到已用过的层")
+}
+
+func TestNextFallbackChannelWithoutPoolReturnsNil(t *testing.T) {
+	const modelName = "fallback-no-pool-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	ids := createPriorityLayeredChannels(t, db, "default", modelName, 8301, []int64{30})
+	require.NotEmpty(t, ids)
+	withFallbackChannelIDs(t, nil)
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	assert.False(t, HasFallbackChannels())
+	assert.Nil(t, NextFallbackChannel(ctx, "default", modelName))
+	assert.False(t, FallbackStageActive(ctx), "未配置兜底池时不得进入兜底阶段")
+	assert.Nil(t, NextFallbackChannel(nil, "default", modelName), "nil 上下文必须返回 nil")
+}
+
+func TestFallbackGroupResolution(t *testing.T) {
+	const modelName = "fallback-group-model"
+	db := setupChannelSelectAutoGroupsTest(t)
+	vipIDs := createPriorityLayeredChannels(t, db, "vip", modelName, 8401, []int64{30})
+	defaultIDs := createPriorityLayeredChannels(t, db, "default", modelName, 8411, []int64{30})
+	withFallbackChannelIDs(t, append(append([]int{}, vipIDs...), defaultIDs...))
+	model.InitChannelCache()
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	channel := NextFallbackChannel(ctx, "vip", modelName)
+	require.NotNil(t, channel)
+	assert.Equal(t, vipIDs[0], channel.Id, "非 auto 必须使用令牌分组")
+
+	selectedCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	common.SetContextKey(selectedCtx, constant.ContextKeyAutoGroup, "default")
+	channel = NextFallbackChannel(selectedCtx, "auto", modelName)
+	require.NotNil(t, channel)
+	assert.Equal(t, defaultIDs[0], channel.Id, "auto 必须优先使用本请求已选中的分组")
+
+	autoCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	common.SetContextKey(autoCtx, constant.ContextKeyUserGroup, "default")
+	common.SetContextKey(autoCtx, constant.ContextKeyTokenAutoGroups, []string{"vip", "default"})
+	channel = NextFallbackChannel(autoCtx, "auto", modelName)
+	require.NotNil(t, channel)
+	assert.Equal(t, vipIDs[0], channel.Id, "未选中分组时取第一个 auto 分组")
+}
+
 func intPtr(v int) *int {
 	return &v
 }

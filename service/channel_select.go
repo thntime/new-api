@@ -13,8 +13,14 @@ import (
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/gin-gonic/gin"
 )
+
+// channelFallbackStageKey is the per-request gin key holding the index of the
+// next fallback pool layer to try. Its presence means the request has entered
+// the fallback stage.
+const channelFallbackStageKey = "channel_fallback_stage"
 
 func GetChannelConstraints(c *gin.Context) *dto.ChannelConstraints {
 	if c == nil {
@@ -420,4 +426,68 @@ func pinnedChannelUnavailable(pin dto.ChannelPin, statusCode int, messageID stri
 // trail, which the retry log and the consume log's admin_info both read.
 func AppendUsedChannel(c *gin.Context, channelID int) {
 	c.Set("use_channel", append(c.GetStringSlice("use_channel"), fmt.Sprintf("%d", channelID)))
+}
+
+// HasFallbackChannels reports whether a global fallback channel pool is configured.
+func HasFallbackChannels() bool {
+	return len(operation_setting.GetFallbackChannelIDs()) > 0
+}
+
+// FallbackStageActive reports whether this request has already entered the
+// fallback stage.
+func FallbackStageActive(c *gin.Context) bool {
+	if c == nil {
+		return false
+	}
+	_, exists := c.Get(channelFallbackStageKey)
+	return exists
+}
+
+// EnterFallbackStage marks the request as being in the fallback stage, starting
+// at the first pool layer. It is idempotent.
+func EnterFallbackStage(c *gin.Context) {
+	if c == nil {
+		return
+	}
+	if _, exists := c.Get(channelFallbackStageKey); exists {
+		return
+	}
+	c.Set(channelFallbackStageKey, 0)
+}
+
+// NextFallbackChannel returns the next channel from the global fallback pool at
+// the request's current fallback layer and advances the layer pointer. It
+// returns nil when there is no pool, no eligible group, or the pool is
+// exhausted for this group, model and request constraints; the pointer is
+// never wrapped, and the caller decides whether to record an event.
+func NextFallbackChannel(c *gin.Context, tokenGroup string, modelName string) *model.Channel {
+	if c == nil || !HasFallbackChannels() {
+		return nil
+	}
+	// D6: an auto request uses the group already selected for this request,
+	// or the first auto group when none has been selected yet.
+	group := tokenGroup
+	if group == "auto" {
+		group = common.GetContextKeyString(c, constant.ContextKeyAutoGroup)
+		if group == "" {
+			autoGroups := GetRequestAutoGroups(c, common.GetContextKeyString(c, constant.ContextKeyUserGroup))
+			if len(autoGroups) == 0 {
+				return nil
+			}
+			group = autoGroups[0]
+		}
+	}
+	EnterFallbackStage(c)
+	idx := 0
+	if current, exists := c.Get(channelFallbackStageKey); exists {
+		if value, ok := current.(int); ok {
+			idx = value
+		}
+	}
+	channel, err := model.GetFallbackChannel(group, modelName, idx, GetChannelConstraints(c).Filters)
+	if err != nil || channel == nil {
+		return nil
+	}
+	c.Set(channelFallbackStageKey, idx+1)
+	return channel
 }
