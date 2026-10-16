@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -148,6 +149,66 @@ func GetRandomSatisfiedChannelDescending(
 	return getRandomSatisfiedChannel(group, model, retry, filters, &anchorPriority)
 }
 
+// GetFallbackChannel selects from the global fallback pool for a single request.
+// layerIndex indexes the pool's own priority layers in descending order and is
+// never wrapped: an index at or beyond the last layer yields no channel. The
+// pool is intersected with the request's group, model and channel constraints.
+func GetFallbackChannel(
+	group string,
+	model string,
+	layerIndex int,
+	filters []dto.ChannelFilter,
+) (*Channel, error) {
+	if !common.MemoryCacheEnabled {
+		return getFallbackChannel(group, model, layerIndex, filters)
+	}
+
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+
+	if layerIndex < 0 {
+		layerIndex = 0
+	}
+
+	// Same candidate source as normal selection: the exact model key first,
+	// then the normalized model name when the exact key yields nothing.
+	candidateIDs, _ := filterCandidateIDs(fallbackPoolMembers(group2model2channels[group][model]), model, filters)
+	if len(candidateIDs) == 0 {
+		normalizedModel := ratio_setting.RoutingMatchModelName(model)
+		candidateIDs, _ = filterCandidateIDs(fallbackPoolMembers(group2model2channels[group][normalizedModel]), model, filters)
+	}
+	if len(candidateIDs) == 0 {
+		return nil, nil
+	}
+
+	uniquePriorities := make(map[int64]bool)
+	for _, channelId := range candidateIDs {
+		channel, ok := channelsIDM[channelId]
+		if !ok {
+			return nil, fmt.Errorf("database consistency error: channel #%d does not exist, please contact the administrator", channelId)
+		}
+		uniquePriorities[channel.GetPriority()] = true
+	}
+	sortedUniquePriorities := make([]int64, 0, len(uniquePriorities))
+	for priority := range uniquePriorities {
+		sortedUniquePriorities = append(sortedUniquePriorities, priority)
+	}
+	sort.Slice(sortedUniquePriorities, func(i, j int) bool { return sortedUniquePriorities[i] > sortedUniquePriorities[j] })
+
+	if layerIndex >= len(sortedUniquePriorities) {
+		return nil, nil
+	}
+	targetPriority := sortedUniquePriorities[layerIndex]
+
+	targetChannels := make([]*Channel, 0, len(candidateIDs))
+	for _, channelId := range candidateIDs {
+		if channel, ok := channelsIDM[channelId]; ok && channel.GetPriority() == targetPriority {
+			targetChannels = append(targetChannels, channel)
+		}
+	}
+	return pickWeightedChannel(targetChannels), nil
+}
+
 // excludeFallbackChannels drops global fallback pool members from normal
 // candidates. The input slice is never mutated; an empty pool returns it as is.
 func excludeFallbackChannels(ids []int) []int {
@@ -161,6 +222,14 @@ func excludeFallbackChannels(ids []int) []int {
 		}
 	}
 	return kept
+}
+
+// fallbackPoolMembers keeps only global fallback pool members. The input slice
+// is never mutated.
+func fallbackPoolMembers(ids []int) []int {
+	return slices.DeleteFunc(slices.Clone(ids), func(id int) bool {
+		return !operation_setting.IsFallbackChannel(id)
+	})
 }
 
 func getRandomSatisfiedChannel(
@@ -217,12 +286,10 @@ func getRandomSatisfiedChannel(
 	targetPriority := sortedUniquePriorities[descentLayerIndex(sortedUniquePriorities, anchorPriority, retry)]
 
 	// get the priority for the given retry number
-	var sumWeight = 0
 	var targetChannels []*Channel
 	for _, channelId := range channels {
 		if channel, ok := channelsIDM[channelId]; ok {
 			if channel.GetPriority() == targetPriority {
-				sumWeight += channel.GetWeight()
 				targetChannels = append(targetChannels, channel)
 			}
 		} else {
@@ -232,6 +299,25 @@ func getRandomSatisfiedChannel(
 
 	if len(targetChannels) == 0 {
 		return nil, errors.New(fmt.Sprintf("no channel found, group: %s, model: %s, priority: %d", group, model, targetPriority))
+	}
+
+	if channel := pickWeightedChannel(targetChannels); channel != nil {
+		return channel, nil
+	}
+	// return null if no channel is not found
+	return nil, errors.New("channel not found")
+}
+
+// pickWeightedChannel picks one channel from a single priority layer by weighted
+// random, applying the historical smoothing rules. It returns nil when the draw
+// matches no channel.
+func pickWeightedChannel(targetChannels []*Channel) *Channel {
+	if len(targetChannels) == 0 {
+		return nil
+	}
+	sumWeight := 0
+	for _, channel := range targetChannels {
+		sumWeight += channel.GetWeight()
 	}
 
 	// smoothing factor and adjustment
@@ -258,11 +344,10 @@ func getRandomSatisfiedChannel(
 	for _, channel := range targetChannels {
 		randomWeight -= channel.GetWeight()*smoothingFactor + smoothingAdjustment
 		if randomWeight < 0 {
-			return channel, nil
+			return channel
 		}
 	}
-	// return null if no channel is not found
-	return nil, errors.New("channel not found")
+	return nil
 }
 
 func CacheGetChannel(id int) (*Channel, error) {
