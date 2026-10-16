@@ -4193,7 +4193,7 @@
     "None (plugin declaration)": "Нет (объявлено плагином)",
     "noreply@example.com": "noreply@example.com",
     "Normalized:": "Нормализовано:",
-    "Not a fallback channel: {{name}}": "Обычный канал: {{name}}",
+    "Not a fallback channel: {{name}}": "Не резервный канал: {{name}}",
     "Not available": "Недоступно",
     "Not backed up": "Не сохранено",
     "Not bound": "Не привязан",
