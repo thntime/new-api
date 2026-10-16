@@ -61,6 +61,7 @@ const (
 	ChannelTypeTaskPlugin     = 61
 	ChannelTypeVLLM           = 62
 	ChannelTypeSGLang         = 63
+	ChannelTypeCodeBuddy      = 93
 	ChannelTypeCline          = 94
 	ChannelTypeRadeonCloud    = 95
 	ChannelTypeSenseNova      = 97
@@ -242,6 +243,7 @@ var ChannelTypeNames = map[int]string{
 	ChannelTypeNewAPI:         "New API",
 	ChannelTypeTaskPlugin:     "Task Plugin",
 	ChannelTypeCline:          "Cline",
+	ChannelTypeCodeBuddy:      "CodeBuddy",
 	ChannelTypeRadeonCloud:    "AMD Radeon Cloud",
 	ChannelTypeSenseNova:      "SenseNova",
 	ChannelTypeCommandCode:    "CommandCode",

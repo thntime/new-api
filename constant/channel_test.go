@@ -137,3 +137,9 @@ func TestClineChannelTypeRegistration(t *testing.T) {
 	require.True(t, ok, "cline must declare special plan profiles")
 	require.Equal(t, "cline-pass", profiles["clinepass"])
 }
+
+func TestCodeBuddyChannelTypeRegistration(t *testing.T) {
+	require.Equal(t, 93, ChannelTypeCodeBuddy)
+	require.Equal(t, "CodeBuddy", GetChannelTypeName(ChannelTypeCodeBuddy))
+	require.Empty(t, GetChannelBaseURL(ChannelTypeCodeBuddy))
+}
