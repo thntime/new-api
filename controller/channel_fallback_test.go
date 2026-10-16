@@ -18,6 +18,7 @@ import (
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
 	"github.com/QuantumNous/new-api/relaykit/types"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/QuantumNous/new-api/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
@@ -521,6 +522,133 @@ func TestDistributorEmptyNormalPoolRecordsSingleFallbackExhausted(t *testing.T) 
 	require.Len(t, events, 1, "the request path must record exactly one decision event")
 	assert.Equal(t, "fallback_exhausted", events[0].Decision.Reason)
 	assert.NotContains(t, fallbackPolicyReasons(events), "fallback_retry")
+}
+
+// TestAutoGroupsRunFallbackOnceAfterAllGroups pins the auto-group fallback
+// timing: once every auto group has run its normal priority layers and failed,
+// the pool is entered exactly once, filtered by the group current when the
+// request reached the fallback stage (design D1/D6). Two groups run with
+// cross-group retry and the pool lives in the second group, so a pool entered
+// after the first group would be filtered out and a pool that runs early would
+// break the normal segment's order.
+func TestAutoGroupsRunFallbackOnceAfterAllGroups(t *testing.T) {
+	require.NoError(t, i18n.Init())
+
+	const modelName = "auto-groups-fallback-model"
+	const (
+		groupFirst  = "fb-g1"
+		groupSecond = "fb-g2"
+	)
+
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(upstream.Close)
+
+	db, _ := setupFallbackStageTest(t)
+	common.RetryTimes = 1
+	prepareFreeModelRelay(t, modelName)
+
+	// Auto group membership needs the group to be user-usable and priced.
+	originalAutoGroups := setting.AutoGroups2JsonString()
+	originalUsableGroups := setting.UserUsableGroups2JSONString()
+	originalGroupRatios := ratio_setting.GroupRatio2JSONString()
+	t.Cleanup(func() {
+		require.NoError(t, setting.UpdateAutoGroupsByJsonString(originalAutoGroups))
+		require.NoError(t, setting.UpdateUserUsableGroupsByJSONString(originalUsableGroups))
+		require.NoError(t, ratio_setting.UpdateGroupRatioByJSONString(originalGroupRatios))
+	})
+	require.NoError(t, setting.UpdateAutoGroupsByJsonString(fmt.Sprintf(`[%q,%q]`, groupFirst, groupSecond)))
+	require.NoError(t, setting.UpdateUserUsableGroupsByJSONString(fmt.Sprintf(`{"default":"Default",%q:"A",%q:"B"}`, groupFirst, groupSecond)))
+	require.NoError(t, ratio_setting.UpdateGroupRatioByJSONString(fmt.Sprintf(`{"default":1,%q:1,%q:1}`, groupFirst, groupSecond)))
+
+	// One channel per priority layer: group 1 has layers 50/40, group 2 has
+	// layers 30/20 and hosts both pool layers 6/5. The pool's own priorities are
+	// below the layers the retry budget reaches, so a pool member never shows up
+	// in the normal segment whether or not the pool is configured.
+	createFallbackStageChannel(t, db, 2001, groupFirst, modelName, 50)
+	createFallbackStageChannel(t, db, 2002, groupFirst, modelName, 40)
+	createFallbackStageChannel(t, db, 3001, groupSecond, modelName, 30)
+	createFallbackStageChannel(t, db, 3002, groupSecond, modelName, 20)
+	createFallbackStageChannel(t, db, 66, groupSecond, modelName, 6)
+	createFallbackStageChannel(t, db, 55, groupSecond, modelName, 5)
+	require.NoError(t, db.Model(&model.Channel{}).Where("1 = 1").Update("base_url", upstream.URL).Error)
+
+	// Affinity rules left by other tests must not steer the auto selection.
+	affinity := operation_setting.GetChannelAffinitySetting()
+	originalAffinity := *affinity
+	t.Cleanup(func() { *affinity = originalAffinity })
+	affinity.Enabled = false
+
+	run := func(pool []int) []string {
+		affinity.FallbackChannelIDs = pool
+		model.InitChannelCache()
+
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		body := `{"model":"` + modelName + `","messages":[{"role":"user","content":"hi"}]}`
+		c.Request = httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+		common.SetContextKey(c, constant.ContextKeyUsingGroup, "auto")
+		common.SetContextKey(c, constant.ContextKeyUserGroup, "default")
+		common.SetContextKey(c, constant.ContextKeyTokenGroup, "auto")
+		common.SetContextKey(c, constant.ContextKeyTokenCrossGroupRetry, true)
+		common.SetContextKey(c, constant.ContextKeyUserId, 1)
+		common.SetContextKey(c, constant.ContextKeyTokenId, 1)
+
+		// Production selection, exactly like the distributor: it makes the first
+		// attempt, primes the auto-group state and gives the relay loop a
+		// ChannelMeta so the remaining attempts select for real.
+		selected, _, selectErr := service.SelectChannelForRequest(c, modelName, &service.RetryParam{
+			Ctx: c, ModelName: modelName, TokenGroup: "auto", RequestPath: c.Request.URL.Path, Retry: common.GetPointer(0),
+		})
+		require.Nil(t, selectErr)
+		require.NotNil(t, selected)
+		require.Equal(t, 2001, selected.Id, "the first attempt must be group 1's top layer")
+		require.Nil(t, middleware.SetupContextForSelectedChannel(c, selected, modelName))
+
+		Relay(c, types.RelayFormatOpenAI)
+		return c.GetStringSlice("use_channel")
+	}
+
+	withPool := run([]int{66, 55})
+	assert.Equal(t, []string{"2001", "2002", "3001", "3002", "66", "55"}, withPool)
+
+	// ① each fallback priority layer is attempted exactly once; ② no fallback
+	// channel runs before the last normal group channel.
+	count66, count55 := 0, 0
+	lastNormal, firstFallback := -1, len(withPool)
+	for i, id := range withPool {
+		if id == "66" || id == "55" {
+			if id == "66" {
+				count66++
+			} else {
+				count55++
+			}
+			if i < firstFallback {
+				firstFallback = i
+			}
+			continue
+		}
+		lastNormal = i
+	}
+	assert.Equal(t, 1, count66, "pool layer 6 must be attempted exactly once")
+	assert.Equal(t, 1, count55, "pool layer 5 must be attempted exactly once")
+	require.NotEqual(t, -1, lastNormal, "the normal segment must run")
+	require.NotEqual(t, len(withPool), firstFallback, "the pool must be attempted")
+	assert.Greater(t, firstFallback, lastNormal, "the pool must run only after every normal group channel")
+
+	// ③ disabling the pool leaves the normal segment bit-for-bit identical,
+	// proving a single group's budget running out does not advance the pool nor
+	// reorder the normal segment.
+	withoutPool := run(nil)
+	narrowed := make([]string, 0, len(withPool))
+	for _, id := range withPool {
+		if id != "66" && id != "55" {
+			narrowed = append(narrowed, id)
+		}
+	}
+	assert.Equal(t, narrowed, withoutPool, "the normal segment must not depend on the pool")
 }
 
 func countReasons(reasons []string, want string) int {
