@@ -83,10 +83,10 @@ function createChannel(overrides: Partial<Channel> = {}): Channel {
   } as Channel
 }
 
-function collectColumns() {
+function collectColumns(options?: { showFallback?: boolean }) {
   let columns: ReturnType<typeof useChannelsColumns>
   function CaptureColumns() {
-    columns = useChannelsColumns()
+    columns = useChannelsColumns(options)
     return null
   }
   render(<CaptureColumns />)
@@ -138,6 +138,19 @@ describe('fallback column definition', () => {
     expect(fallbackColumn?.size).toBe(72)
     expect(fallbackColumn?.minSize).toBe(56)
     expect(fallbackColumn?.enableSorting).toBe(false)
+  })
+
+  test('omits the fallback column when showFallback is false while the priority column stays', () => {
+    const columns = collectColumns({ showFallback: false })()
+
+    expect(
+      columns.some((column) => 'id' in column && column.id === 'fallback')
+    ).toBe(false)
+    expect(
+      columns.some(
+        (column) => 'accessorKey' in column && column.accessorKey === 'priority'
+      )
+    ).toBe(true)
   })
 })
 

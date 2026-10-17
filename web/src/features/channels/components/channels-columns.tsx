@@ -1079,14 +1079,16 @@ export function BalanceCell({ channel }: { channel: Channel }) {
 export function useChannelsColumns(
   options: {
     enableSelection?: boolean
+    showFallback?: boolean
   } = {}
 ): ColumnDef<Channel>[] {
   const { t, i18n } = useTranslation()
   const { sensitiveVisible } = useChannels()
   const enableSelection = options.enableSelection ?? true
+  const showFallback = options.showFallback ?? true
   const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
   // The column definitions only depend on the translation function, the active
-  // locale, and sensitive-data visibility. Memoizing keeps the array (and every
+  // locale, sensitive-data visibility, and the fallback feature switch. Memoizing keeps the array (and every
   // cell renderer reference) stable across unrelated re-renders, so react-table
   // does not invalidate the whole row model on each parent render.
   return useMemo<ColumnDef<Channel>[]>(
@@ -1621,16 +1623,20 @@ export function useChannelsColumns(
       },
 
       // Fallback column
-      {
-        id: 'fallback',
-        accessorFn: (row) => row.channel_info?.is_fallback ?? false,
-        header: t('Fallback'),
-        meta: { mobileHidden: true },
-        cell: ({ row }) => <FallbackCell channel={row.original} />,
-        size: 72,
-        minSize: 56,
-        enableSorting: false,
-      },
+      ...(showFallback
+        ? [
+            {
+              id: 'fallback',
+              accessorFn: (row) => row.channel_info?.is_fallback ?? false,
+              header: t('Fallback'),
+              meta: { mobileHidden: true },
+              cell: ({ row }) => <FallbackCell channel={row.original} />,
+              size: 72,
+              minSize: 56,
+              enableSorting: false,
+            } satisfies ColumnDef<Channel>,
+          ]
+        : []),
 
       // Priority column
       {
@@ -1747,6 +1753,6 @@ export function useChannelsColumns(
         meta: { pinned: 'right' as const },
       },
     ],
-    [enableSelection, t, locale, sensitiveVisible]
+    [enableSelection, showFallback, t, locale, sensitiveVisible]
   )
 }

@@ -56,6 +56,7 @@ const originalAuth = useAuthStore.getState().auth
 let client: QueryClient
 let editingChannel: Channel
 let pluginOptions: TaskPluginOption[]
+let systemOptions: Array<{ key: string; value: string }>
 const plugins: TaskPluginOption[] = [
   {
     key: 'video-a',
@@ -132,6 +133,9 @@ function ConfigurationHarness(props: {
 
 beforeEach(() => {
   pluginOptions = plugins
+  systemOptions = [
+    { key: 'channel_affinity_setting.fallback_enabled', value: 'true' },
+  ]
   editingChannel = channelSchema.parse({
     id: 42,
     name: 'Existing channel',
@@ -186,6 +190,9 @@ beforeEach(() => {
     }
     if (url === '/api/prefill_group') {
       return { data: { success: true, data: [] } }
+    }
+    if (url === '/api/option/') {
+      return { data: { success: true, message: '', data: systemOptions } }
     }
     throw new Error(`Unexpected GET ${url}`)
   })
@@ -3010,6 +3017,34 @@ test('turning the fallback switch on for a normal channel submits is_fallback tr
   expect(switchControl).not.toHaveAttribute('aria-checked', 'true')
   await user.click(switchControl)
   expect(switchControl).toHaveAttribute('aria-checked', 'true')
+
+  await user.click(screen.getByRole('button', { name: 'Update Channel' }))
+  await waitFor(() => expect(put).toHaveBeenCalled())
+  expect(put.mock.calls[0]?.[1]).toMatchObject({
+    id: 42,
+    channel_info: { is_fallback: true },
+  })
+})
+
+test('hiding the fallback switch when the global fallback feature is off keeps the is_fallback marking on submit', async () => {
+  systemOptions = [
+    { key: 'channel_affinity_setting.fallback_enabled', value: 'false' },
+  ]
+  editingChannel = {
+    ...editingChannel,
+    channel_info: { ...editingChannel.channel_info, is_fallback: true },
+  }
+  const put = vi
+    .spyOn(api, 'put')
+    .mockResolvedValue({ data: { success: true } })
+  const user = userEvent.setup()
+  render(<ConfigurationHarness currentRow={editingChannel} />)
+  await screen.findByDisplayValue('Existing channel')
+  await user.click(screen.getByRole('tab', { name: /Routing & Mapping/ }))
+
+  await waitFor(() =>
+    expect(screen.queryByText('Fallback model')).not.toBeInTheDocument()
+  )
 
   await user.click(screen.getByRole('button', { name: 'Update Channel' }))
   await waitFor(() => expect(put).toHaveBeenCalled())

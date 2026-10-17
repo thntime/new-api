@@ -53,6 +53,7 @@ import {
   CHANNEL_STATUS,
   CHANNEL_STATUS_OPTIONS,
 } from '../constants'
+import { useFallbackEnabled } from '../hooks/use-fallback-enabled'
 import {
   channelsQueryKeys,
   aggregateChannelsByTag,
@@ -315,7 +316,11 @@ export function ChannelsTable() {
   const typeCounts = data?.data?.type_counts
 
   // Columns configuration
-  const columns = useChannelsColumns({ enableSelection: batchMode })
+  const fallbackEnabled = useFallbackEnabled()
+  const columns = useChannelsColumns({
+    enableSelection: batchMode,
+    showFallback: fallbackEnabled,
+  })
 
   // React Table instance
   const { table } = useDataTable({

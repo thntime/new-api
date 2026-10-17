@@ -171,6 +171,7 @@ import {
   type ChannelModelDiscoveryRequest,
 } from '../../hooks/use-channel-model-discovery'
 import { useChannelMutateForm } from '../../hooks/use-channel-mutate-form'
+import { useFallbackEnabled } from '../../hooks/use-fallback-enabled'
 import {
   REDIRECT_PANEL_MIN_VIEWPORT,
   useRedirectPanelPlacement,
@@ -428,6 +429,7 @@ export function ChannelMutateDrawer({
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { setOpen } = useChannels()
+  const fallbackEnabled = useFallbackEnabled()
   const currentUser = useAuthStore((s) => s.auth.user)
   const canEditSensitive = hasPermission(
     currentUser,
@@ -2471,26 +2473,28 @@ export function ChannelMutateDrawer({
         />
       </div>
 
-      <FormField
-        control={form.control}
-        name='channel_info.is_fallback'
-        render={({ field }) => (
-          <FormItem className='flex items-center justify-between'>
-            <div className='space-y-0.5'>
-              <FormLabel>{t('Fallback model')}</FormLabel>
-              <FormDescription>
-                {t(FIELD_DESCRIPTIONS.IS_FALLBACK)}
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
+      {fallbackEnabled && (
+        <FormField
+          control={form.control}
+          name='channel_info.is_fallback'
+          render={({ field }) => (
+            <FormItem className='flex items-center justify-between'>
+              <div className='space-y-0.5'>
+                <FormLabel>{t('Fallback model')}</FormLabel>
+                <FormDescription>
+                  {t(FIELD_DESCRIPTIONS.IS_FALLBACK)}
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      )}
 
       <FormField
         control={form.control}
