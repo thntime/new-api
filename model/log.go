@@ -543,32 +543,9 @@ func GetAllLogs(filter LogFilter, startIdx int, num int) (logs []*Log, total int
 	}
 
 	if channelIds.Len() > 0 {
-		var channels []struct {
-			Id   int    `gorm:"column:id"`
-			Name string `gorm:"column:name"`
-		}
-		if common.MemoryCacheEnabled {
-			// Cache get channel
-			for _, channelId := range channelIds.Items() {
-				if cacheChannel, err := CacheGetChannel(channelId); err == nil {
-					channels = append(channels, struct {
-						Id   int    `gorm:"column:id"`
-						Name string `gorm:"column:name"`
-					}{
-						Id:   channelId,
-						Name: cacheChannel.Name,
-					})
-				}
-			}
-		} else {
-			// Bulk query channels from DB
-			if err = DB.Table("channels").Select("id, name").Where("id IN ?", channelIds.Items()).Find(&channels).Error; err != nil {
-				return logs, total, err
-			}
-		}
-		channelMap := make(map[int]string, len(channels))
-		for _, channel := range channels {
-			channelMap[channel.Id] = channel.Name
+		channelMap, err := GetChannelNameMap(channelIds.Items())
+		if err != nil {
+			return logs, total, err
 		}
 		for i := range logs {
 			logs[i].ChannelName = channelMap[logs[i].ChannelId]
@@ -576,6 +553,34 @@ func GetAllLogs(filter LogFilter, startIdx int, num int) (logs []*Log, total int
 	}
 
 	return logs, total, err
+}
+
+// GetChannelNameMap resolves channel ids to display names through the channel
+// cache when enabled, and through one bulk query otherwise.
+func GetChannelNameMap(channelIds []int) (map[int]string, error) {
+	channelMap := make(map[int]string, len(channelIds))
+	if len(channelIds) == 0 {
+		return channelMap, nil
+	}
+	if common.MemoryCacheEnabled {
+		for _, channelId := range channelIds {
+			if cacheChannel, err := CacheGetChannel(channelId); err == nil {
+				channelMap[channelId] = cacheChannel.Name
+			}
+		}
+		return channelMap, nil
+	}
+	var channels []struct {
+		Id   int    `gorm:"column:id"`
+		Name string `gorm:"column:name"`
+	}
+	if err := DB.Table("channels").Select("id, name").Where("id IN ?", channelIds).Find(&channels).Error; err != nil {
+		return nil, err
+	}
+	for _, channel := range channels {
+		channelMap[channel.Id] = channel.Name
+	}
+	return channelMap, nil
 }
 
 const logSearchCountLimit = 10000

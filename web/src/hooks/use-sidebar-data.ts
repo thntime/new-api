@@ -23,6 +23,7 @@ import {
   CreditCard,
   FileText,
   FlaskConical,
+  Gauge,
   Key,
   LayoutDashboard,
   ListTodo,
@@ -97,6 +98,12 @@ export function useSidebarData(): SidebarData {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ClipboardList,
+          },
+          {
+            title: t('Performance Health'),
+            url: '/usage-logs/performance',
+            icon: Gauge,
+            requiredRole: ROLE.ADMIN,
           },
           {
             title: t('Task Logs'),
