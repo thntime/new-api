@@ -52,6 +52,23 @@ func alignedLogPerfBase(alignment int64) int64 {
 	return seed - seed%alignment
 }
 
+func TestLogPerfCacheTokens(t *testing.T) {
+	db := setupLogPerformanceTestDB(t)
+	base := alignedLogPerfBase(3600)
+
+	createLogPerformanceLogs(t, db,
+		&Log{CreatedAt: base, Type: LogTypeConsume, ModelName: "gpt-4o", PromptTokens: 1000, Other: `{"cache_tokens": 400}`},
+		&Log{CreatedAt: base, Type: LogTypeConsume, ModelName: "gpt-4o", PromptTokens: 500, Other: `{"cache_tokens": 100}`},
+		&Log{CreatedAt: base, Type: LogTypeConsume, ModelName: "gpt-4o", PromptTokens: 200, Other: `{}`},
+		&Log{CreatedAt: base, Type: LogTypeConsume, ModelName: "gpt-4o", PromptTokens: 100, Other: ``},
+	)
+
+	result, err := QueryLogPerformance(LogPerformanceFilter{StartTimestamp: base, EndTimestamp: base + 3599}, 3600)
+	require.NoError(t, err)
+	assert.EqualValues(t, 500, result.Summary.CacheTokens)
+	assert.EqualValues(t, 1800, result.Summary.PromptTokens)
+}
+
 func TestLogPerfSuccessRate(t *testing.T) {
 	db := setupLogPerformanceTestDB(t)
 	base := alignedLogPerfBase(3600)

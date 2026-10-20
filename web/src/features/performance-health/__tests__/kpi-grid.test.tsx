@@ -38,6 +38,7 @@ function buildSummary(
     prompt_tokens: 0,
     completion_tokens: 0,
     total_tokens: 0,
+    cache_tokens: 0,
     ...patch,
   }
 }
@@ -72,6 +73,7 @@ describe('PerformanceKpiGrid', () => {
           prompt_tokens: 12000,
           completion_tokens: 34000,
           total_tokens: 46000,
+          cache_tokens: 9000,
         })}
       />
     )
@@ -80,9 +82,12 @@ describe('PerformanceKpiGrid', () => {
       '99.80%'
     )
     expect(screen.getByTestId('kpi-failures').textContent).toContain('3')
-    expect(screen.getByTestId('kpi-avg-tps').textContent).toContain('25.3')
+    expect(screen.getByTestId('kpi-avg-tps').textContent).toContain('25.34')
     expect(screen.getByTestId('kpi-avg-latency').textContent).toContain('1.01s')
     expect(screen.getByTestId('kpi-p95-latency').textContent).toContain('4.32s')
     expect(screen.getByTestId('kpi-total-tokens').textContent).toContain('46K')
+    expect(screen.getByTestId('kpi-cache-tokens').textContent).toContain(
+      '9K | 75.00%'
+    )
   })
 })

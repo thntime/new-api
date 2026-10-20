@@ -40,6 +40,7 @@ export type PerformanceSummary = {
   prompt_tokens: number
   completion_tokens: number
   total_tokens: number
+  cache_tokens: number
 }
 
 export type PerformanceSeriesPoint = PerformanceSummary & {

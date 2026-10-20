@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Loader2 } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -39,6 +39,7 @@ import {
 } from '@/features/usage-logs/components/logs-filter-toolbar'
 import { getGroups } from '@/features/users/api'
 import { requireServerSuccess } from '@/lib/server-error-message'
+import { cn } from '@/lib/utils'
 
 import {
   DEFAULT_TIME_RANGE_PRESET,
@@ -66,6 +67,7 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const searchParams = route.useSearch()
+  const [showMore, setShowMore] = useState(false)
   const { data: adminGroups } = useQuery({
     queryKey: ['groups'],
     queryFn: async () => requireServerSuccess(await getGroups()),
@@ -154,6 +156,13 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
       ? draft.stream
       : STREAM_FILTER_ALL
 
+  const hiddenFilterCount = [
+    draft.group,
+    draft.token,
+    draft.username,
+    streamValue !== STREAM_FILTER_ALL ? streamValue : '',
+  ].filter(Boolean).length
+
   const hasActiveFilters = Boolean(
     draft.model ||
     draft.channel ||
@@ -202,79 +211,105 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
             onKeyDown={handleKeyDown}
           />
         </LogsFilterField>
-        <LogsFilterField>
-          <Combobox
-            options={groupOptions}
-            allowCustomValue
-            aria-label={t('Group')}
-            emptyText={t('No group found.')}
-            placeholder={t('Group')}
-            className='h-8 min-w-0 text-sm leading-5'
-            value={draft.group ?? ''}
-            onValueChange={(value) => updateDraft({ group: value ?? '' })}
-            onKeyDown={handleKeyDown}
-          />
-        </LogsFilterField>
-        <LogsFilterField>
-          <LogsFilterInput
-            placeholder={t('Token Name')}
-            value={draft.token ?? ''}
-            onChange={(e) => updateDraft({ token: e.target.value })}
-            onKeyDown={handleKeyDown}
-          />
-        </LogsFilterField>
-        <LogsFilterField>
-          <LogsFilterInput
-            placeholder={t('Username')}
-            value={draft.username ?? ''}
-            onChange={(e) => updateDraft({ username: e.target.value })}
-            onKeyDown={handleKeyDown}
-          />
-        </LogsFilterField>
-        <LogsFilterField>
-          <Select
-            items={streamItems}
-            value={streamValue}
-            onValueChange={(value) =>
-              updateDraft({
-                stream: (value ?? STREAM_FILTER_ALL) as StreamFilter,
-              })
-            }
-          >
-            <SelectTrigger aria-label={t('Stream')}>
-              <SelectValue className='min-w-0'>
-                <span className='truncate'>
-                  {streamItems.find((item) => item.value === streamValue)
-                    ?.label ?? t('All')}
-                </span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
-              <SelectGroup>
-                {streamItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </LogsFilterField>
+        {showMore && (
+          <>
+            <LogsFilterField>
+              <Combobox
+                options={groupOptions}
+                allowCustomValue
+                aria-label={t('Group')}
+                emptyText={t('No group found.')}
+                placeholder={t('Group')}
+                className='h-8 min-w-0 text-sm leading-5'
+                value={draft.group ?? ''}
+                onValueChange={(value) => updateDraft({ group: value ?? '' })}
+                onKeyDown={handleKeyDown}
+              />
+            </LogsFilterField>
+            <LogsFilterField>
+              <LogsFilterInput
+                placeholder={t('Token Name')}
+                value={draft.token ?? ''}
+                onChange={(e) => updateDraft({ token: e.target.value })}
+                onKeyDown={handleKeyDown}
+              />
+            </LogsFilterField>
+            <LogsFilterField>
+              <LogsFilterInput
+                placeholder={t('Username')}
+                value={draft.username ?? ''}
+                onChange={(e) => updateDraft({ username: e.target.value })}
+                onKeyDown={handleKeyDown}
+              />
+            </LogsFilterField>
+            <LogsFilterField>
+              <Select
+                items={streamItems}
+                value={streamValue}
+                onValueChange={(value) =>
+                  updateDraft({
+                    stream: (value ?? STREAM_FILTER_ALL) as StreamFilter,
+                  })
+                }
+              >
+                <SelectTrigger aria-label={t('Stream')}>
+                  <SelectValue className='min-w-0'>
+                    <span className='truncate'>
+                      {streamItems.find((item) => item.value === streamValue)
+                        ?.label ?? t('All')}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    {streamItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </LogsFilterField>
+          </>
+        )}
       </div>
 
-      <div className='mt-2 flex flex-wrap items-center justify-end gap-1.5 sm:gap-2'>
+      <div className='mt-2 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2'>
         <Button
           type='button'
-          variant='outline'
-          onClick={handleReset}
-          disabled={!hasActiveFilters}
+          variant='ghost'
+          size='sm'
+          aria-expanded={showMore}
+          onClick={() => setShowMore((value) => !value)}
         >
-          {t('Reset')}
+          <ChevronDown
+            className={cn(
+              'size-4 transition-transform',
+              showMore && 'rotate-180'
+            )}
+          />
+          {showMore ? t('Fewer filters') : t('More filters')}
+          {!showMore && hiddenFilterCount > 0 ? ` (${hiddenFilterCount})` : ''}
         </Button>
-        <Button type='button' onClick={handleApply} disabled={props.searching}>
-          {props.searching && <Loader2 className='animate-spin' />}
-          {t('Search')}
-        </Button>
+        <div className='flex flex-wrap items-center gap-1.5 sm:gap-2'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={handleReset}
+            disabled={!hasActiveFilters}
+          >
+            {t('Reset')}
+          </Button>
+          <Button
+            type='button'
+            onClick={handleApply}
+            disabled={props.searching}
+          >
+            {props.searching && <Loader2 className='animate-spin' />}
+            {t('Search')}
+          </Button>
+        </div>
       </div>
     </div>
   )

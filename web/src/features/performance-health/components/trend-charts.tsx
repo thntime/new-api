@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next'
 import { PanelWrapper } from '@/features/dashboard/components/ui/panel-wrapper'
 import {
   formatLatency,
-  formatThroughput,
   formatUptimePct,
 } from '@/features/performance-metrics/lib/format'
 import { formatCompactNumber } from '@/lib/format'
@@ -31,6 +30,7 @@ import { useChartTheme } from '@/lib/use-chart-theme'
 import { VCHART_OPTION } from '@/lib/vchart'
 
 import { formatBucketLabel } from '../lib/format-bucket'
+import { formatTps } from '../lib/metrics'
 import type { PerformanceGranularity, PerformanceSeriesPoint } from '../types'
 
 function getChartThemeTokens(resolvedTheme: string) {
@@ -110,7 +110,7 @@ function TpsChart(props: {
             {
               key: (d: { kind: string }) => d.kind,
               value: (d: { tps: number | null }) =>
-                d.tps == null ? '-' : formatThroughput(d.tps),
+                d.tps == null ? '-' : formatTps(d.tps),
             },
           ],
         },

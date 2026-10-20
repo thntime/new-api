@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/QuantumNous/new-api/common"
 	"gorm.io/gorm"
 )
 
@@ -141,6 +142,7 @@ type LogPerformanceMetrics struct {
 	PromptTokens     int64    `json:"prompt_tokens"`
 	CompletionTokens int64    `json:"completion_tokens"`
 	TotalTokens      int64    `json:"total_tokens"`
+	CacheTokens      int64    `json:"cache_tokens"`
 }
 
 type LogPerformanceSeriesPoint struct {
@@ -207,6 +209,7 @@ type logPerformanceMetricsRow struct {
 	MinTps           *float64 `gorm:"column:min_tps"`
 	PromptTokens     int64    `gorm:"column:prompt_tokens"`
 	CompletionTokens int64    `gorm:"column:completion_tokens"`
+	CacheTokens      int64    `gorm:"column:cache_tokens"`
 }
 
 type logPerformanceBucketRow struct {
@@ -250,6 +253,22 @@ func logPerformanceMetricsSelect() string {
 	return fmt.Sprintf(logPerformanceMetricsSelectTemplate, LogTypeConsume, LogTypeError)
 }
 
+// logPerformanceCacheTokensExpr extracts cached prompt tokens from the log's
+// JSON metadata. Each log database exposes a different JSON function, and the
+// guard keeps rows with empty or malformed metadata from failing the query.
+func logPerformanceCacheTokensExpr() string {
+	switch common.LogDatabaseType() {
+	case common.DatabaseTypeMySQL:
+		return "COALESCE(SUM(CASE WHEN JSON_VALID(logs.other) THEN CAST(JSON_UNQUOTE(JSON_EXTRACT(logs.other, '$.cache_tokens')) AS SIGNED) ELSE 0 END), 0) AS cache_tokens"
+	case common.DatabaseTypePostgreSQL:
+		return "COALESCE(SUM(CASE WHEN logs.other LIKE '{%' THEN COALESCE((logs.other::jsonb->>'cache_tokens')::numeric::bigint, 0) ELSE 0 END), 0) AS cache_tokens"
+	case common.DatabaseTypeClickHouse:
+		return "COALESCE(SUM(JSONExtractInt(logs.other, 'cache_tokens')), 0) AS cache_tokens"
+	default:
+		return "COALESCE(SUM(CASE WHEN json_valid(logs.other) THEN json_extract(logs.other, '$.cache_tokens') ELSE 0 END), 0) AS cache_tokens"
+	}
+}
+
 func (r logPerformanceMetricsRow) metrics() LogPerformanceMetrics {
 	metrics := LogPerformanceMetrics{
 		Requests:         r.Requests,
@@ -261,6 +280,7 @@ func (r logPerformanceMetricsRow) metrics() LogPerformanceMetrics {
 		PromptTokens:     r.PromptTokens,
 		CompletionTokens: r.CompletionTokens,
 		TotalTokens:      r.PromptTokens + r.CompletionTokens,
+		CacheTokens:      r.CacheTokens,
 	}
 	if attempts := r.Successes + r.Failures; attempts > 0 {
 		rate := float64(r.Successes) / float64(attempts) * 100
@@ -329,7 +349,7 @@ func QueryLogPerformance(filter LogPerformanceFilter, granularitySeconds int64) 
 		return nil, err
 	}
 	var summary logPerformanceMetricsRow
-	if err := tx.Select(logPerformanceMetricsSelect()).Scan(&summary).Error; err != nil {
+	if err := tx.Select(logPerformanceMetricsSelect() + ", " + logPerformanceCacheTokensExpr()).Scan(&summary).Error; err != nil {
 		return nil, err
 	}
 	result.Summary = summary.metrics()

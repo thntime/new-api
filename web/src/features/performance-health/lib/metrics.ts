@@ -18,7 +18,6 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   formatLatency,
-  formatThroughput,
   formatUptimePct,
   getSuccessRateTextClass,
 } from '@/features/performance-metrics/lib/format'
@@ -27,6 +26,13 @@ import { formatCompactNumber } from '@/lib/format'
 import type { PerformanceSummary } from '../types'
 
 export const EMPTY_PLACEHOLDER = '-'
+
+// Charts and KPI cards keep two decimals so TPS values are comparable at a glance.
+export function formatTps(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '—'
+  if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K t/s`
+  return `${value.toFixed(2)} t/s`
+}
 
 export interface MetricItem {
   id: string
@@ -43,7 +49,7 @@ export function buildMetricItems(
   const formatNullablePercent = (value: number | null) =>
     value == null ? EMPTY_PLACEHOLDER : formatUptimePct(value)
   const formatNullableTps = (value: number | null) =>
-    value == null ? EMPTY_PLACEHOLDER : formatThroughput(value)
+    value == null ? EMPTY_PLACEHOLDER : formatTps(value)
   const formatNullableLatency = (value: number | null) =>
     value == null ? EMPTY_PLACEHOLDER : formatLatency(value)
 
@@ -106,6 +112,14 @@ export function buildMetricItems(
       id: 'total-tokens',
       label: t('Total Tokens'),
       value: formatCompactNumber(summary.total_tokens, locale),
+    },
+    {
+      id: 'cache-tokens',
+      label: t('Cache Tokens'),
+      value:
+        summary.prompt_tokens > 0
+          ? `${formatCompactNumber(summary.cache_tokens, locale)} | ${((summary.cache_tokens / summary.prompt_tokens) * 100).toFixed(2)}%`
+          : formatCompactNumber(summary.cache_tokens, locale),
     },
   ]
 }
