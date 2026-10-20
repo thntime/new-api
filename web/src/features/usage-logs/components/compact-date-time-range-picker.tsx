@@ -30,9 +30,18 @@ import {
 import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
 
+interface CompactDateTimeRangePreset {
+  key: string
+  label: string
+  active?: boolean
+}
+
 interface CompactDateTimeRangePickerProps {
   start?: Date
   end?: Date
+  valueLabel?: string
+  presets?: CompactDateTimeRangePreset[]
+  onPresetSelect?: (key: string) => void
   onChange: (range: { start?: Date; end?: Date }) => void
   className?: string
 }
@@ -50,6 +59,9 @@ function fromInputValue(value: string): Date | undefined {
 export function CompactDateTimeRangePicker({
   start,
   end,
+  valueLabel,
+  presets,
+  onPresetSelect,
   onChange,
   className,
 }: CompactDateTimeRangePickerProps) {
@@ -59,19 +71,21 @@ export function CompactDateTimeRangePicker({
   const [draftEnd, setDraftEnd] = useState(toInputValue(end))
 
   const label = useMemo(() => {
+    if (valueLabel) return valueLabel
     if (!start && !end) return t('Date Range')
     const startText = start ? dayjs(start).format('YYYY-MM-DD HH:mm:ss') : '-'
     const endText = end ? dayjs(end).format('YYYY-MM-DD HH:mm:ss') : '-'
     return `${startText} ~ ${endText}`
-  }, [end, start, t])
+  }, [end, start, t, valueLabel])
 
   const mobileLabel = useMemo(() => {
+    if (valueLabel) return valueLabel
     if (!start || !end) return label
     if (dayjs(start).isSame(end, 'day')) {
       return `${dayjs(start).format('MM/DD HH:mm:ss')}–${dayjs(end).format('HH:mm:ss')}`
     }
     return label
-  }, [start, end, label])
+  }, [start, end, label, valueLabel])
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -179,53 +193,73 @@ export function CompactDateTimeRangePicker({
             </div>
           </div>
 
-          <div className='flex flex-wrap gap-1.5'>
-            <Button
-              type='button'
-              variant='secondary'
-              size='sm'
-              className='h-7 flex-1 px-2 text-xs'
-              onClick={() => applyPreset('today')}
-            >
-              {t('Today')}
-            </Button>
-            <Button
-              type='button'
-              variant='secondary'
-              size='sm'
-              className='h-7 flex-1 px-2 text-xs'
-              onClick={() => applyPreset('7d')}
-            >
-              {t('7 Days')}
-            </Button>
-            <Button
-              type='button'
-              variant='secondary'
-              size='sm'
-              className='h-7 flex-1 px-2 text-xs'
-              onClick={() => applyPreset('week')}
-            >
-              {t('This week')}
-            </Button>
-            <Button
-              type='button'
-              variant='secondary'
-              size='sm'
-              className='h-7 flex-1 px-2 text-xs'
-              onClick={() => applyPreset('30d')}
-            >
-              {t('30 Days')}
-            </Button>
-            <Button
-              type='button'
-              variant='secondary'
-              size='sm'
-              className='h-7 flex-1 px-2 text-xs'
-              onClick={() => applyPreset('month')}
-            >
-              {t('Current month')}
-            </Button>
-          </div>
+          {presets && onPresetSelect ? (
+            <div className='flex flex-wrap gap-1.5'>
+              {presets.map((preset) => (
+                <Button
+                  key={preset.key}
+                  type='button'
+                  variant={preset.active ? 'default' : 'secondary'}
+                  size='sm'
+                  className='h-7 flex-1 px-2 text-xs'
+                  onClick={() => {
+                    onPresetSelect(preset.key)
+                    setOpen(false)
+                  }}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <div className='flex flex-wrap gap-1.5'>
+              <Button
+                type='button'
+                variant='secondary'
+                size='sm'
+                className='h-7 flex-1 px-2 text-xs'
+                onClick={() => applyPreset('today')}
+              >
+                {t('Today')}
+              </Button>
+              <Button
+                type='button'
+                variant='secondary'
+                size='sm'
+                className='h-7 flex-1 px-2 text-xs'
+                onClick={() => applyPreset('7d')}
+              >
+                {t('7 Days')}
+              </Button>
+              <Button
+                type='button'
+                variant='secondary'
+                size='sm'
+                className='h-7 flex-1 px-2 text-xs'
+                onClick={() => applyPreset('week')}
+              >
+                {t('This week')}
+              </Button>
+              <Button
+                type='button'
+                variant='secondary'
+                size='sm'
+                className='h-7 flex-1 px-2 text-xs'
+                onClick={() => applyPreset('30d')}
+              >
+                {t('30 Days')}
+              </Button>
+              <Button
+                type='button'
+                variant='secondary'
+                size='sm'
+                className='h-7 flex-1 px-2 text-xs'
+                onClick={() => applyPreset('month')}
+              >
+                {t('Current month')}
+              </Button>
+            </div>
+          )}
 
           <div className='flex justify-end'>
             <Button size='sm' className='h-8' onClick={applyDraft}>

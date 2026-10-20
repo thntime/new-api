@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import dayjs from '@/lib/dayjs'
 
-import type { PerformanceGranularity, PerformanceQueryParams } from '../types'
+import type { PerformanceQueryParams } from '../types'
 
 export const TIME_RANGE_PRESETS = ['1h', '6h', '24h', '7d', '30d'] as const
 export type TimeRangePreset = (typeof TIME_RANGE_PRESETS)[number]
@@ -40,7 +40,6 @@ export type PerformanceSearch = {
   preset?: TimeRangePreset
   startTime?: number
   endTime?: number
-  granularity?: PerformanceGranularity
   model?: string
   channel?: string
   group?: string
@@ -89,7 +88,7 @@ export function buildPerformanceParams(
   const params: PerformanceQueryParams = {
     start_timestamp: Math.floor(start.getTime() / 1000),
     end_timestamp: Math.floor(end.getTime() / 1000),
-    granularity: search.granularity ?? 'auto',
+    granularity: 'auto',
   }
   if (search.model) params.model_name = search.model
   if (search.channel) params.channel = search.channel

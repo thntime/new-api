@@ -24,7 +24,6 @@ import {
   TIME_RANGE_PRESETS,
   STREAM_FILTERS,
 } from '@/features/performance-health/lib/search'
-import { PERFORMANCE_GRANULARITIES } from '@/features/performance-health/types'
 import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -32,7 +31,6 @@ const performanceSearchSchema = z.object({
   preset: z.enum(TIME_RANGE_PRESETS).optional(),
   startTime: z.number().optional(),
   endTime: z.number().optional(),
-  granularity: z.enum(PERFORMANCE_GRANULARITIES).optional().catch('auto'),
   model: z.string().optional().catch(''),
   channel: z.string().optional().catch(''),
   group: z.string().optional().catch(''),

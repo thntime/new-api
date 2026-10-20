@@ -51,21 +51,8 @@ import {
   type StreamFilter,
   type TimeRangePreset,
 } from '../lib/search'
-import {
-  PERFORMANCE_GRANULARITIES,
-  type PerformanceGranularity,
-} from '../types'
 
 const route = getRouteApi('/_authenticated/usage-logs/performance')
-
-const GRANULARITY_LABEL_KEYS: Record<PerformanceGranularity, string> = {
-  auto: 'Auto',
-  minute: '1 minute',
-  '5min': '5 minutes',
-  '15min': '15 minutes',
-  hour: '1 hour',
-  day: '1 day',
-}
 
 const PRESET_LABEL_KEYS: Record<TimeRangePreset, string> = {
   '1h': 'Last 1 hour',
@@ -142,13 +129,14 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
     updateDraft({ preset: next, startTime: undefined, endTime: undefined })
   }
 
-  const granularityItems = useMemo(
+  const presetItems = useMemo(
     () =>
-      PERFORMANCE_GRANULARITIES.map((g) => ({
-        value: g,
-        label: t(GRANULARITY_LABEL_KEYS[g]),
+      TIME_RANGE_PRESETS.map((p) => ({
+        key: p,
+        label: t(PRESET_LABEL_KEYS[p]),
+        active: !useCustomRange && preset === p,
       })),
-    [t]
+    [preset, t, useCustomRange]
   )
 
   const streamItems = useMemo(
@@ -174,67 +162,29 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
     draft.username ||
     streamValue !== STREAM_FILTER_ALL ||
     useCustomRange ||
-    preset !== DEFAULT_TIME_RANGE_PRESET ||
-    (draft.granularity && draft.granularity !== 'auto')
+    preset !== DEFAULT_TIME_RANGE_PRESET
   )
 
   return (
     <div className='bg-card/50 rounded-lg border p-2.5 sm:p-3'>
-      <div className='flex flex-wrap items-center gap-1.5'>
-        {TIME_RANGE_PRESETS.map((p) => (
-          <Button
-            key={p}
-            type='button'
-            size='sm'
-            variant={!useCustomRange && preset === p ? 'default' : 'outline'}
-            className='h-8 px-2.5 text-xs'
-            onClick={() => applyPreset(p)}
-          >
-            {t(PRESET_LABEL_KEYS[p])}
-          </Button>
-        ))}
-      </div>
-
-      <div className='mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]'>
+      <div className='grid grid-cols-1 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]'>
         <LogsFilterField wide>
           <CompactDateTimeRangePicker
-            start={useCustomRange ? range.start : undefined}
-            end={useCustomRange ? range.end : undefined}
+            start={range.start}
+            end={range.end}
+            valueLabel={
+              useCustomRange ? undefined : t(PRESET_LABEL_KEYS[preset])
+            }
+            presets={presetItems}
+            onPresetSelect={(key) => applyPreset(key as TimeRangePreset)}
             onChange={({ start, end }) => {
               updateDraft({
+                preset: undefined,
                 startTime: start?.getTime(),
                 endTime: end?.getTime(),
               })
             }}
           />
-        </LogsFilterField>
-        <LogsFilterField>
-          <Select
-            items={granularityItems}
-            value={draft.granularity ?? 'auto'}
-            onValueChange={(value) =>
-              updateDraft({
-                granularity: (value ?? 'auto') as PerformanceGranularity,
-              })
-            }
-          >
-            <SelectTrigger aria-label={t('Granularity')}>
-              <SelectValue className='min-w-0'>
-                <span className='truncate'>
-                  {t(GRANULARITY_LABEL_KEYS[draft.granularity ?? 'auto'])}
-                </span>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
-              <SelectGroup>
-                {granularityItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
         </LogsFilterField>
         <LogsFilterField>
           <LogsFilterInput

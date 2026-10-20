@@ -37,11 +37,10 @@ describe('buildPerformanceParams', () => {
     expect(params.end_timestamp - params.start_timestamp).toBe(24 * 3600)
   })
 
-  it('maps filters to API params', () => {
+  it('always requests auto granularity', () => {
     const params = buildPerformanceParams({
       startTime: 1_000_000,
       endTime: 1_360_000,
-      granularity: 'hour',
       model: 'gpt-4o',
       channel: '12',
       group: 'vip',
@@ -51,7 +50,7 @@ describe('buildPerformanceParams', () => {
     })
     expect(params.start_timestamp).toBe(1000)
     expect(params.end_timestamp).toBe(1360)
-    expect(params.granularity).toBe('hour')
+    expect(params.granularity).toBe('auto')
     expect(params.model_name).toBe('gpt-4o')
     expect(params.channel).toBe('12')
     expect(params.group).toBe('vip')
