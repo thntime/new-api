@@ -111,10 +111,15 @@ func NewChannelSortOptions(sortBy string, sortOrder string, idSort bool, sortSor
 
 func (options ChannelSortOptions) Apply(query *gorm.DB) *gorm.DB {
 	if columnName, ok := channelSortColumns[options.SortBy]; ok {
+		column := clause.Column{Name: columnName}
+		if columnName == "priority" {
+			// Routing treats a missing priority as zero on every database.
+			column = clause.Column{Name: "COALESCE(priority, 0)", Raw: true}
+		}
 		return query.Order(clause.OrderByColumn{
-			Column: clause.Column{Name: columnName},
+			Column: column,
 			Desc:   options.SortOrder != "asc",
-		})
+		}).Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: true})
 	}
 	if options.SortSort {
 		return query.Order(clause.OrderByColumn{

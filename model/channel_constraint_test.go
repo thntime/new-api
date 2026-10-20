@@ -280,9 +280,9 @@ func TestChannelSortOptionsApplyPriority(t *testing.T) {
 			require.Contains(t, sql, "ORDER BY")
 			require.Contains(t, sql, "`"+testCase.col+"`")
 			if testCase.desc {
-				require.Contains(t, sql, "DESC")
+				require.Contains(t, sql, "`"+testCase.col+"` DESC")
 			} else {
-				require.NotContains(t, sql, "DESC")
+				require.NotContains(t, sql, "`"+testCase.col+"` DESC")
 			}
 		})
 	}
