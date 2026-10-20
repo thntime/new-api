@@ -288,11 +288,14 @@ test('switching sort exits reorder mode without automatically reopening it', asy
   await user.click(screen.getByRole('combobox', { name: 'Sort channels by' }))
   await user.click(await screen.findByRole('option', { name: /^ID$/ }))
   await waitFor(() =>
-    expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
+    expect(
+      screen.queryByRole('button', { name: 'Reorder channel 3' })
+    ).not.toBeInTheDocument()
   )
-  expect(
-    screen.queryByRole('button', { name: 'Reorder channel 3' })
-  ).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Drag mode' })).toHaveAttribute(
+    'aria-pressed',
+    'false'
+  )
   await user.click(screen.getByRole('combobox', { name: 'Sort channels by' }))
   await user.click(await screen.findByRole('option', { name: /^Priority$/ }))
   await waitFor(() =>
@@ -714,7 +717,7 @@ test('the header honors the saved ID preference and changes the shared sort dire
     expect(orderInView()).toEqual(['channel:1', 'channel:2', 'channel:3'])
   )
   expect(header.getByRole('button', { name: 'Ascending' })).toBeEnabled()
-  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeEnabled()
 })
 
 test('the compact more-actions button opens by keyboard and restores focus on Escape', async () => {
@@ -752,7 +755,7 @@ test('sorting a table column updates the header selection and remains active in 
   expect(
     header.getByRole('combobox', { name: 'Sort channels by' })
   ).toHaveTextContent('Name')
-  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeEnabled()
 })
 
 test('dropping onto a card that moved into the original slot joins its priority tier', async () => {

@@ -125,17 +125,13 @@ test('returning users can reopen the demo and Escape returns focus to help', asy
   )
 })
 
-test('an unavailable drag mode keeps help accessible without enabling reordering', async () => {
+test('drag mode can switch a differently sorted list to priority order', async () => {
   const user = userEvent.setup()
   render(<Fixture reason='sort' />)
-  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
-  await user.click(screen.getByRole('button', { name: 'Drag mode help' }))
-  await user.click(screen.getByRole('button', { name: 'Got it' }))
-  expect(screen.getByRole('button', { name: 'Drag mode' })).toBeDisabled()
-  expect(screen.getByRole('button', { name: 'Drag mode' })).toHaveAttribute(
-    'aria-pressed',
-    'false'
-  )
+  const button = screen.getByRole('button', { name: 'Drag mode' })
+  expect(button).toBeEnabled()
+  await user.click(button)
+  expect(button).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('unavailable browser storage does not block the guide or repeat it within the visit', async () => {

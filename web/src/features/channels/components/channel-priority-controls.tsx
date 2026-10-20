@@ -192,7 +192,7 @@ export function ChannelPriorityModeToggle(props: {
             variant='outline'
             className='text-muted-foreground aria-pressed:border-primary/30 aria-pressed:bg-primary/10 aria-pressed:text-primary aria-pressed:hover:bg-primary/15'
             aria-pressed={props.active}
-            disabled={!!props.reason}
+            disabled={!!props.reason && props.reason !== 'sort'}
             onClick={() => {
               props.onChange()
               if (!props.active && !guideSeen[props.viewMode]) {

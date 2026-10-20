@@ -514,7 +514,14 @@ export function ChannelsTable() {
             active={reorderActive}
             viewMode={viewMode}
             reason={dragReason}
-            onChange={() => setReorderEnabled((value) => !value)}
+            onChange={() => {
+              if (dragReason === 'sort') {
+                setSorting([{ id: 'priority', desc: sortDesc }])
+                setReorderEnabled(true)
+                return
+              }
+              setReorderEnabled((value) => !value)
+            }}
           />,
           priorityActionContainer
         )}
