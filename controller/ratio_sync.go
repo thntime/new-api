@@ -617,6 +617,26 @@ func FetchUpstreamRatios(c *gin.Context) {
 	}
 
 	differences := buildDifferences(localData, successfulChannels)
+
+	// 价格同步只处理模型库中已存在的模型：上游目录包含数千个本地未启用的
+	// 模型，全部列为差异会淹没真实需要同步的模型。查询失败时直接报错，
+	// 不退化为「不过滤」，避免静默把上游全量模型带回同步结果。
+	localModelNames, err := model.GetAllModelNames()
+	if err != nil {
+		logger.LogError(c.Request.Context(), common.LogText("failed to query model names: %s", err.Error()))
+		common.ApiErrorStatus(c, http.StatusInternalServerError, common.NewMessage("Failed to query models"))
+		return
+	}
+	existingModels := make(map[string]struct{}, len(localModelNames))
+	for _, name := range localModelNames {
+		existingModels[name] = struct{}{}
+	}
+	for name := range differences {
+		if _, ok := existingModels[name]; !ok {
+			delete(differences, name)
+		}
+	}
+
 	type modelSyncPrices struct {
 		Current   map[string]any            `json:"current"`
 		Upstreams map[string]map[string]any `json:"upstreams"`

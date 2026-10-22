@@ -335,6 +335,16 @@ func GetAllModels(offset int, limit int) ([]*Model, error) {
 	return models, err
 }
 
+// GetAllModelNames 返回模型库中全部模型名。价格同步用它把候选范围收窄到
+// 本地已存在的模型，避免把上游目录里的海量模型都列为差异。
+func GetAllModelNames() ([]string, error) {
+	var names []string
+	if err := DB.Model(&Model{}).Pluck("model_name", &names).Error; err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
 func GetBoundChannelsByModelsMap(modelNames []string) (map[string][]BoundChannel, error) {
 	result := make(map[string][]BoundChannel)
 	if len(modelNames) == 0 {

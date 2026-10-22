@@ -80,13 +80,18 @@ func collectOpenCodeGoModels(upstream map[string]openCodeGoProvider) map[string]
 		}
 	}
 
+	// 来源优先级：opencode-go（已在上面写入）> opencode 官方段 > 其余段（段名升序）。
 	providers := make([]string, 0, len(upstream))
 	for name := range upstream {
-		if name != "opencode-go" {
-			providers = append(providers, name)
+		if name == "opencode-go" || name == "opencode" {
+			continue
 		}
+		providers = append(providers, name)
 	}
 	sort.Strings(providers)
+	if _, ok := upstream["opencode"]; ok {
+		providers = append([]string{"opencode"}, providers...)
+	}
 	for _, providerName := range providers {
 		provider := upstream[providerName]
 		names := make([]string, 0, len(provider.Models))

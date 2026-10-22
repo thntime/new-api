@@ -28,6 +28,7 @@ const openCodeGoAPIJSONFixture = `{
     "models": {
       "only-elsewhere": {"name": "Only Elsewhere", "description": "from aaa", "provider": {"npm": "@ai-sdk/google"}, "status": "", "cost": {"input": 2, "output": 4}},
       "fill-model": {"name": "Fill Model", "provider": {"npm": "@ai-sdk/deepseek"}, "status": "", "limit": {"context": 64000, "output": 4096}, "cost": {"input": 99}},
+      "paid-x": {"name": "Paid X Wrong", "description": "wrong paid entry", "provider": {"npm": "@ai-sdk/anthropic"}, "status": "", "cost": {"input": 7, "output": 14}},
       "gpt-5.6-luna": {"name": "WRONG", "description": "wrong description", "provider": {"npm": "@ai-sdk/anthropic"}, "status": "", "cost": {"input": 99, "output": 99}}
     }
   },
@@ -243,6 +244,12 @@ func TestCollectOpenCodeGoModelsCostSemantics(t *testing.T) {
 	require.Contains(t, models, "shared-free")
 	require.NotNil(t, models["shared-free"].Cost.Input)
 	assert.InDelta(t, 0.0, *models["shared-free"].Cost.Input, 1e-9)
+
+	// 来源优先级：opencode 官方段先于段名更小的 aaa-provider
+	require.Contains(t, models, "paid-x")
+	require.NotNil(t, models["paid-x"].Cost.Input)
+	assert.InDelta(t, 5.0, *models["paid-x"].Cost.Input, 1e-9)
+	assert.Equal(t, "Paid X", models["paid-x"].Name)
 
 	// cost 为 nil 的免费条目不得从付费条目继承价格
 	require.Contains(t, models, "nil-cost-free")
