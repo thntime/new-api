@@ -9,6 +9,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -172,6 +173,38 @@ func TestOpenCodeGoVendorForModelAndProvider(t *testing.T) {
 	assert.Equal(t, "OpenCode Go", openCodeGoVendorForModelAndProvider("zz-unknown-xyz", "@ai-sdk/openai-compatible"))
 }
 
+// TestOpenCodeGoFallbackEntryCatalogFields 验证来自非 opencode-go 段的回退条目
+// 同样能组装出 vendor、端点与富元数据，不会因字段缺失而报错。
+func TestOpenCodeGoFallbackEntryCatalogFields(t *testing.T) {
+	entry := service.OpenCodeGoModelEntry{
+		ID:          "kimi-k3",
+		Name:        "Kimi K3",
+		Description: "from fallback provider",
+		Provider:    "@ai-sdk/moonshot",
+		Limit:       &service.LimitEntry{Context: 128000, Output: 8192},
+		Modalities:  &service.ModalitiesEntry{Input: []string{"text"}, Output: []string{"text"}},
+	}
+
+	vendor := openCodeGoVendorForModelAndProvider(entry.ID, entry.Provider)
+	assert.Equal(t, "Moonshot", vendor)
+
+	endpoints := endpointsJSON(entry.Provider)
+	require.NotEmpty(t, endpoints)
+
+	values := model.MetadataValues{
+		Description: entry.Description,
+		Vendor:      vendor,
+		Endpoints:   string(endpoints),
+		Status:      openCodeGoStatusToModelStatus(entry.Status),
+	}
+	require.NoError(t, model.ValidateMetadataValues(values))
+
+	rich := openCodeGoRichFields(entry)
+	assert.Equal(t, "Kimi K3", rich["display_name"])
+	assert.Equal(t, "@ai-sdk/moonshot", rich["provider_npm"])
+	assert.Contains(t, rich, "capabilities")
+}
+
 // setupSyncUpstreamServer 将 SYNC_UPSTREAM_BASE 指向本地 httptest server，
 // 按路径返回模型/供应商 envelope JSON，避免测试访问真实上游。
 // normalizeLocale 会把空 locale 归一到 "zh"，故响应 /api/i18n/zh/newapi/ 路径。
@@ -224,9 +257,9 @@ func runSyncUpstreamPreview(t *testing.T, query string) syncPreviewResponse {
 type syncApplyResponse struct {
 	Success bool `json:"success"`
 	Data    struct {
-		CreatedModels  []string                          `json:"created_models"`
-		UpdatedModels  []model.MetadataSyncSelection     `json:"updated_models"`
-		CreatedVendors []string                          `json:"created_vendors"`
+		CreatedModels  []string                      `json:"created_models"`
+		UpdatedModels  []model.MetadataSyncSelection `json:"updated_models"`
+		CreatedVendors []string                      `json:"created_vendors"`
 	} `json:"data"`
 }
 
@@ -323,8 +356,8 @@ func TestSyncUpstreamApplyCreatesMissingModelWithRichFields(t *testing.T) {
 	preview := runSyncUpstreamPreview(t, "locale=zh&source=official")
 	create := findCandidate(t, preview, "zz-sync-create-model")
 	body, err := common.Marshal(map[string]any{
-		"locale":        "zh",
-		"source":        "official",
+		"locale":         "zh",
+		"source":         "official",
 		"source_version": preview.Data.Source.Version,
 		"selections": []model.MetadataSyncSelection{{
 			ModelName:     create.ModelName,

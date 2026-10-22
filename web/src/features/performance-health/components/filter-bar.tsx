@@ -22,6 +22,7 @@ import { ChevronDown, Loader2 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
 import {
@@ -279,18 +280,27 @@ export function PerformanceHealthFilterBar(props: { searching?: boolean }) {
         <Button
           type='button'
           variant='ghost'
-          size='sm'
           aria-expanded={showMore}
           onClick={() => setShowMore((value) => !value)}
+          className={cn(
+            'text-muted-foreground hover:text-foreground gap-1 px-2',
+            hiddenFilterCount > 0 &&
+              !showMore &&
+              'text-primary hover:text-primary'
+          )}
         >
+          {showMore ? t('Collapse') : t('Expand')}
+          {hiddenFilterCount > 0 && (
+            <Badge className='ml-0.5 size-5 justify-center p-0 text-[10px]'>
+              {hiddenFilterCount}
+            </Badge>
+          )}
           <ChevronDown
             className={cn(
-              'size-4 transition-transform',
+              'size-3.5 transition-transform duration-200',
               showMore && 'rotate-180'
             )}
           />
-          {showMore ? t('Fewer filters') : t('More filters')}
-          {!showMore && hiddenFilterCount > 0 ? ` (${hiddenFilterCount})` : ''}
         </Button>
         <div className='flex flex-wrap items-center gap-1.5 sm:gap-2'>
           <Button

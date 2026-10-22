@@ -64,10 +64,14 @@ func convertOpenCodeGoRatioData(data []byte, usd float64) (map[string]any, error
 	cacheRatioMap := make(map[string]any)
 
 	for name, m := range models {
-		input := 0.0
-		if m.Cost.Input != nil {
-			input = *m.Cost.Input
+		// 缺少 input 价格时不能按 0 处理：那会把未知价格当成免费模型写进
+		// model_ratio，直接改变真实计费。未知价格一律跳过并告警。
+		if m.Cost.Input == nil {
+			logger.LogWarn(context.Background(),
+				"opencode-go pricing: skip model %q without input cost", name)
+			continue
 		}
+		input := *m.Cost.Input
 		// input 决定 model_ratio：换算前先做 allFinite 校验（风格同
 		// controller/model_rich.go 的 allFiniteNonNegative），NaN/±Inf/负值/
 		// 超上界一律跳过该模型并告警，异常值不得进入真实计费。

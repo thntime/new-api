@@ -61,18 +61,52 @@ type openCodeGoCost struct {
 	CacheRead *float64 `json:"cache_read"`
 }
 
-// collectOpenCodeGoModels 合并 opencode-go 段全部非 deprecated 模型与
-// opencode 段中免费的 -free 模型（cost 全 0 且非 deprecated）；同 id 时以
-// 免费模型覆盖（后写入者胜）。
+// collectOpenCodeGoModels 解析 api.json 的模型集合：
+//  1. opencode-go 段的非 deprecated 条目优先入表；
+//  2. 其余 provider 段按段名升序遍历：id 不在结果中时补入该条目，已存在时
+//     按字段粒度用该条目补齐空值（opencode-go 已有的值不被覆盖）；
+//  3. opencode 段中免费的 -free 模型（cost 全 0 且非 deprecated）覆盖同 id
+//     条目，缺失字段由原条目补齐。
+//
+// 第 2 步按段名升序而非 map 遍历顺序，保证同 id 的回退来源确定。
 func collectOpenCodeGoModels(upstream map[string]openCodeGoProvider) map[string]openCodeGoModel {
 	models := make(map[string]openCodeGoModel)
 	if provider, ok := upstream["opencode-go"]; ok {
 		for name, m := range provider.Models {
-			if m.Status != "deprecated" {
-				models[name] = m
+			if m.Status == "deprecated" {
+				continue
 			}
+			models[name] = m
 		}
 	}
+
+	providers := make([]string, 0, len(upstream))
+	for name := range upstream {
+		if name != "opencode-go" {
+			providers = append(providers, name)
+		}
+	}
+	sort.Strings(providers)
+	for _, providerName := range providers {
+		provider := upstream[providerName]
+		names := make([]string, 0, len(provider.Models))
+		for name := range provider.Models {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			entry := provider.Models[name]
+			if entry.Status == "deprecated" {
+				continue
+			}
+			if existing, ok := models[name]; ok {
+				models[name] = fillOpenCodeGoModel(existing, entry)
+				continue
+			}
+			models[name] = entry
+		}
+	}
+
 	if provider, ok := upstream["opencode"]; ok {
 		for name, m := range provider.Models {
 			if m.Status == "deprecated" || !strings.HasSuffix(name, "-free") {
@@ -81,58 +115,78 @@ func collectOpenCodeGoModels(upstream map[string]openCodeGoProvider) map[string]
 			if isOpenCodeGoZeroCost(m.Cost) {
 				// 免费模型覆盖同 id 条目；缺失的元数据字段回退原条目的值，
 				// 避免免费条目（通常只含价格信息）抹掉付费条目的富元数据。
+				// Cost 不参与补齐：免费语义以 -free 条目为准，cost 为 nil 的
+				// 免费条目不得从同 id 付费条目继承价格。
 				if existing, ok := models[name]; ok {
-					if m.Name == "" {
-						m.Name = existing.Name
-					}
-					if m.Description == "" {
-						m.Description = existing.Description
-					}
-					if m.Provider.NPM == "" {
-						m.Provider = existing.Provider
-					}
-					if m.Family == "" {
-						m.Family = existing.Family
-					}
-					if m.Attachment == nil {
-						m.Attachment = existing.Attachment
-					}
-					if m.Reasoning == nil {
-						m.Reasoning = existing.Reasoning
-					}
-					if len(m.ReasoningOptions) == 0 {
-						m.ReasoningOptions = existing.ReasoningOptions
-					}
-					if m.ToolCall == nil {
-						m.ToolCall = existing.ToolCall
-					}
-					if m.StructuredOutput == nil {
-						m.StructuredOutput = existing.StructuredOutput
-					}
-					if m.Temperature == nil {
-						m.Temperature = existing.Temperature
-					}
-					if m.OpenWeights == nil {
-						m.OpenWeights = existing.OpenWeights
-					}
-					if m.ReleaseDate == "" {
-						m.ReleaseDate = existing.ReleaseDate
-					}
-					if m.LastUpdated == "" {
-						m.LastUpdated = existing.LastUpdated
-					}
-					if m.Modalities == nil {
-						m.Modalities = existing.Modalities
-					}
-					if m.Limit == nil {
-						m.Limit = existing.Limit
-					}
+					cost := m.Cost
+					m = fillOpenCodeGoModel(m, existing)
+					m.Cost = cost
 				}
 				models[name] = m
 			}
 		}
 	}
 	return models
+}
+
+// fillOpenCodeGoModel 用 fallback 的非空字段补齐 base 的空值字段，base 已有
+// 的非空值保持不变。ID 与 Status 不参与补齐：Status 的空串表示启用，不是缺失。
+func fillOpenCodeGoModel(base, fallback openCodeGoModel) openCodeGoModel {
+	if base.Name == "" {
+		base.Name = fallback.Name
+	}
+	if base.Description == "" {
+		base.Description = fallback.Description
+	}
+	if base.Family == "" {
+		base.Family = fallback.Family
+	}
+	if base.ReleaseDate == "" {
+		base.ReleaseDate = fallback.ReleaseDate
+	}
+	if base.LastUpdated == "" {
+		base.LastUpdated = fallback.LastUpdated
+	}
+	if base.Provider.NPM == "" {
+		base.Provider = fallback.Provider
+	}
+	if base.Attachment == nil {
+		base.Attachment = fallback.Attachment
+	}
+	if base.Reasoning == nil {
+		base.Reasoning = fallback.Reasoning
+	}
+	if len(base.ReasoningOptions) == 0 {
+		base.ReasoningOptions = fallback.ReasoningOptions
+	}
+	if base.ToolCall == nil {
+		base.ToolCall = fallback.ToolCall
+	}
+	if base.StructuredOutput == nil {
+		base.StructuredOutput = fallback.StructuredOutput
+	}
+	if base.Temperature == nil {
+		base.Temperature = fallback.Temperature
+	}
+	if base.OpenWeights == nil {
+		base.OpenWeights = fallback.OpenWeights
+	}
+	if base.Modalities == nil {
+		base.Modalities = fallback.Modalities
+	}
+	if base.Limit == nil {
+		base.Limit = fallback.Limit
+	}
+	if base.Cost.Input == nil {
+		base.Cost.Input = fallback.Cost.Input
+	}
+	if base.Cost.Output == nil {
+		base.Cost.Output = fallback.Cost.Output
+	}
+	if base.Cost.CacheRead == nil {
+		base.Cost.CacheRead = fallback.Cost.CacheRead
+	}
+	return base
 }
 
 func isOpenCodeGoZeroCost(cost openCodeGoCost) bool {

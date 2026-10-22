@@ -74,8 +74,8 @@ func TestConvertOpenCodeGoRatioDataSkipsPathologicalPrices(t *testing.T) {
 	assert.NotContains(t, modelRatios, "negative-input-model")
 	assert.NotContains(t, completionRatios, "huge-input-model")
 
-	// input 缺失（nil）→ 视为免费模型
-	assert.Equal(t, 0.0, modelRatios["nil-input-model"])
+	// input 缺失（nil）→ 未知价格，跳过而不是按免费模型写入计费
+	assert.NotContains(t, modelRatios, "nil-input-model")
 
 	// output 病态 → 仅 completion_ratio 不含该模型，model_ratio/cache 正常
 	assert.Equal(t, 1.0, modelRatios["huge-output-model"])
