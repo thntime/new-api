@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	updateCheckRepoURL   = "https://api.github.com/repos/zhangjinglei137/new-api/releases/latest"
-	updateCheckMirrorURL = "https://gh-proxy.com/https://api.github.com/repos/zhangjinglei137/new-api/releases/latest"
+	updateCheckRepoURL   = "https://api.github.com/repos/thntime/new-api/releases/latest"
+	updateCheckMirrorURL = "https://gh-proxy.com/https://api.github.com/repos/thntime/new-api/releases/latest"
 	// UpdateCheckProxyKey 是检查更新使用的出站代理配置项（options 表）。
 	UpdateCheckProxyKey = "UpdateCheckProxy"
 

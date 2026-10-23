@@ -201,7 +201,7 @@ describe('administrator update entry', () => {
       within(dialog).getByRole('link', { name: 'Go to GitHub' })
     ).toHaveAttribute(
       'href',
-      'https://github.com/zhangjinglei137/new-api/releases/tag/v1.0.0-rc.36'
+      'https://github.com/thntime/new-api/releases/tag/v1.0.0-rc.36'
     )
     await user.keyboard('{Escape}')
     await waitFor(() =>

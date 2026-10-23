@@ -89,5 +89,5 @@ export function compareSystemVersions(
 }
 
 export function getSystemReleaseUrl(release: SystemRelease): string {
-  return `https://github.com/zhangjinglei137/new-api/releases/tag/${encodeURIComponent(release.tag_name)}`
+  return `https://github.com/thntime/new-api/releases/tag/${encodeURIComponent(release.tag_name)}`
 }
