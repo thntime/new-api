@@ -60,6 +60,16 @@ export type ModelFormValues = z.infer<typeof modelFormSchema>
 
 export const MODEL_FORM_DEFAULT_VALUES: ModelFormValues = {
   model_name: '',
+  display_name: '',
+  release_date: '',
+  last_updated: '',
+  open_weights: null,
+  cap_attachment: null,
+  cap_reasoning: null,
+  cap_tool_call: null,
+  cap_structured_output: null,
+  cap_temperature: null,
+  capabilities: '',
   description: '',
   icon: '',
   tags: [],
