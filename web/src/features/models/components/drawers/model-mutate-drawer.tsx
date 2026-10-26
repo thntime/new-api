@@ -85,6 +85,7 @@ import { getNameRuleOptions, ENDPOINT_TEMPLATES } from '../../constants'
 import { endpointDefinitionsQueryKeys, modelsQueryKeys, vendorsQueryKeys } from '../../lib'
 import {
   modelFormSchema,
+  MODEL_FORM_DEFAULT_VALUES,
   transformModelToFormDefaults,
   transformFormDataToModelPayload,
   type ModelFormValues,
@@ -134,12 +135,7 @@ export function ModelMutateDrawer(props: {
   const loadedKey = useRef('')
   const form = useForm({
     resolver: zodResolver(modelFormSchema),
-    defaultValues: transformModelToFormDefaults({
-      model_name: '',
-      status: 1,
-      sync_official: 1,
-      name_rule: 0,
-    } as Model),
+    defaultValues: MODEL_FORM_DEFAULT_VALUES,
   })
   const vendorsQuery = useQuery({
     queryKey: vendorsQueryKeys.list(),
@@ -205,6 +201,7 @@ export function ModelMutateDrawer(props: {
 
   useEffect(() => {
     if (!props.open) {
+      form.reset(MODEL_FORM_DEFAULT_VALUES)
       setCreatedModel(null)
       loadedKey.current = ''
       return
@@ -214,16 +211,12 @@ export function ModelMutateDrawer(props: {
       : `channel:${currentRow?.model_name ?? ''}`
     if (loadedKey.current === key || (isEditing && !modelQuery.data)) return
     form.reset(
-      transformModelToFormDefaults(
-        (isEditing
-          ? modelQuery.data
-          : {
-              model_name: currentRow?.model_name ?? '',
-              status: 1,
-              sync_official: 1,
-              name_rule: 0,
-            }) as Model
-      )
+      isEditing && modelQuery.data
+        ? transformModelToFormDefaults(modelQuery.data)
+        : {
+            ...MODEL_FORM_DEFAULT_VALUES,
+            model_name: currentRow?.model_name ?? '',
+          }
     )
     loadedKey.current = key
   }, [props.open, currentRow, isEditing, modelQuery.data, form])
@@ -454,7 +447,7 @@ export function ModelMutateDrawer(props: {
                                 }))}
                                 onValueChange={(value) =>
                                   field.onChange(
-                                    value ? Number.parseInt(value) : undefined
+                                    value ? Number.parseInt(value) : 0
                                   )
                                 }
                                 value={field.value ? String(field.value) : null}
