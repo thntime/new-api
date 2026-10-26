@@ -210,6 +210,12 @@ export type DataTablePageProps<TData> = {
   compactPagination?: boolean
 
   /**
+   * Page size choices shown in the pagination selector.
+   * Defaults to the shared `10/20/30/40/50/100` list.
+   */
+  pageSizeOptions?: readonly number[]
+
+  /**
    * Render pagination via `PageFooterPortal` (sticks to page footer).
    * Defaults to `true`. Set `false` to render inline below the table.
    */
@@ -399,6 +405,7 @@ function renderPagination<TData>(
     <DataTablePagination
       table={props.table}
       compact={props.compactPagination}
+      pageSizeOptions={props.pageSizeOptions}
     />
   )
 

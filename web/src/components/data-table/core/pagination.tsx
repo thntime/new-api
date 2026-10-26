@@ -23,6 +23,7 @@ import {
   ChevronsLeft as DoubleArrowLeftIcon,
   ChevronsRight as DoubleArrowRightIcon,
 } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -39,19 +40,26 @@ import { cn, getPageNumbers } from '@/lib/utils'
 type DataTablePaginationProps<TData> = {
   table: Table<TData>
   compact?: boolean
+  /** Page size choices shown in the selector. Defaults to 10/20/30/40/50/100. */
+  pageSizeOptions?: readonly number[]
 }
 
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100] as const
-const PAGE_SIZE_SELECT_ITEMS = PAGE_SIZE_OPTIONS.map((pageSize) => ({
-  value: `${pageSize}`,
-  label: pageSize,
-}))
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100] as const
 
 export function DataTablePagination<TData>({
   table,
   compact = false,
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
 }: DataTablePaginationProps<TData>) {
   const { t } = useTranslation()
+  const pageSizeSelectItems = useMemo(
+    () =>
+      pageSizeOptions.map((option) => ({
+        value: `${option}`,
+        label: option,
+      })),
+    [pageSizeOptions]
+  )
   const pagination = table.getState().pagination
   const currentPage = pagination.pageIndex + 1
   const pageSize = pagination.pageSize
@@ -121,7 +129,7 @@ export function DataTablePagination<TData>({
             {t('Rows per page')}
           </p>
           <Select
-            items={PAGE_SIZE_SELECT_ITEMS}
+            items={pageSizeSelectItems}
             value={`${pageSize}`}
             onValueChange={(value) => {
               table.setPageSize(Number(value))
@@ -132,9 +140,9 @@ export function DataTablePagination<TData>({
             </SelectTrigger>
             <SelectContent side='top' alignItemWithTrigger={false}>
               <SelectGroup>
-                {PAGE_SIZE_OPTIONS.map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
+                {pageSizeOptions.map((option) => (
+                  <SelectItem key={option} value={`${option}`}>
+                    {option}
                   </SelectItem>
                 ))}
               </SelectGroup>

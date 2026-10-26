@@ -57,6 +57,7 @@ import {
   DEFAULT_PAGE_SIZE,
   CHANNEL_STATUS,
   CHANNEL_STATUS_OPTIONS,
+  CHANNELS_TABLE_PAGE_SIZE_OPTIONS,
 } from '../constants'
 import { useChannelPriorityDrag } from '../hooks/use-channel-priority-drag'
 import { useChannelPriorityOrder } from '../hooks/use-channel-priority-order'
@@ -547,6 +548,7 @@ export function ChannelsTable() {
             'No channels available. Create your first channel to get started.'
           )}
           skeletonKeyPrefix='channel-skeleton'
+          pageSizeOptions={CHANNELS_TABLE_PAGE_SIZE_OPTIONS}
           enableCardView
           viewMode={viewMode}
           onViewModeChange={setViewMode}

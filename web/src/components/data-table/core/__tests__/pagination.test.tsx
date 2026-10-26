@@ -23,14 +23,41 @@ import {
 } from '@tanstack/react-table'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, it } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { DataTablePagination } from '../pagination'
 
 const rows = [{ id: 1 }, { id: 2 }, { id: 3 }]
 const emptyRows: { id: number }[] = []
+const pointerCaptureDescriptor = Object.getOwnPropertyDescriptor(
+  HTMLElement.prototype,
+  'setPointerCapture'
+)
 
-function Fixture(props: { empty?: boolean; compact?: boolean }) {
+beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', {
+    configurable: true,
+    value: vi.fn(),
+  })
+})
+
+afterEach(() => {
+  if (pointerCaptureDescriptor) {
+    Object.defineProperty(
+      HTMLElement.prototype,
+      'setPointerCapture',
+      pointerCaptureDescriptor
+    )
+  } else {
+    Reflect.deleteProperty(HTMLElement.prototype, 'setPointerCapture')
+  }
+})
+
+function Fixture(props: {
+  empty?: boolean
+  compact?: boolean
+  pageSizeOptions?: readonly number[]
+}) {
   const table = useReactTable({
     data: props.empty ? emptyRows : rows,
     columns: [{ accessorKey: 'id' }],
@@ -38,7 +65,13 @@ function Fixture(props: { empty?: boolean; compact?: boolean }) {
     getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageIndex: 0, pageSize: 2 } },
   })
-  return <DataTablePagination table={table} compact={props.compact} />
+  return (
+    <DataTablePagination
+      table={table}
+      compact={props.compact}
+      pageSizeOptions={props.pageSizeOptions}
+    />
+  )
 }
 it('moves between pages in compact mode and disables the boundary actions', async () => {
   const user = userEvent.setup()
@@ -64,4 +97,17 @@ it('shows a valid empty page with navigation disabled', () => {
 it('keeps page size selection available in the default layout', () => {
   render(<Fixture />)
   expect(screen.getByRole('combobox')).toBeVisible()
+})
+it('renders a custom page size option when provided', async () => {
+  const user = userEvent.setup()
+  render(<Fixture pageSizeOptions={[10, 20, 50, 100, 200]} />)
+  await user.click(screen.getByRole('combobox'))
+  expect(await screen.findByRole('option', { name: '200' })).toBeVisible()
+})
+it('keeps the shared default page size options when none are provided', async () => {
+  const user = userEvent.setup()
+  render(<Fixture />)
+  await user.click(screen.getByRole('combobox'))
+  expect(await screen.findByRole('option', { name: '30' })).toBeVisible()
+  expect(screen.queryByRole('option', { name: '200' })).not.toBeInTheDocument()
 })
