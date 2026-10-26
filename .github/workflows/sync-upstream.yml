@@ -1,16 +1,21 @@
 name: Sync Upstream
 
-# 每天 UTC 00:00 自动把 QuantumNous/new-api 的 main 合并进本仓库 main。
+# 每日 UTC 00:00 自动把 QuantumNous/new-api 的 main 合并进本仓库 main。
 # 策略（本地优先 + 半自动）：
 #   - 默认三方 merge：追加/不重叠改动自动合并；rerere 自动重放已人工解决的冲突
 #   - 冲突无法自动解决时不兜底取本地侧（-X ours 会整文件丢弃上游新增符号导致
 #     vet 编译失败），而是中止 merge 并创建/更新 issue 等待人工处理
 #   - go vet 双模块验证关卡：合并结果必须通过 vet 才 push，防止上游必填符号缺失
+#   - 推送凭证：使用 fine-grained PAT secret SYNC_UPSTREAM_TOKEN（Contents: write +
+#     Workflows: write）。GITHUB_TOKEN 属于 Actions App 安装令牌，无法获得
+#     workflows 权限，上游修改 .github/workflows/ 时 push 会被远端拒绝；secret
+#     缺失或为空时在 checkout 之前快速失败
 #   - rerere seed 以 .github/rerere-cache/ 为唯一事实源（已入库，每次从仓库恢复；
 #     不使用 actions/cache，避免旧缓存覆盖新种子）。人工解决冲突后需手动把
-#     .git/rr-cache 新记录回填到该目录并提交（CI 上游已含 HEAD 时短路，无法自动收录）。
-# 冲突自动解决后 push（触发 build-image.yml 重建镜像）；上游已包含在 HEAD 则短路不 push。
-# 失败兜底：自动创建或更新带 sync-upstream label 的 issue 通知，不硬失败、不推坏代码。
+#     .git/rr-cache 新记录回填到该目录并提交（CI 上游已含 HEAD 时短路，无法自动收录）
+#   - 失败上报区分 auth / conflict / vet / push，issue 标题与处理步骤按实际类型生成
+# 冲突自动解决后 push（PAT 推送会触发 build-image.yml 重建镜像）；上游已包含在 HEAD 则短路不 push。
+# 失败兜底：自动创建或更新带 sync-upstream label 的 issue 通知，不推坏代码。
 
 on:
   schedule:
@@ -18,7 +23,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   issues: write
 
 concurrency:
@@ -30,10 +35,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # checkout 本身要使用 PAT，secret 为空时 checkout 会先给出含糊的认证错误，
+      # 因此预检必须是第一步，并写入 auth 失败标记供 issue 兜底使用。
+      - name: Check sync token
+        env:
+          SYNC_UPSTREAM_TOKEN: ${{ secrets.SYNC_UPSTREAM_TOKEN }}
+        run: |
+          if [ -z "$SYNC_UPSTREAM_TOKEN" ]; then
+            echo "auth" > /tmp/failure-kind
+            echo "::error::SYNC_UPSTREAM_TOKEN is not configured. Create a fine-grained PAT with Contents: write and Workflows: write for this repository, then add it as an Actions secret named SYNC_UPSTREAM_TOKEN."
+            exit 1
+          fi
+
       - name: Check out
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.SYNC_UPSTREAM_TOKEN }}
 
       - name: Configure git rerere
         run: |
@@ -85,6 +103,7 @@ jobs:
             echo "merge=success" >> "$GITHUB_OUTPUT"
           else
             echo "merge=conflicted" >> "$GITHUB_OUTPUT"
+            echo "conflict" > /tmp/failure-kind
             git diff --name-only --diff-filter=U > /tmp/conflicted-files.txt 2>/dev/null || true
             echo "### Merge conflicts (need manual resolution)" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -121,6 +140,7 @@ jobs:
           VET_RELAYKIT=$?
           set -e
           if [ $VET_ROOT -ne 0 ] || [ $VET_RELAYKIT -ne 0 ]; then
+            echo "vet" > /tmp/failure-kind
             echo "verify=failed" >> "$GITHUB_OUTPUT"
             echo "### VET FAILURE (upstream field lost?)" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -148,22 +168,45 @@ jobs:
 
       - name: Push merge
         if: steps.check.outputs.skipped == 'false' && steps.verify.outputs.verify == 'passed'
-        run: git push origin main
+        run: |
+          # checkout 已把 SYNC_UPSTREAM_TOKEN 持久化到 git 凭证，push 直接复用它。
+          if ! git push origin main; then
+            echo "push" > /tmp/failure-kind
+            exit 1
+          fi
 
       - name: Create or update issue on failure
-        if: failure() && steps.check.outputs.skipped == 'false'
+        if: failure() && steps.check.outputs.skipped != 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const { execSync } = require('child_process');
+            const kind = fs.existsSync('/tmp/failure-kind')
+              ? fs.readFileSync('/tmp/failure-kind', 'utf8').trim()
+              : 'unknown';
             const conflicted = fs.existsSync('/tmp/conflicted-files.txt')
               ? fs.readFileSync('/tmp/conflicted-files.txt', 'utf8')
               : 'see run logs';
             const vetLog = (fs.existsSync('/tmp/vet-root.log') ? fs.readFileSync('/tmp/vet-root.log', 'utf8') : '')
               + (fs.existsSync('/tmp/vet-relaykit.log') ? '\n--- relaykit ---\n' + fs.readFileSync('/tmp/vet-relaykit.log', 'utf8') : '');
-            const commits = execSync('git log --oneline HEAD..upstream/main 2>/dev/null || echo unknown').toString();
-            const body = `每日上游同步无法自动解决冲突。\n\n**上游提交：**\n\`\`\`\n${commits}\`\`\`\n\n**冲突文件：**\n\`\`\`\n${conflicted}\`\`\`\n\n**vet 日志（合并成功但编译失败时）：**\n\`\`\`\n${vetLog.slice(-3000) || '(none)'}\`\`\`\n\n**处理步骤：**\n1. 本地 \`git fetch upstream && git merge --no-edit upstream/main\`，解决冲突并保证 \`GOWORK=off go vet ./...\`（含 relaykit）通过。\n2. 提交合并结果，并**手动回填 rerere 种子**（CI 无法自动收录人工解决方案）：\n   \`\`\`bash\n   cp -r .git/rr-cache/* .github/rerere-cache/ 2>/dev/null || true\n   git add .github/rerere-cache\n   git commit\n   \`\`\`\n3. push 后重跑本 workflow。\n4. 若同一冲突反复失败（旧 seed 已过期），删除 \`.github/rerere-cache/<hash>/\` 中对应的过期 postimage 目录后重试。`;
+            const commits = execSync('git log --oneline HEAD..upstream/main 2>/dev/null || echo unknown').toString().trim()
+              || '(无新增上游提交：合并已完成但未推送)';
+            const titles = {
+              auth: 'Sync upstream 缺少推送凭证 - 需人工处理',
+              conflict: 'Sync upstream 合并冲突 - 需人工处理',
+              vet: 'Sync upstream 合并后 vet 失败 - 需人工处理',
+              push: 'Sync upstream 推送被拒绝 - 需人工处理',
+              unknown: 'Sync upstream 失败 - 需人工处理',
+            };
+            const guidance = {
+              auth: '仓库未配置 SYNC_UPSTREAM_TOKEN，或 secret 为空。请创建 fine-grained PAT（Contents: write、Workflows: write，仅授权本仓库），保存为 Actions secret `SYNC_UPSTREAM_TOKEN` 后重跑 workflow。GITHUB_TOKEN 无法获得 workflows 权限，不能替代。',
+              conflict: '本地执行 `git fetch upstream && git merge --no-edit upstream/main`，解决冲突并保证 `GOWORK=off go vet ./...`（含 relaykit）通过。提交合并结果后，按下方步骤回填 rerere 种子并 push。',
+              vet: '合并成功但双模块 vet 失败，通常是上游新增符号缺失或本地改造与上游冲突。按 vet 日志修复后重新合并，并确认 `GOWORK=off go vet ./...`（含 relaykit）通过。',
+              push: '合并与 vet 均通过，但 push 被远端拒绝。检查 `SYNC_UPSTREAM_TOKEN` 是否具备 Contents: write 与 Workflows: write、是否过期，以及 main 分支保护规则是否允许该 PAT 推送。',
+              unknown: '查看本次 run 日志定位失败步骤。',
+            };
+            const body = `上游同步失败。\n\n**失败类型：** ${kind}\n\n**上游提交：**\n\`\`\`\n${commits}\`\`\`\n\n**冲突文件：**\n\`\`\`\n${conflicted}\`\`\`\n\n**vet 日志：**\n\`\`\`\n${vetLog.slice(-3000) || '(none)'}\`\`\`\n\n**处理步骤：**\n${guidance[kind] || guidance.unknown}\n\n<details><summary>rerere 种子回填</summary>\n\n\`\`\`bash\ncp -r .git/rr-cache/* .github/rerere-cache/ 2>/dev/null || true\ngit add .github/rerere-cache\ngit commit\n\`\`\`\n\n</details>`;
             // 复用已存在的未关闭 sync-upstream issue，避免每次失败都堆积新 issue
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -177,13 +220,14 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: found.number,
+                title: titles[kind] || titles.unknown,
                 body: body + `\n\n---\n更新于 ${new Date().toISOString()}：${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               });
             } else {
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: 'Sync upstream 失败 - 需人工处理',
+                title: titles[kind] || titles.unknown,
                 body,
                 labels: ['sync-upstream', 'auto-created'],
               });
