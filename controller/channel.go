@@ -189,8 +189,12 @@ func GetChannelDefaultBaseURLs(c *gin.Context) {
 	common.ApiSuccess(c, baseURLs)
 }
 
+// channelsMaxPageSize is the page size ceiling for the channel list; it is
+// higher than the default list limit so the channel page can show 200 rows.
+const channelsMaxPageSize = 200
+
 func GetAllChannels(c *gin.Context) {
-	pageInfo := common.GetPageQuery(c)
+	pageInfo := common.GetPageQueryWithMaxSize(c, channelsMaxPageSize)
 	channelData := make([]*model.Channel, 0)
 	idSort, _ := strconv.ParseBool(c.Query("id_sort"))
 	sortSort, _ := strconv.ParseBool(c.Query("sort_sort"))

@@ -38,7 +38,16 @@ func (p *PageInfo) SetItems(items any) {
 	p.Items = items
 }
 
+// MaxPageSize is the default upper bound for a single page of list APIs.
+const MaxPageSize = 100
+
 func GetPageQuery(c *gin.Context) *PageInfo {
+	return GetPageQueryWithMaxSize(c, MaxPageSize)
+}
+
+// GetPageQueryWithMaxSize parses pagination params and caps the page size at
+// maxPageSize. A non-positive maxPageSize falls back to MaxPageSize.
+func GetPageQueryWithMaxSize(c *gin.Context, maxPageSize int) *PageInfo {
 	pageInfo := &PageInfo{}
 	// 手动获取并处理每个参数
 	if page, err := strconv.Atoi(c.Query("p")); err == nil {
@@ -74,8 +83,11 @@ func GetPageQuery(c *gin.Context) *PageInfo {
 		}
 	}
 
-	if pageInfo.PageSize > 100 {
-		pageInfo.PageSize = 100
+	if maxPageSize <= 0 {
+		maxPageSize = MaxPageSize
+	}
+	if pageInfo.PageSize > maxPageSize {
+		pageInfo.PageSize = maxPageSize
 	}
 
 	return pageInfo
