@@ -88,8 +88,8 @@ func CacheGetRandomSatisfiedChannel(param *RetryParam) (*model.Channel, string, 
 }
 
 // CacheGetRandomSatisfiedChannelWithPriority 与 CacheGetRandomSatisfiedChannel 等价，
-// 但优先级层索引由显式参数 priorityRetry 控制，与 param 的循环计数/跨组状态机解耦。
-// 传入的 priorityRetry 只影响优先级层索引；:161/:179 的 SetRetry(0) 与 :180 的
+// 但优先级层索引的起点由显式参数 priorityRetry 控制，与 param 的循环计数/跨组状态机解耦。
+// 亲和命中带来的层偏移在函数内部统一叠加（descent 模式除外）；SetRetry(0)、
 // ResetRetryNextTry 等跨组状态机变异仍然原样作用于 param 指针（既有行为不变）。
 //
 // For "auto" tokenGroup with cross-group Retry enabled:
@@ -132,6 +132,7 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 	filters := GetChannelConstraints(param.Ctx).Filters
 	anchorGroup, anchorPriority, hasAnchor := descentAnchor(param.Ctx)
 	downward := RequestPolicy(param.Ctx).SessionMode == "descent" && hasAnchor
+	retryOffset := affinityRetryOffset(param.Ctx)
 
 	if param.TokenGroup == "auto" {
 		autoGroups := GetRequestAutoGroups(param.Ctx, userGroup)
@@ -152,13 +153,15 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 
 		for i := startGroupIndex; i < len(autoGroups); i++ {
 			autoGroup := autoGroups[i]
-			// priorityRetry 由显式参数控制（解耦优先级层索引与循环计数/跨组状态机）
-			// priorityRetry is controlled by the explicit parameter
-			// If moved to a new group, reset priorityRetry and update startRetryIndex
-			// 如果切换到新分组，重置 priorityRetry 并更新 startRetryIndex
+			// groupRetry 是循环计数，只驱动跨组状态机；层索引 priorityRetry 由显式参数
+			// 控制并叠加亲和偏移，二者互不污染。
+			groupRetry := param.GetRetry()
+			// 新分组从最高优先级层重新开始，不继承上一分组的层位置与亲和偏移。
 			if i > startGroupIndex {
+				groupRetry = 0
 				priorityRetry = 0
 			}
+			priorityRetry = max(priorityRetry-retryOffset, 0)
 			logger.LogDebug(param.Ctx, "Auto selecting group: %s, priorityRetry: %d", autoGroup, priorityRetry)
 
 			if downward && anchorGroup == autoGroup {
@@ -187,6 +190,8 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 				// Reset retry counter so outer loop can continue for next group
 				// 重置重试计数器，以便外层循环可以为下一个分组继续
 				param.SetRetry(0)
+				retryOffset = 0
+				param.Ctx.Set(ginKeyChannelAffinityRetryOffset, 0)
 				continue
 			}
 			common.SetContextKey(param.Ctx, constant.ContextKeyAutoGroup, autoGroup)
@@ -195,17 +200,19 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 
 			// Prepare state for next retry
 			// 为下一次重试准备状态
-			if crossGroupRetry && priorityRetry >= common.RetryTimes {
+			if crossGroupRetry && groupRetry >= common.RetryTimes {
 				// Current group has exhausted all retries, prepare to switch to next group
 				// This request still uses current group, but next retry will use next group
 				// 当前分组已用完所有重试次数，准备切换到下一个分组
 				// 本次请求仍使用当前分组，但下次重试将使用下一个分组
-				logger.LogDebug(param.Ctx, "Current group %s retries exhausted (priorityRetry=%d >= RetryTimes=%d), preparing switch to next group for next retry", autoGroup, priorityRetry, common.RetryTimes)
+				logger.LogDebug(param.Ctx, "Current group %s retries exhausted (groupRetry=%d >= RetryTimes=%d), preparing switch to next group for next retry", autoGroup, groupRetry, common.RetryTimes)
 				common.SetContextKey(param.Ctx, constant.ContextKeyAutoGroupIndex, i+1)
 				// Reset retry counter so outer loop can continue for next group
 				// 重置重试计数器，以便外层循环可以为下一个分组继续
 				param.SetRetry(0)
 				param.ResetRetryNextTry()
+				retryOffset = 0
+				param.Ctx.Set(ginKeyChannelAffinityRetryOffset, 0)
 			} else {
 				// Stay in current group, save current state
 				// 保持在当前分组，保存当前状态
@@ -214,6 +221,7 @@ func CacheGetRandomSatisfiedChannelWithPriority(param *RetryParam, priorityRetry
 			break
 		}
 	} else {
+		priorityRetry = AffinityAdjustedRetry(param.Ctx, priorityRetry)
 		if downward && anchorGroup == param.TokenGroup {
 			channel, err = model.GetRandomSatisfiedChannelDescending(
 				param.TokenGroup,
@@ -242,37 +250,53 @@ func pinnedTaskPluginIdentities(c *gin.Context, expected string) ([]int, []strin
 	if c == nil || expected == "" {
 		return nil, nil
 	}
+	// A shared host endpoint and a native route several plugins declare both
+	// admit a channel of any candidate.
+	var generation *jsplugin.RoutingGeneration
+	var candidates []*jsplugin.LoadedPlugin
 	if value, exists := c.Get(jsplugin.ContextKeyPinnedEndpoint); exists {
-		pinned, ok := value.(jsplugin.PinnedEndpoint)
-		if ok && pinned.Generation != nil && len(pinned.Candidates) > 1 {
-			expectedFound := false
-			channelTypes := make([]int, 0, len(pinned.Candidates))
-			pluginKeys := make([]string, 0, len(pinned.Candidates))
-			seen := make(map[int]struct{}, len(pinned.Candidates))
+		if pinned, ok := value.(jsplugin.PinnedEndpoint); ok && len(pinned.Candidates) > 1 {
+			generation = pinned.Generation
 			for _, candidate := range pinned.Candidates {
-				if candidate.Plugin == nil {
+				candidates = append(candidates, candidate.Plugin)
+			}
+		}
+	} else if value, exists := c.Get(jsplugin.ContextKeyPinnedRoute); exists {
+		if pinned, ok := value.(jsplugin.PinnedRoute); ok && len(pinned.Candidates) > 1 {
+			generation = pinned.Generation
+			for _, candidate := range pinned.Candidates {
+				candidates = append(candidates, candidate.Plugin)
+			}
+		}
+	}
+	if generation != nil {
+		expectedFound := false
+		channelTypes := make([]int, 0, len(candidates))
+		pluginKeys := make([]string, 0, len(candidates))
+		seen := make(map[int]struct{}, len(candidates))
+		for _, candidate := range candidates {
+			if candidate == nil {
+				continue
+			}
+			if candidate.Meta.Key == expected {
+				expectedFound = true
+			}
+			pluginKeys = append(pluginKeys, candidate.Meta.Key)
+			for _, channelType := range candidate.Meta.ChannelTypes {
+				if channelType == 0 || channelType == constant.ChannelTypeTaskPlugin {
 					continue
 				}
-				if candidate.Plugin.Meta.Key == expected {
-					expectedFound = true
+				if _, duplicate := seen[channelType]; duplicate {
+					continue
 				}
-				pluginKeys = append(pluginKeys, candidate.Plugin.Meta.Key)
-				for _, channelType := range candidate.Plugin.Meta.ChannelTypes {
-					if channelType == 0 || channelType == constant.ChannelTypeTaskPlugin {
-						continue
-					}
-					if _, duplicate := seen[channelType]; duplicate {
-						continue
-					}
-					if plugin, indexed := pinned.Generation.GetByChannelType(channelType); indexed && plugin == candidate.Plugin {
-						seen[channelType] = struct{}{}
-						channelTypes = append(channelTypes, channelType)
-					}
+				if plugin, indexed := generation.GetByChannelType(channelType); indexed && plugin == candidate {
+					seen[channelType] = struct{}{}
+					channelTypes = append(channelTypes, channelType)
 				}
 			}
-			if expectedFound {
-				return channelTypes, pluginKeys
-			}
+		}
+		if expectedFound {
+			return channelTypes, pluginKeys
 		}
 	}
 	value, exists := c.Get(jsplugin.ContextKeyPinnedPlugin)

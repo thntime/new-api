@@ -21,13 +21,13 @@ import (
 )
 
 const (
-	ginKeyChannelAffinityCacheKey   = "channel_affinity_cache_key"
-	ginKeyChannelAffinityTTLSeconds = "channel_affinity_ttl_seconds"
-	ginKeyChannelAffinityMeta       = "channel_affinity_meta"
-	ginKeyChannelAffinityLogInfo    = "channel_affinity_log_info"
-	ginKeyChannelAffinitySkipRetry  = "channel_affinity_skip_retry_on_failure"
-	ginKeyChannelAffinityRetryBase  = "channel_affinity_retry_base"
-	ginKeyChannelAffinityDescent    = "channel_affinity_descent_anchor"
+	ginKeyChannelAffinityCacheKey    = "channel_affinity_cache_key"
+	ginKeyChannelAffinityTTLSeconds  = "channel_affinity_ttl_seconds"
+	ginKeyChannelAffinityMeta        = "channel_affinity_meta"
+	ginKeyChannelAffinityLogInfo     = "channel_affinity_log_info"
+	ginKeyChannelAffinitySkipRetry   = "channel_affinity_skip_retry_on_failure"
+	ginKeyChannelAffinityRetryOffset = "channel_affinity_retry_offset"
+	ginKeyChannelAffinityDescent     = "channel_affinity_descent_anchor"
 
 	channelAffinityCacheNamespace           = "new-api:channel_affinity:v1"
 	channelAffinityUsageCacheStatsNamespace = "new-api:channel_affinity_usage_cache_stats:v1"
@@ -690,7 +690,8 @@ func MarkChannelAffinityUsed(c *gin.Context, selectedGroup string, channelID int
 		return
 	}
 	c.Set(ginKeyChannelAffinitySkipRetry, meta.SkipRetry)
-	c.Set(ginKeyChannelAffinityRetryBase, true)
+	// Affinity consumes an attempt, but does not visit a normal priority tier.
+	c.Set(ginKeyChannelAffinityRetryOffset, 1)
 	info := map[string]any{
 		"reason":         meta.RuleName,
 		"rule_name":      meta.RuleName,
@@ -1025,18 +1026,20 @@ func channelAffinityUsageCacheStatsLock(key string) *sync.Mutex {
 	return &channelAffinityUsageCacheStatsLocks[idx]
 }
 
+// affinityRetryOffset 返回亲和命中给候选池层索引带来的偏移量。
+// 亲和渠道消耗了一次尝试，但没有占用任何优先级层，因此首次重试需要前移一位；
+// descent 模式的层下标是「锚点层 + retry」，前移会重选原层，所以恒为 0。
+func affinityRetryOffset(c *gin.Context) int {
+	if c == nil || RequestPolicy(c).SessionMode == "descent" {
+		return 0
+	}
+	return c.GetInt(ginKeyChannelAffinityRetryOffset)
+}
+
 // AffinityConsumedFirstTry 报告本次请求的首轮尝试是否已被亲和渠道消耗
 // （即 Distribute 命中亲和缓存并直接使用了亲和渠道）。
 func AffinityConsumedFirstTry(c *gin.Context) bool {
-	if c == nil {
-		return false
-	}
-	v, ok := c.Get(ginKeyChannelAffinityRetryBase)
-	if !ok {
-		return false
-	}
-	b, ok := v.(bool)
-	return ok && b
+	return affinityRetryOffset(c) > 0
 }
 
 // AffinityAdjustedRetry 返回用于候选池选择的有效 retry 索引：
@@ -1044,10 +1047,7 @@ func AffinityConsumedFirstTry(c *gin.Context) bool {
 // 最高优先级渠道层（layer 0）得以参与候选池选择。
 // descent 模式的层下标是「锚点层 + retry」，前移会重选原层，因此不偏移。
 func AffinityAdjustedRetry(c *gin.Context, retry int) int {
-	if retry > 0 && AffinityConsumedFirstTry(c) && RequestPolicy(c).SessionMode != "descent" {
-		return retry - 1
-	}
-	return retry
+	return max(retry-affinityRetryOffset(c), 0)
 }
 
 // descentAnchorState 是本次请求记录的环形锚点层。
