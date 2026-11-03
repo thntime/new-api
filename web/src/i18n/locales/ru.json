@@ -3484,7 +3484,6 @@
     "Leave the final split empty as the fallback for models not matched above.": "Оставьте последний маршрут пустым как резервный для моделей, не совпавших выше.",
     "Leave this empty only for the final fallback split; it catches client models not matched above.": "Оставляйте пустым только последнюю резервную ветку; она принимает модели клиента, не совпавшие выше.",
     "Left to Right": "Слева направо",
-    "Legacy access tokens have been retired. Create a new access token in security settings": "Устаревшие токены доступа отключены. Создайте новый токен доступа в настройках безопасности",
     "Legacy addresses ({{count}})": "Старые адреса ({{count}})",
     "Legacy Format (JSON Object)": "Старый формат (JSON-объект)",
     "Legacy format must be a JSON object": "Старый формат должен быть JSON-объектом",
@@ -6183,8 +6182,6 @@
     "Task pricing": "Тарификация задач",
     "Task pricing must be converted manually using the task usage schema.": "Тарифы задач необходимо преобразовать вручную по схеме использования задачи.",
     "Task pricing not configured": "Тарификация задач не настроена",
-    "Task timed out": "Истекло время выполнения задачи",
-    "Task timed out (a task left by the old system is not refunded; contact the administrator)": "Истекло время выполнения задачи (задачи старой системы не возмещаются; обратитесь к администратору)",
     "Task usage data is required to estimate this expression. Check the model's task plugin configuration.": "Для оценки стоимости по этому выражению нужны данные использования задач. Проверьте настройки плагина задач модели.",
     "Task usage metadata is unavailable. Pricing details cannot be displayed.": "Метаданные использования задач недоступны. Не удалось отобразить подробные цены.",
     "Task usage prices are USD per declared unit. They are not token prices and are not divided by one million.": "Цены за использование указываются в USD за объявленную единицу. Это не цены за токены, и они не делятся на миллион.",
@@ -7652,6 +7649,10 @@
     "Undo": "Отменить",
     "Use the same priority as the highlighted channels": "Использовать тот же приоритет, что и у выделенных каналов",
     "When a channel is disabled or re-enabled automatically, or a test of all channels finishes": "Когда канал автоматически отключается или снова включается, а также по завершении проверки всех каналов",
-    "You do not have permission to edit channels": "У вас нет прав на редактирование каналов"
+    "You do not have permission to edit channels": "У вас нет прав на редактирование каналов",
+    "Some models kept ratio pricing and need manual conversion: {{models}}": "Некоторые модели по-прежнему используют тарификацию по коэффициентам и требуют ручного преобразования: {{models}}",
+    "Preparing billing expressions... {{completed}}/{{total}}": "Подготовка выражений тарификации... {{completed}}/{{total}}",
+    "Clear pricing for {{count}} models?": "Очистить тарификацию для {{count}} моделей?",
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Это удалит все поля тарификации выбранных моделей. Изменения вступят в силу после сохранения."
   }
 }

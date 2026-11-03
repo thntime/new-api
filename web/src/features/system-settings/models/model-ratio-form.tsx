@@ -17,11 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
-import { Code2, Eye, RotateCcw, Save } from 'lucide-react'
+import { Code2, Eye, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { JsonCodeEditor } from '@/components/json-code-editor'
 import { LearnMore } from '@/components/learn-more'
 import { Button } from '@/components/ui/button'
@@ -180,6 +181,8 @@ export const ModelRatioForm = memo(function ModelRatioForm({
   const { t } = useTranslation()
   const isUnsetVariant = variant === 'unset'
   const [editMode, setEditMode] = useState<'visual' | 'json'>('visual')
+  const [selectedCount, setSelectedCount] = useState(0)
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false)
   const visualEditorRef = useRef<ModelRatioVisualEditorHandle>(null)
 
   const enabledModelsQuery = useQuery({
@@ -276,6 +279,18 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               <RotateCcw data-icon='inline-start' />
               {t('Reset prices')}
             </Button>
+            {editMode === 'visual' && (
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                onClick={() => setClearConfirmOpen(true)}
+                disabled={selectedCount === 0 || isSaving}
+              >
+                <Trash2 data-icon='inline-start' />
+                {t('Clear')}
+              </Button>
+            )}
             {editMode === 'json' && (
               <Button
                 type='button'
@@ -338,6 +353,7 @@ export const ModelRatioForm = memo(function ModelRatioForm({
               filterMode={isUnsetVariant ? 'unset' : 'all'}
               onSave={handleSave}
               isSaving={isSaving}
+              onSelectionChange={setSelectedCount}
               onChange={(field, value) => {
                 const fieldMap: Record<string, keyof ModelFormValues> = {
                   'billing_setting.billing_mode': 'BillingMode',
@@ -366,6 +382,22 @@ export const ModelRatioForm = memo(function ModelRatioForm({
           </SettingsForm>
         )}
       </div>
+      <ConfirmDialog
+        open={clearConfirmOpen}
+        onOpenChange={setClearConfirmOpen}
+        title={t('Clear pricing for {{count}} models?', {
+          count: selectedCount,
+        })}
+        desc={t(
+          'This removes all pricing fields for the selected models. Changes apply only after saving.'
+        )}
+        destructive
+        confirmText={t('Clear')}
+        handleConfirm={() => {
+          visualEditorRef.current?.clearSelectedRows()
+          setClearConfirmOpen(false)
+        }}
+      />
     </Form>
   )
 })

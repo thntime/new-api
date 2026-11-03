@@ -2,12 +2,14 @@ package billing_setting
 
 import "github.com/QuantumNous/new-api/constant"
 
-// deepSeekPeak is DeepSeek's peak window: Monday to Friday, 09:00-12:00 and
-// 14:00-18:00 Beijing time. The Chinese public holidays DeepSeek bills
-// off-peak are not known in advance and bill at peak here.
-const deepSeekPeak = `weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") <= 5 && ((hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12) || (hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18))`
+// DeepSeekPeakCondition is DeepSeek's peak window: Monday to Friday,
+// 09:00-12:00 and 14:00-18:00 Beijing time. The Chinese public holidays
+// DeepSeek bills off-peak are not known in advance and bill at peak here.
+// opencode-go pricing reuses it so a catalog off-peak price can derive the
+// peak price.
+const DeepSeekPeakCondition = `weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") <= 5 && ((hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12) || (hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18))`
 
-const deepSeekFlashExpr = deepSeekPeak + ` ? tier("peak", p * 0.3 + cr * 0.006 + c * 1.2) : tier("off_peak", p * 0.15 + cr * 0.003 + c * 0.6)`
+const deepSeekFlashExpr = DeepSeekPeakCondition + ` ? tier("peak", p * 0.3 + cr * 0.006 + c * 1.2) : tier("off_peak", p * 0.15 + cr * 0.003 + c * 0.6)`
 
 // Built-in token prices use actual USD per million tokens. Keep new model
 // defaults here instead of splitting them across the legacy ratio tables.
@@ -31,7 +33,8 @@ var builtinBillingExpr = map[string]string{
 	"deepseek-flash":               deepSeekFlashExpr,
 	"deepseek-v4-flash":            deepSeekFlashExpr,
 	"deepseek-v4-flash-vision-exp": deepSeekFlashExpr,
-	"deepseek-v4-pro":              deepSeekPeak + ` ? tier("peak", p * 1.32 + cr * 0.044 + c * 3.96) : tier("off_peak", p * 0.66 + cr * 0.022 + c * 1.98)`,
+	"deepseek-v4.1-flash":          deepSeekFlashExpr,
+	"deepseek-v4-pro":              DeepSeekPeakCondition + ` ? tier("peak", p * 1.32 + cr * 0.044 + c * 3.96) : tier("off_peak", p * 0.66 + cr * 0.022 + c * 1.98)`,
 	// The Search and Fetch API routing names: $0.75 per 1,000 successful
 	// requests each, the same pricing page. The calls carry no tokens.
 	constant.DeepSeekSearchModel: `tier("request", fixed(0.00075))`,

@@ -27,6 +27,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -204,6 +205,28 @@ describe('pricing synchronization', () => {
     expect(screen.getByText('$0.2')).toBeVisible()
     expect(screen.getByText('$0.4')).toBeVisible()
     expect(screen.getByText(custom)).toBeVisible()
+  })
+
+  it('shows a time-conditioned expression as raw text when no visual preview exists', () => {
+    const deepseek =
+      '(weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") <= 5 && ((hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12) || (hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18)) ? tier("peak", p * 4 + c * 16) : tier("off_peak", p * 2 + c * 8))'
+    render(
+      <TableFixture
+        prices={{
+          'deepseek-v4.1-flash': {
+            current: {},
+            upstreams: {
+              'OpenCode Go(9)': {
+                billing_mode: 'tiered_expr',
+                billing_expr: deepseek,
+              },
+            },
+          },
+        }}
+      />
+    )
+    expect(screen.getByText('Expression pricing')).toBeVisible()
+    expect(screen.getByText(deepseek)).toBeVisible()
   })
 
   it('shows a mobile comparison list and preserves source-wide selection', async () => {
@@ -1197,3 +1220,175 @@ it('disables both batch shortcuts when the configured exchange rate becomes inva
     screen.getByRole('button', { name: /Divide by exchange rate/ })
   ).toBeDisabled()
 })
+
+it('converts selected legacy prices before opening the frozen preview and reports fallback models', async () => {
+  vi.spyOn(api, 'get').mockImplementation(async (url) => {
+    if (url === '/api/ratio_sync/channels') {
+      return {
+        data: {
+          success: true,
+          data: [
+            {
+              id: 7,
+              name: 'Upstream',
+              base_url: 'https://example.test',
+              type: 1,
+              status: 1,
+            },
+          ],
+        },
+      }
+    }
+    return {
+      data: {
+        success: true,
+        data: {
+          entries: [
+            {
+              model_name: 'a',
+              version: 'v1',
+              configured: {},
+              effective: {},
+            },
+            {
+              model_name: 'b',
+              version: 'v1',
+              configured: {},
+              effective: {},
+            },
+          ],
+          empty_version: 'empty',
+          options: pricingOptions({}),
+        },
+      },
+    }
+  })
+  type ConversionRequest = {
+    model_name: string
+    pricing: Record<string, unknown>
+    resolve: (value: unknown) => void
+  }
+  const conversions: ConversionRequest[] = []
+  vi.spyOn(api, 'post').mockImplementation((url, body) => {
+    if (url === '/api/option/model_pricing/convert') {
+      return new Promise((resolve) => {
+        conversions.push({
+          ...(body as { model_name: string; pricing: Record<string, unknown> }),
+          resolve,
+        })
+      })
+    }
+    return Promise.resolve({
+      data: {
+        success: true,
+        data: {
+          differences: {},
+          prices: {
+            a: {
+              current: {},
+              upstreams: {
+                'Upstream(7)': { model_ratio: 1, completion_ratio: 4 },
+              },
+            },
+            b: {
+              current: {},
+              upstreams: {
+                'Upstream(7)': { model_ratio: 2, completion_ratio: 3 },
+              },
+            },
+          },
+          test_results: [{ name: 'Upstream(7)', status: 'success' }],
+        },
+      },
+    })
+  })
+  const patch = vi
+    .spyOn(api, 'patch')
+    .mockResolvedValue({ data: { success: true } })
+  const warning = vi.spyOn(toast, 'warning').mockReturnValue('warning')
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  })
+  render(
+    <QueryClientProvider client={client}>
+      <UpstreamRatioSync />
+    </QueryClientProvider>
+  )
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Select price sources' }))
+  await user.click(
+    await screen.findByRole('checkbox', { name: 'Select Upstream' })
+  )
+  await user.click(screen.getByRole('button', { name: 'Confirm Selection' }))
+  await user.click(
+    await screen.findByRole('checkbox', {
+      name: 'Select all prices from Upstream(7)',
+    })
+  )
+  await user.click(screen.getByRole('button', { name: 'Apply Sync' }))
+  await waitFor(() => expect(conversions).toHaveLength(2))
+  expect(
+    screen.queryByRole('alertdialog', { name: 'Preview price changes' })
+  ).not.toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: /Preparing billing expressions/ })
+  ).toBeDisabled()
+  await act(async () => {
+    conversions
+      .find((conversion) => conversion.model_name === 'a')
+      ?.resolve({
+        data: {
+          success: true,
+          data: {
+            expression,
+            effective: { ModelRatio: 1, CompletionRatio: 4 },
+          },
+        },
+      })
+  })
+  await act(async () => {
+    conversions
+      .find((conversion) => conversion.model_name === 'b')
+      ?.resolve({
+        data: {
+          success: true,
+          data: { unsupported_reason: 'Audio price conflict' },
+        },
+      })
+  })
+  const dialog = await screen.findByRole('alertdialog', {
+    name: 'Preview price changes',
+  })
+  expect(warning).toHaveBeenCalledWith(
+    expect.stringContaining('b: Audio price conflict')
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Confirm Changes' })
+  )
+  await waitFor(() =>
+    expect(patch).toHaveBeenCalledWith('/api/option/model_pricing', {
+      changes: expect.arrayContaining([
+        {
+          model_name: 'a',
+          expected_version: 'v1',
+          pricing: {
+            'billing_setting.billing_mode': 'tiered_expr',
+            'billing_setting.billing_expr': expression,
+            ModelRatio: 1,
+            CompletionRatio: 4,
+          },
+        },
+        {
+          model_name: 'b',
+          expected_version: 'v1',
+          pricing: {
+            'billing_setting.billing_mode': 'ratio',
+            ModelRatio: 2,
+            CompletionRatio: 3,
+          },
+        },
+      ]),
+    })
+  )
+})
+

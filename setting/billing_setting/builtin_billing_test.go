@@ -188,6 +188,7 @@ func TestDeepSeekBuiltinBilling(t *testing.T) {
 		"deepseek-flash":               {"off_peak": 228, "peak": 456},
 		"deepseek-v4-flash":            {"off_peak": 228, "peak": 456},
 		"deepseek-v4-flash-vision-exp": {"off_peak": 228, "peak": 456},
+		"deepseek-v4.1-flash":          {"off_peak": 228, "peak": 456},
 		// pro: 1000*0.66 + 2000*0.022 + 500*1.98 = $0.001694 off-peak.
 		"deepseek-v4-pro": {"off_peak": 847, "peak": 1694},
 	} {
@@ -202,6 +203,21 @@ func TestDeepSeekBuiltinBilling(t *testing.T) {
 			}
 		})
 	}
+	t.Run("v4.1 flash peak window and 2x peak", func(t *testing.T) {
+		expression, ok := billing_setting.GetBillingExpr("deepseek-v4.1-flash")
+		require.True(t, ok)
+		want := billing_setting.DeepSeekPeakCondition +
+			` ? tier("peak", p * 0.3 + cr * 0.006 + c * 1.2) : tier("off_peak", p * 0.15 + cr * 0.003 + c * 0.6)`
+		assert.Equal(t, want, expression)
+		// Peak is exactly twice the off-peak price for every billed field.
+		assert.Contains(t, expression, `tier("peak", p * 0.3 + cr * 0.006 + c * 1.2)`)
+		assert.Contains(t, expression, `tier("off_peak", p * 0.15 + cr * 0.003 + c * 0.6)`)
+		// Peak boundaries: Asia/Shanghai weekdays 09:00-12:00 and 14:00-18:00.
+		assert.Contains(t, billing_setting.DeepSeekPeakCondition, `weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") <= 5`)
+		assert.Contains(t, billing_setting.DeepSeekPeakCondition, `hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12`)
+		assert.Contains(t, billing_setting.DeepSeekPeakCondition, `hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18`)
+	})
+
 	for _, model := range []string{"deepseek-search", "deepseek-fetch"} {
 		expression, ok := billing_setting.GetBillingExpr(model)
 		require.True(t, ok, model)

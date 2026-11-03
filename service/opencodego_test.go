@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"math"
 	"testing"
 	"time"
 
@@ -150,76 +149,47 @@ func TestParseOpenCodeGoModelEntries(t *testing.T) {
 	})
 }
 
-func TestConvertOpenCodeGoRatioData(t *testing.T) {
+func TestConvertOpenCodeGoToBillingExpressions(t *testing.T) {
 	converted, err := convertOpenCodeGoRatioData([]byte(openCodeGoAPIJSONFixture), 500)
 	require.NoError(t, err)
 
-	modelRatios, ok := converted["model_ratio"].(map[string]any)
-	require.True(t, ok, "model_ratio missing")
-	completionRatios, ok := converted["completion_ratio"].(map[string]any)
-	require.True(t, ok, "completion_ratio missing")
-	cacheRatios, ok := converted["cache_ratio"].(map[string]any)
-	require.True(t, ok, "cache_ratio missing")
+	modes, ok := converted["billing_mode"].(map[string]any)
+	require.True(t, ok, "billing_mode missing")
+	expressions, ok := converted["billing_expr"].(map[string]any)
+	require.True(t, ok, "billing_expr missing")
+	_, hasRatio := converted["model_ratio"]
+	assert.False(t, hasRatio, "ratio output must not be produced")
 
-	t.Run("no cap multiplier, api.json price used as-is", func(t *testing.T) {
-		// input 15 × USD/1000 = 15 × 0.5 = 7.5（无额度系数）
-		assert.InDelta(t, 7.5, modelRatios["gpt-5.6-luna"].(float64), 1e-9)
-		assert.InDelta(t, 4.0, completionRatios["gpt-5.6-luna"].(float64), 1e-9)
-		assert.InDelta(t, 0.5, cacheRatios["gpt-5.6-luna"].(float64), 1e-9)
+	for name, mode := range modes {
+		assert.Equal(t, "tiered_expr", mode, name)
+		_, hasExpr := expressions[name]
+		assert.True(t, hasExpr, name)
+	}
+
+	t.Run("base token prices", func(t *testing.T) {
+		assert.Equal(t, `tier("standard", p * 15 + c * 60 + cr * 7.5)`, expressions["gpt-5.6-luna"])
+		assert.Equal(t, `tier("standard", p * 1 + c * 2 + cr * 0.5)`, expressions["no-cap-model"])
+		assert.Equal(t, `tier("standard", p * 3 + c * 3)`, expressions["fill-model"])
 	})
 
-	t.Run("cache ratio precision preserves restored price", func(t *testing.T) {
-		// deepseek-v4-pro: cache_read 0.003625 / input 0.435 = 0.00833333...(循环小数)
-		// 前端还原缓存价 = model_ratio × cache_ratio × 1000，必须接近
-		// 0.003625 × USD/1000 × 1000 = 1.8125，不能因比值舍入产生可见误差
-		modelRatio := modelRatios["deepseek-v4-pro"].(float64)
-		assert.InDelta(t, 0.2175, modelRatio, 1e-9)
-		cacheRatio := cacheRatios["deepseek-v4-pro"].(float64)
-		restored := modelRatio * cacheRatio * 1000
-		assert.InDelta(t, 1.8125, restored, 1e-6)
-		// 若按 6 位舍入，restored 会差 2.9e-7 < 1e-6 仍通过，
-		// 因此再断言比值本身保留 12 位精度（0.008333333333 而非 0.008333）
-		assert.InDelta(t, 0.008333333333, cacheRatio, 1e-11)
+	t.Run("deepseek peak and off-peak", func(t *testing.T) {
+		expr, ok := expressions["deepseek-v4-pro"].(string)
+		require.True(t, ok)
+		assert.Contains(t, expr, `tier("peak", p * 0.87 + cr * 0.00725 + c * 1.74)`)
+		assert.Contains(t, expr, `tier("off_peak", p * 0.435 + cr * 0.003625 + c * 0.87)`)
+		assert.Contains(t, expr, `weekday("Asia/Shanghai")`)
 	})
 
-	t.Run("fallback entries priced from their own provider", func(t *testing.T) {
-		// only-elsewhere 来自 aaa-provider（2 USD/1M）→ 2 × 0.5 = 1
-		assert.InDelta(t, 1.0, modelRatios["only-elsewhere"].(float64), 1e-9)
-		// paid-x 现由条目级回退纳入：5 × 0.5 = 2.5
-		assert.InDelta(t, 2.5, modelRatios["paid-x"].(float64), 1e-9)
-		assert.InDelta(t, 0.5, modelRatios["Kimi-K3"].(float64), 1e-9)
-		// fill-model 的 cost 来自 opencode-go（3 × 0.5 = 1.5），未被回退条目的 99 覆盖
-		assert.InDelta(t, 1.5, modelRatios["fill-model"].(float64), 1e-9)
+	t.Run("free models use fixed zero", func(t *testing.T) {
+		assert.Equal(t, `tier("base", fixed(0))`, expressions["hy3-free"])
+		assert.Equal(t, `tier("base", fixed(0))`, expressions["shared-free"])
 	})
 
-	t.Run("free model ratio is zero without NaN", func(t *testing.T) {
-		// -free 合并模型与免费覆盖条目均应为 0
-		assert.InDelta(t, 0.0, modelRatios["hy3-free"].(float64), 1e-9)
-		assert.InDelta(t, 0.0, modelRatios["shared-free"].(float64), 1e-9)
-		_, hasCompletion := completionRatios["hy3-free"]
-		assert.False(t, hasCompletion)
-		_, hasCache := cacheRatios["hy3-free"]
-		assert.False(t, hasCache)
-	})
-
-	t.Run("no NaN or Inf values", func(t *testing.T) {
-		for _, m := range []map[string]any{modelRatios, completionRatios, cacheRatios} {
-			for _, v := range m {
-				f, ok := v.(float64)
-				require.True(t, ok)
-				assert.False(t, math.IsNaN(f), "unexpected NaN")
-				assert.False(t, math.IsInf(f, 0), "unexpected Inf")
-			}
-		}
-	})
-
-	t.Run("deprecated excluded and missing price skipped", func(t *testing.T) {
-		assert.NotContains(t, modelRatios, "deprecated-model")
-		assert.NotContains(t, modelRatios, "dep-free")
-		// 缺少 input 价格的条目不得按 0 写入（否则未知价格会变成免费）
-		assert.NotContains(t, modelRatios, "missing-price")
-		// 免费条目的 cost 为 nil 时保持 nil，不继承付费价格，也不按 0 计费
-		assert.NotContains(t, modelRatios, "nil-cost-free")
+	t.Run("deprecated and unpriced models are skipped", func(t *testing.T) {
+		assert.NotContains(t, expressions, "deprecated-model")
+		assert.NotContains(t, expressions, "dep-free")
+		assert.NotContains(t, expressions, "missing-price")
+		assert.NotContains(t, expressions, "nil-cost-free")
 	})
 
 	t.Run("invalid json", func(t *testing.T) {
@@ -261,20 +231,20 @@ func TestOpenCodeGoCatalogSharedByMetadataAndPricing(t *testing.T) {
 	require.NoError(t, err)
 	converted, err := convertOpenCodeGoRatioData([]byte(openCodeGoAPIJSONFixture), 500)
 	require.NoError(t, err)
-	modelRatios, ok := converted["model_ratio"].(map[string]any)
-	require.True(t, ok, "model_ratio missing")
+	expressions, ok := converted["billing_expr"].(map[string]any)
+	require.True(t, ok, "billing_expr missing")
 
 	entryIDs := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		entryIDs[entry.ID] = struct{}{}
 	}
 	// 价格入口是同一解析结果的子集：只额外剔除价格非法或缺失的模型。
-	require.NotEmpty(t, modelRatios)
-	for id := range modelRatios {
+	require.NotEmpty(t, expressions)
+	for id := range expressions {
 		assert.Contains(t, entryIDs, id)
 	}
 	assert.Contains(t, entryIDs, "missing-price")
-	assert.NotContains(t, modelRatios, "missing-price")
+	assert.NotContains(t, expressions, "missing-price")
 }
 
 func TestParseOpenCodeGoUsage(t *testing.T) {

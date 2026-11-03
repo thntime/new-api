@@ -106,10 +106,12 @@ type ModelRatioVisualEditorProps = {
   onChange: (field: string, value: string) => void
   onSave: () => void | Promise<void>
   isSaving: boolean
+  onSelectionChange?: (count: number) => void
 }
 
 export type ModelRatioVisualEditorHandle = {
   commitOpenEditor: () => Promise<boolean>
+  clearSelectedRows: () => void
 }
 
 const STORAGE_KEY = 'model-ratio-column-visibility'
@@ -147,6 +149,7 @@ const ModelRatioVisualEditorComponent = forwardRef<
     onChange,
     onSave,
     isSaving,
+    onSelectionChange,
   },
   ref
 ) {
@@ -301,7 +304,11 @@ const ModelRatioVisualEditorComponent = forwardRef<
         }
       })
       .filter((row) => !row.isDraftDeleted)
-      .filter((row) => filterMode !== 'unset' || isBasePricingUnset(row.saved))
+      .filter((row) =>
+        filterMode === 'unset'
+          ? isBasePricingUnset(row.saved)
+          : !isBasePricingUnset(row) || pricingIssues.has(row.name)
+      )
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [
     candidateModelNames,
@@ -411,8 +418,9 @@ const ModelRatioVisualEditorComponent = forwardRef<
     []
   )
 
-  const handleDelete = useCallback(
-    (name: string) => {
+  const clearPricingFields = useCallback(
+    (names: string[]) => {
+      const targets = new Set(names)
       const priceMap = safeJsonParse<Record<string, number>>(modelPrice, {
         fallback: {},
         silent: true,
@@ -454,22 +462,25 @@ const ModelRatioVisualEditorComponent = forwardRef<
         { fallback: {}, silent: true }
       )
 
-      delete priceMap[name]
-      delete ratioMap[name]
-      delete cacheMap[name]
-      delete createCacheMap[name]
-      delete completionMap[name]
-      delete imageMap[name]
-      delete audioMap[name]
-      delete audioCompletionMap[name]
-      delete billingModeMap[name]
-      delete billingExprMap[name]
+      for (const name of targets) {
+        delete priceMap[name]
+        delete ratioMap[name]
+        delete cacheMap[name]
+        delete createCacheMap[name]
+        delete completionMap[name]
+        delete imageMap[name]
+        delete audioMap[name]
+        delete audioCompletionMap[name]
+        delete billingModeMap[name]
+        delete billingExprMap[name]
+      }
       const pluginExprMap = safeJsonParse<Record<string, string>>(
         pluginBillingExpr,
         { fallback: {} }
       )
       for (const variant of Object.keys(pluginExprMap)) {
-        if (splitPluginBillingExprKey(variant)?.[1] === name) {
+        const modelName = splitPluginBillingExprKey(variant)?.[1]
+        if (modelName && targets.has(modelName)) {
           delete pluginExprMap[variant]
         }
       }
@@ -498,7 +509,8 @@ const ModelRatioVisualEditorComponent = forwardRef<
         JSON.stringify(billingExprMap, null, 2)
       )
 
-      if (editingModelNameRef.current === name) {
+      const editingName = editingModelNameRef.current
+      if (editingName && targets.has(editingName)) {
         setEditData(null)
         setEditorOpen(false)
         setSheetOpen(false)
@@ -518,6 +530,11 @@ const ModelRatioVisualEditorComponent = forwardRef<
       pluginBillingExpr,
       onChange,
     ]
+  )
+
+  const handleDelete = useCallback(
+    (name: string) => clearPricingFields([name]),
+    [clearPricingFields]
   )
 
   const columns = useMemo(
@@ -565,6 +582,11 @@ const ModelRatioVisualEditorComponent = forwardRef<
       return row.original.name.toLowerCase().includes(searchValue)
     },
   })
+
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length
+  useEffect(() => {
+    onSelectionChange?.(selectedCount)
+  }, [onSelectionChange, selectedCount])
 
   const persistPricingData = useCallback(
     (data: ModelRatioData, targetNames: string[] = [data.name]) => {
@@ -648,8 +670,16 @@ const ModelRatioVisualEditorComponent = forwardRef<
         setEditData(data)
         return true
       },
+      clearSelectedRows: () => {
+        const names = table
+          .getFilteredSelectedRowModel()
+          .rows.map((row) => row.original.name)
+        if (names.length === 0) return
+        clearPricingFields(names)
+        table.resetRowSelection()
+      },
     }),
-    [editorOpen, persistPricingData]
+    [clearPricingFields, editorOpen, persistPricingData, table]
   )
 
   const hasRows = table.getRowModel().rows.length > 0
@@ -889,7 +919,8 @@ export const ModelRatioVisualEditor = memo(
       prevProps.filterMode === nextProps.filterMode &&
       prevProps.onChange === nextProps.onChange &&
       prevProps.onSave === nextProps.onSave &&
-      prevProps.isSaving === nextProps.isSaving
+      prevProps.isSaving === nextProps.isSaving &&
+      prevProps.onSelectionChange === nextProps.onSelectionChange
     )
   }
 )

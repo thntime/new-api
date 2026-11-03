@@ -54,6 +54,14 @@ func GetEnabledModels() []string {
 	return models
 }
 
+// GetEnabledModelsWithError is the error-aware variant used by callers that must
+// distinguish a failed query from an empty enabled-model set.
+func GetEnabledModelsWithError() ([]string, error) {
+	var models []string
+	err := DB.Table("abilities").Where("enabled = ?", true).Distinct("model").Pluck("model", &models).Error
+	return models, err
+}
+
 func GetAllEnableAbilities() []Ability {
 	var abilities []Ability
 	DB.Find(&abilities, "enabled = ?", true)

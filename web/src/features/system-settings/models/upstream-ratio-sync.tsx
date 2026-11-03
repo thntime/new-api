@@ -30,6 +30,7 @@ import {
   getModelPricing,
   saveModelPricing,
   invalidateModelPricing,
+  previewModelPricingConversion,
   type ModelPricingConfig,
   type ModelPricingChange,
 } from '@/features/model-pricing/api'
@@ -37,7 +38,7 @@ import {
   getSitePricingCurrency,
   isValidPricingCurrency,
 } from '@/features/model-pricing/currency'
-import { applyPriceSyncSelections } from '@/features/model-pricing/pricing'
+import { applyPriceSyncSelectionsWithConversion } from '@/features/model-pricing/pricing'
 import { handleServerError } from '@/lib/handle-server-error'
 import {
   requireServerSuccess,
@@ -143,6 +144,11 @@ export function UpstreamRatioSync() {
   )
   const [preview, setPreview] = useState<SyncPreview | null>(null)
   const [loadingBaseline, setLoadingBaseline] = useState(false)
+  const [applyingSync, setApplyingSync] = useState(false)
+  const [conversionProgress, setConversionProgress] = useState<{
+    completed: number
+    total: number
+  } | null>(null)
   const { data: channelsData } = useQuery({
     queryKey: ['upstream-channels'],
     queryFn: async () => requireServerSuccess(await getUpstreamChannels()),
@@ -323,8 +329,8 @@ export function UpstreamRatioSync() {
     },
     []
   )
-  const handleApplySync = () => {
-    if (!pricingBaseline || hasAdjustmentErrors) return
+  const handleApplySync = async () => {
+    if (!pricingBaseline || hasAdjustmentErrors || applyingSync) return
     const resolutions: Record<string, PricingSyncValues> = {}
     const conflicts: ConflictItem[] = []
     for (const [model, entry] of Object.entries(selections)) {
@@ -357,11 +363,41 @@ export function UpstreamRatioSync() {
             : undefined,
       })
     }
+    const conversionTotal = Object.values(resolutions).filter(
+      (fields) =>
+        !(
+          typeof fields.billing_expr === 'string' &&
+          fields.billing_expr.trim() !== ''
+        )
+    ).length
+    setApplyingSync(true)
+    setConversionProgress({ completed: 0, total: conversionTotal })
     try {
-      const after = applyPriceSyncSelections(
-        pricingBaseline.options,
-        resolutions
-      )
+      // Legacy prices are converted after adjustments so the saved expression
+      // matches the exact values the administrator confirmed.
+      const { options: after, warnings } =
+        await applyPriceSyncSelectionsWithConversion(
+          pricingBaseline.options,
+          resolutions,
+          previewModelPricingConversion,
+          {
+            concurrency: 4,
+            onProgress: (completed, total) =>
+              setConversionProgress({ completed, total }),
+          }
+        )
+      if (warnings.length) {
+        toast.warning(
+          t(
+            'Some models kept ratio pricing and need manual conversion: {{models}}',
+            {
+              models: warnings
+                .map((warning) => `${warning.model}: ${warning.reason}`)
+                .join('; '),
+            }
+          )
+        )
+      }
       // Freeze the exact save payload and its preview together. Changes to the
       // site exchange rate while this dialog is open cannot change the charge.
       setPreview({
@@ -383,10 +419,16 @@ export function UpstreamRatioSync() {
       setConflictDialogOpen(true)
     } catch (error) {
       handleServerError(error, t('Failed to sync prices'))
+    } finally {
+      setApplyingSync(false)
+      setConversionProgress(null)
     }
   }
   const isLoading =
-    loadingBaseline || fetchMutation.isPending || syncMutation.isPending
+    loadingBaseline ||
+    fetchMutation.isPending ||
+    syncMutation.isPending ||
+    applyingSync
   const selectedModels = Object.keys(selections)
   const batchAdjustmentDisabled =
     isLoading || selectedModels.length === 0 || rate === null
@@ -510,7 +552,9 @@ export function UpstreamRatioSync() {
           )}
         </div>
         <Button
-          onClick={handleApplySync}
+          onClick={() => {
+            void handleApplySync()
+          }}
           disabled={
             !pricingBaseline ||
             !Object.keys(selectedSources).length ||
@@ -519,7 +563,12 @@ export function UpstreamRatioSync() {
           }
         >
           <CheckSquare className='size-4' aria-hidden />
-          {t('Apply Sync')}
+          {applyingSync && conversionProgress && conversionProgress.total > 0
+            ? t('Preparing billing expressions... {{completed}}/{{total}}', {
+                completed: conversionProgress.completed,
+                total: conversionProgress.total,
+              })
+            : t('Apply Sync')}
         </Button>
       </div>
       <ChannelSelectorDialog

@@ -621,21 +621,21 @@ func FetchUpstreamRatios(c *gin.Context) {
 
 	differences := buildDifferences(localData, successfulChannels)
 
-	// 价格同步只处理模型库中已存在的模型：上游目录包含数千个本地未启用的
-	// 模型，全部列为差异会淹没真实需要同步的模型。查询失败时直接报错，
-	// 不退化为「不过滤」，避免静默把上游全量模型带回同步结果。
-	localModelNames, err := model.GetAllModelNames()
+	// 价格同步只处理当前启用渠道提供的模型：上游目录包含数千个本地未启用的
+	// 模型，全部列为差异会淹没真实需要同步的模型。differences、prices 以及
+	// include_unchanged 分支共用这一范围，保证价格集合不超出差异集合。
+	enabledModelNames, err := model.GetEnabledModelsWithError()
 	if err != nil {
-		logger.LogError(c.Request.Context(), common.LogText("failed to query model names: %s", err.Error()))
+		logger.LogError(c.Request.Context(), common.LogText("failed to query enabled models: %s", err.Error()))
 		common.ApiErrorStatus(c, http.StatusInternalServerError, common.NewMessage("Failed to query models"))
 		return
 	}
-	existingModels := make(map[string]struct{}, len(localModelNames))
-	for _, name := range localModelNames {
-		existingModels[name] = struct{}{}
+	enabledModels := make(map[string]struct{}, len(enabledModelNames))
+	for _, name := range enabledModelNames {
+		enabledModels[name] = struct{}{}
 	}
 	for name := range differences {
-		if _, ok := existingModels[name]; !ok {
+		if _, ok := enabledModels[name]; !ok {
 			delete(differences, name)
 		}
 	}
@@ -652,7 +652,9 @@ func FetchUpstreamRatios(c *gin.Context) {
 		for _, channel := range successfulChannels {
 			for _, field := range pricingSyncFields {
 				for name := range valueMap(channel.data[field]) {
-					models[name] = struct{}{}
+					if _, ok := enabledModels[name]; ok {
+						models[name] = struct{}{}
+					}
 				}
 			}
 		}

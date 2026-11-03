@@ -3484,7 +3484,6 @@
     "Leave the final split empty as the fallback for models not matched above.": "Leave the final split empty as the fallback for models not matched above.",
     "Leave this empty only for the final fallback split; it catches client models not matched above.": "Leave this empty only for the final fallback split; it catches client models not matched above.",
     "Left to Right": "Left to Right",
-    "Legacy access tokens have been retired. Create a new access token in security settings": "Legacy access tokens have been retired. Create a new access token in security settings",
     "Legacy addresses ({{count}})": "Legacy addresses ({{count}})",
     "Legacy Format (JSON Object)": "Legacy Format (JSON Object)",
     "Legacy format must be a JSON object": "Legacy format must be a JSON object",
@@ -6183,8 +6182,6 @@
     "Task pricing": "Task pricing",
     "Task pricing must be converted manually using the task usage schema.": "Task pricing must be converted manually using the task usage schema.",
     "Task pricing not configured": "Task pricing not configured",
-    "Task timed out": "Task timed out",
-    "Task timed out (a task left by the old system is not refunded; contact the administrator)": "Task timed out (a task left by the old system is not refunded; contact the administrator)",
     "Task usage data is required to estimate this expression. Check the model's task plugin configuration.": "Task usage data is required to estimate this expression. Check the model's task plugin configuration.",
     "Task usage metadata is unavailable. Pricing details cannot be displayed.": "Task usage metadata is unavailable. Pricing details cannot be displayed.",
     "Task usage prices are USD per declared unit. They are not token prices and are not divided by one million.": "Task usage prices are USD per declared unit. They are not token prices and are not divided by one million.",
@@ -7652,6 +7649,10 @@
     "Undo": "Undo",
     "Use the same priority as the highlighted channels": "Use the same priority as the highlighted channels",
     "When a channel is disabled or re-enabled automatically, or a test of all channels finishes": "When a channel is disabled or re-enabled automatically, or a test of all channels finishes",
-    "You do not have permission to edit channels": "You do not have permission to edit channels"
+    "You do not have permission to edit channels": "You do not have permission to edit channels",
+    "Some models kept ratio pricing and need manual conversion: {{models}}": "Some models kept ratio pricing and need manual conversion: {{models}}",
+    "Preparing billing expressions... {{completed}}/{{total}}": "Preparing billing expressions... {{completed}}/{{total}}",
+    "Clear pricing for {{count}} models?": "Clear pricing for {{count}} models?",
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "This removes all pricing fields for the selected models. Changes apply only after saving."
   }
 }

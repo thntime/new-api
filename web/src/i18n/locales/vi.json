@@ -3484,7 +3484,6 @@
     "Leave the final split empty as the fallback for models not matched above.": "Để nhánh cuối trống làm dự phòng cho các model chưa khớp ở trên.",
     "Leave this empty only for the final fallback split; it catches client models not matched above.": "Chỉ để trống cho nhánh dự phòng cuối cùng; nhánh này nhận các model client chưa khớp ở trên.",
     "Left to Right": "Trái sang phải",
-    "Legacy access tokens have been retired. Create a new access token in security settings": "Token truy cập cũ đã ngừng sử dụng. Hãy tạo token truy cập mới trong cài đặt bảo mật",
     "Legacy addresses ({{count}})": "Địa chỉ cũ ({{count}})",
     "Legacy Format (JSON Object)": "Định dạng cũ (đối tượng JSON)",
     "Legacy format must be a JSON object": "Định dạng cũ phải là đối tượng JSON",
@@ -6183,8 +6182,6 @@
     "Task pricing": "Giá tác vụ",
     "Task pricing must be converted manually using the task usage schema.": "Cần chuyển đổi giá tác vụ thủ công theo lược đồ mức sử dụng tác vụ.",
     "Task pricing not configured": "Chưa cấu hình giá tác vụ",
-    "Task timed out": "Tác vụ hết thời gian",
-    "Task timed out (a task left by the old system is not refunded; contact the administrator)": "Tác vụ hết thời gian (tác vụ còn sót từ hệ thống cũ không được hoàn tiền; hãy liên hệ quản trị viên)",
     "Task usage data is required to estimate this expression. Check the model's task plugin configuration.": "Cần dữ liệu sử dụng tác vụ để ước tính chi phí theo biểu thức này. Hãy kiểm tra cấu hình plugin tác vụ của mô hình.",
     "Task usage metadata is unavailable. Pricing details cannot be displayed.": "Thiếu định nghĩa trường mức sử dụng tác vụ nên không thể hiển thị chi tiết giá.",
     "Task usage prices are USD per declared unit. They are not token prices and are not divided by one million.": "Giá theo mức sử dụng được tính bằng USD cho mỗi đơn vị đã khai báo. Đây không phải giá token và không được chia cho một triệu.",
@@ -7652,6 +7649,10 @@
     "Undo": "Hoàn tác",
     "Use the same priority as the highlighted channels": "Dùng cùng mức ưu tiên với các kênh được tô sáng",
     "When a channel is disabled or re-enabled automatically, or a test of all channels finishes": "Khi một kênh bị tự động tắt hoặc bật lại, hoặc khi kiểm tra tất cả kênh hoàn tất",
-    "You do not have permission to edit channels": "Bạn không có quyền chỉnh sửa kênh"
+    "You do not have permission to edit channels": "Bạn không có quyền chỉnh sửa kênh",
+    "Some models kept ratio pricing and need manual conversion: {{models}}": "Một số mô hình vẫn dùng giá theo tỷ lệ và cần chuyển đổi thủ công: {{models}}",
+    "Preparing billing expressions... {{completed}}/{{total}}": "Đang chuẩn bị biểu thức tính phí... {{completed}}/{{total}}",
+    "Clear pricing for {{count}} models?": "Xóa giá của {{count}} mô hình?",
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Thao tác này xóa tất cả trường giá của các mô hình đã chọn. Thay đổi chỉ áp dụng sau khi lưu."
   }
 }

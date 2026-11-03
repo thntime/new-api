@@ -16,15 +16,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { buildPricingChanges, type ModelPricingConfig } from '../api'
 import {
   applyPriceSyncSelections,
+  applyPriceSyncSelectionsWithConversion,
   applyPricingDraft,
   pricingFromDraft,
   pricingOptions,
   pricingRow,
+  pricingValuesByModel,
+  type PricingValues,
 } from '../pricing'
 
 describe('shared model pricing', () => {
@@ -213,6 +216,137 @@ it('retains provider overrides during model-only price synchronization', () => {
     example: { billing_expr: 'tier("base", u("seconds"))' },
   })
   expect(after[key]).toEqual(options[key])
+})
+
+describe('price sync expression conversion', () => {
+  it('merges the generated expression and its effective legacy fields', async () => {
+    const convert = vi.fn().mockResolvedValue({
+      expression: 'tier("base", p * 2 + c * 8)',
+      effective: { ModelRatio: 1, CompletionRatio: 4 },
+    })
+    const result = await applyPriceSyncSelectionsWithConversion(
+      pricingOptions({ ModelRatio: '{"untouched":2}' }),
+      { example: { model_ratio: 1, completion_ratio: 4 } },
+      convert
+    )
+    expect(convert).toHaveBeenCalledWith({
+      model_name: 'example',
+      pricing: {
+        'billing_setting.billing_mode': 'ratio',
+        ModelRatio: 1,
+        CompletionRatio: 4,
+      },
+    })
+    expect(result.warnings).toEqual([])
+    expect(pricingValuesByModel(result.options).get('example')).toEqual({
+      'billing_setting.billing_mode': 'tiered_expr',
+      'billing_setting.billing_expr': 'tier("base", p * 2 + c * 8)',
+      ModelRatio: 1,
+      CompletionRatio: 4,
+    })
+    expect(pricingValuesByModel(result.options).get('untouched')).toEqual({
+      ModelRatio: 2,
+    })
+  })
+
+  it('keeps upstream expressions without calling the conversion endpoint', async () => {
+    const expression = 'tier("base", p * 2 + c * 8)'
+    const convert = vi.fn()
+    const result = await applyPriceSyncSelectionsWithConversion(
+      pricingOptions({}),
+      {
+        example: {
+          billing_mode: 'tiered_expr',
+          billing_expr: expression,
+          model_ratio: 9,
+        },
+      },
+      convert
+    )
+    expect(convert).not.toHaveBeenCalled()
+    expect(result.warnings).toEqual([])
+    expect(pricingValuesByModel(result.options).get('example')).toEqual({
+      'billing_setting.billing_mode': 'tiered_expr',
+      'billing_setting.billing_expr': expression,
+    })
+  })
+
+  it('falls back to ratio pricing and reports an unsupported model', async () => {
+    const convert = vi
+      .fn()
+      .mockResolvedValue({ unsupported_reason: 'Audio price conflict' })
+    const result = await applyPriceSyncSelectionsWithConversion(
+      pricingOptions({}),
+      { example: { model_ratio: 1, completion_ratio: 4 } },
+      convert
+    )
+    expect(result.warnings).toEqual([
+      { model: 'example', reason: 'Audio price conflict' },
+    ])
+    expect(pricingValuesByModel(result.options).get('example')).toEqual({
+      'billing_setting.billing_mode': 'ratio',
+      ModelRatio: 1,
+      CompletionRatio: 4,
+    })
+  })
+
+  it('falls back to ratio pricing and reports a failed conversion request', async () => {
+    const convert = vi.fn().mockRejectedValue(new Error('network down'))
+    const result = await applyPriceSyncSelectionsWithConversion(
+      pricingOptions({}),
+      { example: { model_price: 2 } },
+      convert
+    )
+    expect(result.warnings).toEqual([
+      { model: 'example', reason: 'network down' },
+    ])
+    expect(pricingValuesByModel(result.options).get('example')).toEqual({
+      'billing_setting.billing_mode': 'ratio',
+      ModelPrice: 2,
+    })
+  })
+
+  it('converts selected models with at most four requests in flight', async () => {
+    let active = 0
+    let maxActive = 0
+    const selections = Object.fromEntries(
+      Array.from({ length: 10 }, (_, index) => [
+        `model-${index}`,
+        { model_ratio: index + 1 },
+      ])
+    )
+    const progress: Array<[number, number]> = []
+    const convert = vi.fn(
+      async (request: { model_name: string; pricing: PricingValues }) => {
+        active += 1
+        maxActive = Math.max(maxActive, active)
+        await Promise.resolve()
+        active -= 1
+        return {
+          expression: `tier("base", p * ${String(request.pricing.ModelRatio)})`,
+          effective: { ModelRatio: request.pricing.ModelRatio },
+        }
+      }
+    )
+    const result = await applyPriceSyncSelectionsWithConversion(
+      pricingOptions({}),
+      selections,
+      convert,
+      {
+        concurrency: 4,
+        onProgress: (completed, total) => progress.push([completed, total]),
+      }
+    )
+    expect(maxActive).toBe(4)
+    expect(convert).toHaveBeenCalledTimes(10)
+    expect(result.warnings).toEqual([])
+    expect(progress.at(-1)).toEqual([10, 10])
+    expect(
+      pricingValuesByModel(result.options).get('model-9')?.[
+        'billing_setting.billing_mode'
+      ]
+    ).toBe('tiered_expr')
+  })
 })
 
 it('commits source provider edits while preserving target providers during batch copy', () => {

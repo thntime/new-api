@@ -47,6 +47,7 @@ afterEach(() => {
 type EditorFixture = {
   issues?: ModelPricingIssue[]
   taskModels?: string[]
+  modelRatio?: Record<string, number>
   billingMode?: string
   billingExpr?: string
   pluginBillingExpr?: string
@@ -71,10 +72,12 @@ async function renderEditor(fixture: EditorFixture = {}) {
       .getState()
       .auth.setUser({ id: 1, username: 'root', role: ROLE.SUPER_ADMIN })
   }
-  const modelRatio = JSON.stringify({
-    'gpt-4.1-mini': 0.2,
-    'claude-sonnet': 1.5,
-  })
+  const modelRatio = JSON.stringify(
+    fixture.modelRatio ?? {
+      'gpt-4.1-mini': 0.2,
+      'claude-sonnet': 1.5,
+    }
+  )
   const billingMode = fixture.billingMode ?? '{}'
   const billingExpr = fixture.billingExpr ?? '{}'
   const pluginBillingExpr = fixture.pluginBillingExpr ?? '{}'
@@ -158,6 +161,11 @@ it('keeps other rows mounted when a different model is opened for editing', asyn
 // new provider lacks, and vidu1.5 keeps a provider price its plugin dropped.
 const pricingIssueFixture: EditorFixture = {
   taskModels: ['issue-shared'],
+  modelRatio: {
+    'gpt-4.1-mini': 0.2,
+    'claude-sonnet': 1.5,
+    'issue-shared': 1,
+  },
   billingMode: JSON.stringify({ 'issue-shared': 'tiered_expr' }),
   billingExpr: JSON.stringify({ 'issue-shared': 'u("seconds") * 0.2' }),
   pluginBillingExpr: JSON.stringify({ 'vidu::vidu1.5': 'u("seconds") * 0.1' }),
@@ -202,7 +210,11 @@ it.each([
 )
 
 it('keeps the configured badges on models without pricing issues', async () => {
-  await renderEditor({ ...pricingIssueFixture, issues: [] })
+  await renderEditor({
+    ...pricingIssueFixture,
+    issues: [],
+    modelRatio: { 'gpt-4.1-mini': 0.2, 'claude-sonnet': 1.5 },
+  })
   const row = await screen.findByRole('row', { name: /issue-shared/ })
 
   expect(within(row).getByText('Task pricing')).toBeVisible()

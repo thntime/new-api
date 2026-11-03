@@ -55,10 +55,30 @@ type openCodeGoLimit struct {
 	Output  int `json:"output"`
 }
 
+// openCodeGoPrices is the token price block shared by a model's base cost and
+// its context tiers. All values are USD per million tokens.
+type openCodeGoPrices struct {
+	Input      *float64 `json:"input"`
+	Output     *float64 `json:"output"`
+	CacheRead  *float64 `json:"cache_read"`
+	CacheWrite *float64 `json:"cache_write"`
+}
+
 type openCodeGoCost struct {
-	Input     *float64 `json:"input"`
-	Output    *float64 `json:"output"`
-	CacheRead *float64 `json:"cache_read"`
+	openCodeGoPrices
+	// Tiers holds the higher prices that apply above a context size. Unknown
+	// tier shapes are ignored by the converter.
+	Tiers []openCodeGoCostTier `json:"tiers"`
+}
+
+type openCodeGoCostTier struct {
+	openCodeGoPrices
+	Tier *openCodeGoTierCondition `json:"tier"`
+}
+
+type openCodeGoTierCondition struct {
+	Type string `json:"type"`
+	Size int64  `json:"size"`
 }
 
 // collectOpenCodeGoModels 解析 api.json 的模型集合：
@@ -190,6 +210,9 @@ func fillOpenCodeGoModel(base, fallback openCodeGoModel) openCodeGoModel {
 	}
 	if base.Cost.CacheRead == nil {
 		base.Cost.CacheRead = fallback.Cost.CacheRead
+	}
+	if base.Cost.CacheWrite == nil {
+		base.Cost.CacheWrite = fallback.Cost.CacheWrite
 	}
 	return base
 }

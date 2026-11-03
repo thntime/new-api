@@ -3484,7 +3484,6 @@
     "Leave the final split empty as the fallback for models not matched above.": "Laissez la dernière répartition vide comme solution de secours pour les modèles non appariés plus haut.",
     "Leave this empty only for the final fallback split; it catches client models not matched above.": "Laissez vide uniquement pour la dernière branche de repli ; elle reçoit les modèles client non associés plus haut.",
     "Left to Right": "De gauche à droite",
-    "Legacy access tokens have been retired. Create a new access token in security settings": "Les anciens jetons d'accès ont été retirés. Créez un nouveau jeton d'accès dans les paramètres de sécurité",
     "Legacy addresses ({{count}})": "Anciennes adresses ({{count}})",
     "Legacy Format (JSON Object)": "Ancien format (objet JSON)",
     "Legacy format must be a JSON object": "L'ancien format doit être un objet JSON",
@@ -6183,8 +6182,6 @@
     "Task pricing": "Tarification des tâches",
     "Task pricing must be converted manually using the task usage schema.": "La tarification des tâches doit être convertie manuellement selon leur schéma d’utilisation.",
     "Task pricing not configured": "Tarification des tâches non configurée",
-    "Task timed out": "La tâche a expiré",
-    "Task timed out (a task left by the old system is not refunded; contact the administrator)": "La tâche a expiré (une tâche laissée par l'ancien système n'est pas remboursée ; contactez l'administrateur)",
     "Task usage data is required to estimate this expression. Check the model's task plugin configuration.": "Les données d’utilisation des tâches sont nécessaires pour estimer le coût de cette expression. Vérifiez la configuration du plugin de tâches du modèle.",
     "Task usage metadata is unavailable. Pricing details cannot be displayed.": "Les métadonnées d’utilisation des tâches sont indisponibles. Les détails tarifaires ne peuvent pas être affichés.",
     "Task usage prices are USD per declared unit. They are not token prices and are not divided by one million.": "Les tarifs d'utilisation sont exprimés en USD par unité déclarée. Ce ne sont pas des tarifs par jeton et ils ne sont pas divisés par un million.",
@@ -7652,6 +7649,10 @@
     "Undo": "Annuler",
     "Use the same priority as the highlighted channels": "Utiliser la même priorité que les canaux surlignés",
     "When a channel is disabled or re-enabled automatically, or a test of all channels finishes": "Quand un canal est désactivé ou réactivé automatiquement, ou qu’un test de tous les canaux se termine",
-    "You do not have permission to edit channels": "Vous n’avez pas le droit de modifier les canaux"
+    "You do not have permission to edit channels": "Vous n’avez pas le droit de modifier les canaux",
+    "Some models kept ratio pricing and need manual conversion: {{models}}": "Certains modèles conservent une tarification par ratio et doivent être convertis manuellement : {{models}}",
+    "Preparing billing expressions... {{completed}}/{{total}}": "Préparation des expressions de facturation... {{completed}}/{{total}}",
+    "Clear pricing for {{count}} models?": "Effacer la tarification de {{count}} modèles ?",
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Cela supprime tous les champs de tarification des modèles sélectionnés. Les modifications s'appliquent après l'enregistrement."
   }
 }

@@ -30,7 +30,7 @@ import {
   type ModelPricingSnapshot,
 } from '@/features/system-settings/models/model-pricing-snapshots'
 
-import type { ModelPricingEntry } from './api'
+import type { ModelPricingConversion, ModelPricingEntry } from './api'
 
 export const PRICING_KEYS = [
   'ModelPrice',
@@ -345,38 +345,138 @@ export function applyPriceSyncSelections(
 ): PricingOptions {
   let result = options
   for (const [name, fields] of Object.entries(selections)) {
-    const next: PricingValues = {}
-    const expression =
-      typeof fields.billing_expr === 'string' &&
-      fields.billing_expr.trim() !== ''
-    if (expression) {
-      next['billing_setting.billing_mode'] = 'tiered_expr'
-      next['billing_setting.billing_expr'] = fields.billing_expr
-    } else {
-      next['billing_setting.billing_mode'] = 'ratio'
-      const fixed = fields.model_price !== undefined
-      for (const [field, value] of Object.entries(fields)) {
-        if (field === 'billing_mode' || field === 'billing_expr') continue
-        if (fixed && field !== 'model_price') continue
-        const key = field
-          .split('_')
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join('') as PricingKey
-        if (
-          PRICING_KEYS.includes(key) &&
-          key !== 'billing_setting.plugin_billing_expr'
-        ) {
-          next[key] = value
-        }
-      }
-    }
-    const validated = pricingFromDraft(pricingRow(name, next))
-    if (expression) {
-      // Sync is a literal import. The editor may normalize request-rule
-      // parentheses, which would otherwise produce another upstream diff.
-      validated['billing_setting.billing_expr'] = fields.billing_expr
-    }
-    result = applyPricingValues(result, validated, [name])
+    result = applyPricingValues(result, priceSyncSelectionValues(name, fields), [
+      name,
+    ])
   }
   return result
+}
+
+function priceSyncSelectionValues(
+  name: string,
+  fields: Record<string, number | string>
+): PricingValues {
+  const next: PricingValues = {}
+  const expression =
+    typeof fields.billing_expr === 'string' && fields.billing_expr.trim() !== ''
+  if (expression) {
+    next['billing_setting.billing_mode'] = 'tiered_expr'
+    next['billing_setting.billing_expr'] = fields.billing_expr
+  } else {
+    next['billing_setting.billing_mode'] = 'ratio'
+    const fixed = fields.model_price !== undefined
+    for (const [field, value] of Object.entries(fields)) {
+      if (field === 'billing_mode' || field === 'billing_expr') continue
+      if (fixed && field !== 'model_price') continue
+      const key = field
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('') as PricingKey
+      if (
+        PRICING_KEYS.includes(key) &&
+        key !== 'billing_setting.plugin_billing_expr'
+      ) {
+        next[key] = value
+      }
+    }
+  }
+  const validated = pricingFromDraft(pricingRow(name, next))
+  if (expression) {
+    // Sync is a literal import. The editor may normalize request-rule
+    // parentheses, which would otherwise produce another upstream diff.
+    validated['billing_setting.billing_expr'] = fields.billing_expr
+  }
+  return validated
+}
+
+export type PriceSyncConversionWarning = {
+  model: string
+  reason: string
+}
+
+export type PriceSyncConversionHooks = {
+  concurrency?: number
+  onProgress?: (completed: number, total: number) => void
+}
+
+// Sync saves billing expressions by default. Models whose upstream values are
+// legacy prices go through the same conversion endpoint the editor uses, while
+// models that already carry an expression are imported untouched.
+export async function applyPriceSyncSelectionsWithConversion(
+  options: PricingOptions,
+  selections: Record<string, Record<string, number | string>>,
+  convert: (request: {
+    model_name: string
+    pricing: PricingValues
+  }) => Promise<ModelPricingConversion>,
+  hooks: PriceSyncConversionHooks = {}
+): Promise<{ options: PricingOptions; warnings: PriceSyncConversionWarning[] }> {
+  const names = Object.keys(selections)
+  const resolved = new Map<string, PricingValues>()
+  const pending: Array<{ name: string; pricing: PricingValues }> = []
+  for (const name of names) {
+    const fields = selections[name]
+    const values = priceSyncSelectionValues(name, fields)
+    if (values['billing_setting.billing_mode'] === 'tiered_expr') {
+      resolved.set(name, values)
+      continue
+    }
+    pending.push({ name, pricing: values })
+  }
+  const warnings: PriceSyncConversionWarning[] = []
+  const total = pending.length
+  let completed = 0
+  let cursor = 0
+  const worker = async () => {
+    while (cursor < pending.length) {
+      const task = pending[cursor]
+      cursor += 1
+      try {
+        const result = await convert({
+          model_name: task.name,
+          pricing: task.pricing,
+        })
+        if (result.unsupported_reason) {
+          warnings.push({
+            model: task.name,
+            reason: result.unsupported_reason,
+          })
+          resolved.set(task.name, task.pricing)
+        } else if (!result.expression || !result.effective) {
+          warnings.push({
+            model: task.name,
+            reason: t('Failed to prepare pricing conversion'),
+          })
+          resolved.set(task.name, task.pricing)
+        } else {
+          resolved.set(task.name, {
+            ...result.effective,
+            'billing_setting.billing_mode': 'tiered_expr',
+            'billing_setting.billing_expr': result.expression,
+          })
+        }
+      } catch (error) {
+        warnings.push({
+          model: task.name,
+          reason:
+            error instanceof Error
+              ? error.message
+              : t('Failed to prepare pricing conversion'),
+        })
+        resolved.set(task.name, task.pricing)
+      }
+      completed += 1
+      hooks.onProgress?.(completed, total)
+    }
+  }
+  const concurrency = Math.max(1, hooks.concurrency ?? 4)
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, total) }, () => worker())
+  )
+  let result = options
+  for (const name of names) {
+    const values = resolved.get(name)
+    if (values) result = applyPricingValues(result, values, [name])
+  }
+  return { options: result, warnings }
 }

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/setting/billing_setting"
 	"github.com/QuantumNous/new-api/setting/config"
@@ -121,8 +120,8 @@ func TestPricingSyncCompleteSourcesAndArrayFormats(t *testing.T) {
 		}
 	}
 	setupRatioSyncTestDB(t)
-	for _, name := range []string{"sync-token", "sync-expression", "sync-array-expression", "sync-free", "sync-already"} {
-		require.NoError(t, model.DB.Create(&model.Model{ModelName: name}).Error)
+	for i, name := range []string{"sync-token", "sync-expression", "sync-array-expression", "sync-free", "sync-already"} {
+		createAbility(t, name, i+1, true)
 	}
 	body := map[string]any{"upstreams": []map[string]any{
 		{"id": 1, "name": "Expressions", "base_url": server.URL, "endpoint": "/ratio_config"},
