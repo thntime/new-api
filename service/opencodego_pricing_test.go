@@ -146,6 +146,47 @@ func TestConvertOpenCodeGoMissingPriceFallbacks(t *testing.T) {
 	assert.Contains(t, deepSeek, `tier("off_peak", p * 0.66 + c * 1.98)`)
 }
 
+func TestConvertOpenCodeGoPricingUsesGoCatalogOnly(t *testing.T) {
+	apiJSON := `{
+  "opencode-go": {
+    "models": {
+      "deepseek-v4.1-flash": {"id": "deepseek-v4.1-flash", "cost": {"input": 0.15, "output": 0.6, "cache_read": 0.003}},
+      "kimi-k3": {"id": "kimi-k3", "cost": {"input": 3, "output": 15, "cache_read": 0.3, "cache_write": 3}}
+    }
+  },
+  "auriko": {
+    "models": {
+      "deepseek-v4-flash": {"id": "deepseek-v4-flash", "cost": {"input": 0.14, "output": 0.28, "cache_read": 0.0028}}
+    }
+  },
+  "kimi-code-plan-global": {
+    "models": {
+      "kimi-for-coding": {"id": "kimi-for-coding", "cost": {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}}
+    }
+  },
+  "fallback": {
+    "models": {
+      "kimi-k3": {"id": "kimi-k3", "cost": {"input": 9, "output": 9}}
+    }
+  }
+}`
+	converted, err := convertOpenCodeGoRatioData([]byte(apiJSON), 0)
+	require.NoError(t, err)
+	expressions, ok := converted[billing_setting.BillingExprField].(map[string]any)
+	require.True(t, ok, "billing_expr must be present")
+
+	// 只存在于第三方 provider 的模型不能进入 Go 价格同步。
+	assert.NotContains(t, expressions, "deepseek-v4-flash")
+	assert.NotContains(t, expressions, "kimi-for-coding")
+	// opencode-go 段的价格优先于同 id 的第三方条目。
+	assert.Equal(t, `tier("standard", p * 3 + c * 15 + cr * 0.3 + cc * 3)`, expressions["kimi-k3"])
+	// Go 段内的 DeepSeek 仍使用峰谷规则。
+	deepSeek, ok := expressions["deepseek-v4.1-flash"].(string)
+	require.True(t, ok)
+	assert.Contains(t, deepSeek, `tier("peak", p * 0.3 + cr * 0.006 + c * 1.2)`)
+	assert.Contains(t, deepSeek, `tier("off_peak", p * 0.15 + cr * 0.003 + c * 0.6)`)
+}
+
 func TestConvertOpenCodeGoSkipsPathologicalPrices(t *testing.T) {
 	apiJSON := `{
   "opencode-go": {

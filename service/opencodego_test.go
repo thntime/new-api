@@ -181,8 +181,14 @@ func TestConvertOpenCodeGoToBillingExpressions(t *testing.T) {
 	})
 
 	t.Run("free models use fixed zero", func(t *testing.T) {
-		assert.Equal(t, `tier("base", fixed(0))`, expressions["hy3-free"])
 		assert.Equal(t, `tier("base", fixed(0))`, expressions["shared-free"])
+	})
+
+	t.Run("fallback providers are metadata-only", func(t *testing.T) {
+		// 这些模型只存在于 aaa-provider/zzz-provider/opencode 段，不能作为 Go 价格来源。
+		for _, name := range []string{"only-elsewhere", "paid-x", "Kimi-K3", "hy3-free"} {
+			assert.NotContains(t, expressions, name, name)
+		}
 	})
 
 	t.Run("deprecated and unpriced models are skipped", func(t *testing.T) {

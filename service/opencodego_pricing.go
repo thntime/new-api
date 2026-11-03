@@ -58,7 +58,7 @@ func convertOpenCodeGoRatioData(data []byte, _ float64) (map[string]any, error) 
 		return nil, fmt.Errorf("empty opencode api.json response")
 	}
 
-	models := collectOpenCodeGoModels(upstream)
+	models := collectOpenCodeGoPricingModels(upstream)
 	if len(models) == 0 {
 		return nil, fmt.Errorf("no valid opencode pricing entries found")
 	}
@@ -85,6 +85,36 @@ func convertOpenCodeGoRatioData(data []byte, _ float64) (map[string]any, error) 
 		billing_setting.BillingModeField: modes,
 		billing_setting.BillingExprField: expressions,
 	}, nil
+}
+
+// collectOpenCodeGoPricingModels 只保留 opencode-go 段的模型，并应用 opencode
+// 段同 id 的 -free 覆盖。其他 provider 段只用于模型目录元数据，不能作为 Go
+// 价格来源：它们可能是第三方价格或订阅制 0 价，直接采用会覆盖正确的 Go 价格。
+func collectOpenCodeGoPricingModels(upstream map[string]openCodeGoProvider) map[string]openCodeGoModel {
+	models := make(map[string]openCodeGoModel)
+	if provider, ok := upstream["opencode-go"]; ok {
+		for name, m := range provider.Models {
+			if m.Status == "deprecated" {
+				continue
+			}
+			models[name] = m
+		}
+	}
+	if provider, ok := upstream["opencode"]; ok {
+		for name, m := range provider.Models {
+			existing, ok := models[name]
+			if !ok || m.Status == "deprecated" || !strings.HasSuffix(name, "-free") {
+				continue
+			}
+			if isOpenCodeGoZeroCost(m.Cost) {
+				cost := m.Cost
+				m = fillOpenCodeGoModel(m, existing)
+				m.Cost = cost
+				models[name] = m
+			}
+		}
+	}
+	return models
 }
 
 // openCodeGoBillingExpr 为单个模型生成计费表达式。缺少 input 价格时不能按 0
