@@ -225,7 +225,7 @@ it('places the clear button next to Reset prices and disables it without a selec
   await waitFor(() => expect(clear).toBeEnabled())
 })
 
-it('confirms the selected count and clears every pricing field as a draft', async () => {
+it('clears every pricing field as a draft without a separate confirm dialog', async () => {
   const { client, onSave } = renderForm(clearValues)
   await waitFor(() => expect(client.isFetching()).toBe(0))
   const apiWrite = vi.spyOn(api, 'put')
@@ -236,16 +236,7 @@ it('confirms the selected count and clears every pricing field as a draft', asyn
   await waitFor(() => expect(clearButton).toBeEnabled())
   await userEvent.click(clearButton)
 
-  const dialog = await screen.findByRole('alertdialog')
-  expect(dialog).toHaveTextContent('Clear pricing for 2 models?')
-  await userEvent.click(within(dialog).getByRole('button', { name: 'Clear' }))
-
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('row', { name: /model-a/ })
-    ).not.toBeInTheDocument()
-  )
-  expect(screen.queryByRole('row', { name: /model-b/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
 
   const values = currentForm?.getValues()
   for (const field of [
@@ -277,4 +268,52 @@ it('does not offer the clear button in JSON mode', async () => {
   expect(
     screen.queryByRole('button', { name: 'Clear' })
   ).not.toBeInTheDocument()
+})
+
+it('lists a batch clear in the price change review before saving', async () => {
+  const { client, onSave } = renderForm(clearValues)
+  await waitFor(() => expect(client.isFetching()).toBe(0))
+
+  await selectModelRows(['model-a', 'model-b'])
+  const clearButton = screen.getByRole('button', { name: 'Clear' })
+  await waitFor(() => expect(clearButton).toBeEnabled())
+  await userEvent.click(clearButton)
+
+  await userEvent.click(
+    screen.getByRole('button', { name: /Save model prices/ })
+  )
+
+  const dialog = await screen.findByRole('alertdialog')
+  expect(dialog).toHaveTextContent('Confirm price changes')
+  expect(dialog).toHaveTextContent('2 models change')
+  expect(within(dialog).getAllByText('model-a').length).toBeGreaterThan(0)
+  expect(within(dialog).getAllByText('model-b').length).toBeGreaterThan(0)
+
+  await userEvent.click(
+    within(dialog).getByRole('button', { name: 'Confirm and save' })
+  )
+  await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+})
+
+it('keeps the batch clear as a draft when the review is cancelled', async () => {
+  const { client, onSave } = renderForm(clearValues)
+  await waitFor(() => expect(client.isFetching()).toBe(0))
+
+  await selectModelRows(['model-a', 'model-b'])
+  const clearButton = screen.getByRole('button', { name: 'Clear' })
+  await waitFor(() => expect(clearButton).toBeEnabled())
+  await userEvent.click(clearButton)
+
+  await userEvent.click(
+    screen.getByRole('button', { name: /Save model prices/ })
+  )
+
+  const dialog = await screen.findByRole('alertdialog')
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+  await waitFor(() =>
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  )
+  expect(onSave).not.toHaveBeenCalled()
+  expect(JSON.parse(currentForm?.getValues().ModelPrice ?? '{}')).toEqual({})
 })
