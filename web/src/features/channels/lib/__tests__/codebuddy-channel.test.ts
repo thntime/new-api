@@ -81,7 +81,7 @@ describe('CodeBuddy access mode', () => {
     expect(CHANNEL_FORM_DEFAULT_VALUES.codebuddy_region).toBe('')
   })
 
-  test('accepts cn, intl and empty in the form schema', () => {
+  test('accepts cn, intl, codearts and empty in the form schema', () => {
     expect(
       channelFormSchema.safeParse(codebuddyForm({ codebuddy_region: 'cn' }))
         .success
@@ -89,6 +89,11 @@ describe('CodeBuddy access mode', () => {
     expect(
       channelFormSchema.safeParse(codebuddyForm({ codebuddy_region: 'intl' }))
         .success
+    ).toBe(true)
+    expect(
+      channelFormSchema.safeParse(
+        codebuddyForm({ codebuddy_region: 'codearts' })
+      ).success
     ).toBe(true)
     expect(
       channelFormSchema.safeParse(codebuddyForm({ codebuddy_region: '' }))
@@ -107,6 +112,13 @@ describe('CodeBuddy access mode', () => {
     expect(
       JSON.parse(payload.channel.settings as string).codebuddy_region
     ).toBe('intl')
+
+    const codeArtsPayload = transformFormDataToCreatePayload(
+      codebuddyForm({ codebuddy_region: 'codearts' })
+    )
+    expect(
+      JSON.parse(codeArtsPayload.channel.settings as string).codebuddy_region
+    ).toBe('codearts')
 
     const emptyPayload = transformFormDataToCreatePayload(
       codebuddyForm({ codebuddy_region: '' })
@@ -139,6 +151,14 @@ describe('CodeBuddy access mode', () => {
       settings: JSON.stringify({ codebuddy_region: 'cn' }),
     })
     expect(transformChannelToFormDefaults(channel).codebuddy_region).toBe('cn')
+
+    const codeArtsChannel = channelSchema.parse({
+      ...channel,
+      settings: JSON.stringify({ codebuddy_region: 'codearts' }),
+    })
+    expect(
+      transformChannelToFormDefaults(codeArtsChannel).codebuddy_region
+    ).toBe('codearts')
 
     const unknown = channelSchema.parse({
       ...channel,

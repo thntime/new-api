@@ -7573,6 +7573,7 @@
     "Select the access mode for this CodeBuddy channel": "Chọn chế độ truy cập cho kênh CodeBuddy này",
     "Domestic": "Trong nước",
     "International": "Quốc tế",
+    "CodeArts": "CodeArts",
     "Performance Health": "Sức khỏe hiệu năng",
     "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.": "Độ trễ được tính từ nhật ký yêu cầu với độ chính xác đến giây; tỷ lệ thành công đếm từng lần thử, vì vậy yêu cầu thử lại được đếm một lần cho mỗi lần thử.",
     "Failed to load performance metrics. Adjust the filters or retry.": "Không tải được chỉ số hiệu năng. Điều chỉnh bộ lọc hoặc thử lại.",

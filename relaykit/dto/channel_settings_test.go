@@ -742,6 +742,7 @@ func TestChannelOtherSettingsValidateCodeBuddyRegion(t *testing.T) {
 	require.NoError(t, (&ChannelOtherSettings{}).ValidateCodeBuddyRegion())
 	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: "cn"}).ValidateCodeBuddyRegion())
 	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: "intl"}).ValidateCodeBuddyRegion())
+	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: "codearts"}).ValidateCodeBuddyRegion())
 	require.NoError(t, (&ChannelOtherSettings{CodeBuddyRegion: " "}).ValidateCodeBuddyRegion())
 
 	err := (&ChannelOtherSettings{CodeBuddyRegion: "eu"}).ValidateCodeBuddyRegion()

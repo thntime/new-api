@@ -7573,6 +7573,7 @@
     "Select the access mode for this CodeBuddy channel": "为此 CodeBuddy 渠道选择接入方式",
     "Domestic": "国内",
     "International": "国际",
+    "CodeArts": "CodeArts",
     "Performance Health": "性能健康",
     "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.": "延迟基于请求日志按秒精度计算；成功率按尝试次数统计，重试的请求每次尝试都会单独计数。",
     "Failed to load performance metrics. Adjust the filters or retry.": "加载性能指标失败，请调整筛选条件后重试。",

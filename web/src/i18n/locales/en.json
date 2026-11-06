@@ -7573,6 +7573,7 @@
     "Select the access mode for this CodeBuddy channel": "Select the access mode for this CodeBuddy channel",
     "Domestic": "Domestic",
     "International": "International",
+    "CodeArts": "CodeArts",
     "Performance Health": "Performance Health",
     "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.": "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.",
     "Failed to load performance metrics. Adjust the filters or retry.": "Failed to load performance metrics. Adjust the filters or retry.",

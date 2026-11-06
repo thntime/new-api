@@ -7573,6 +7573,7 @@
     "Select the access mode for this CodeBuddy channel": "この CodeBuddy チャネルのアクセスモードを選択",
     "Domestic": "国内",
     "International": "国際",
+    "CodeArts": "CodeArts",
     "Performance Health": "パフォーマンス健全性",
     "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.": "レイテンシーはリクエストログから秒単位で計算されます。成功率は試行ごとにカウントされるため、リトライされたリクエストは各試行で1回ずつカウントされます。",
     "Failed to load performance metrics. Adjust the filters or retry.": "パフォーマンス指標の読み込みに失敗しました。フィルターを調整するか、再試行してください。",

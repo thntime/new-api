@@ -4798,9 +4798,9 @@ export function ChannelMutateDrawer({
               />
             )}
 
-            {/* Access mode for CodeBuddy (93): domestic or international.
-                Like the Cline branch above, the region marker is a settings
-                field only; switching it must not rewrite base_url. */}
+            {/* Access mode for CodeBuddy (93): domestic, international or
+                CodeArts. Like the Cline branch above, the region marker is a
+                settings field only; switching it must not rewrite base_url. */}
             {currentType === CHANNEL_TYPE_CODEBUDDY && (
               <FormField
                 control={form.control}
@@ -4813,10 +4813,15 @@ export function ChannelMutateDrawer({
                       items={[
                         { value: 'cn', label: t('Domestic') },
                         { value: 'intl', label: t('International') },
+                        { value: 'codearts', label: t('CodeArts') },
                       ]}
                       onValueChange={(value) => {
                         const region =
-                          value === 'cn' || value === 'intl' ? value : ''
+                          value === 'cn' ||
+                          value === 'intl' ||
+                          value === 'codearts'
+                            ? value
+                            : ''
                         field.onChange(region)
                       }}
                       value={field.value ?? ''}
@@ -4831,6 +4836,9 @@ export function ChannelMutateDrawer({
                           <SelectItem value='cn'>{t('Domestic')}</SelectItem>
                           <SelectItem value='intl'>
                             {t('International')}
+                          </SelectItem>
+                          <SelectItem value='codearts'>
+                            {t('CodeArts')}
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>

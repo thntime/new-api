@@ -7573,6 +7573,7 @@
     "Select the access mode for this CodeBuddy channel": "Выберите способ подключения для этого канала CodeBuddy",
     "Domestic": "Внутренний",
     "International": "Международный",
+    "CodeArts": "CodeArts",
     "Performance Health": "Производительность",
     "Latency is calculated from per-request logs at second precision; the success rate counts each attempt, so a retried request is counted once per attempt.": "Задержка рассчитывается по журналам запросов с точностью до секунды; процент успешных запросов считает каждую попытку, повторный запрос учитывается один раз за попытку.",
     "Failed to load performance metrics. Adjust the filters or retry.": "Не удалось загрузить метрики производительности. Измените фильтры или повторите попытку.",

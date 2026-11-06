@@ -347,7 +347,7 @@ export const channelFormSchema = z
       .enum(['coding', 'coding-intl', 'clinepass', ''])
       .optional(), // Coding Plan：VolcEngine(45) / ZhipuV4(26) / Moonshot(25)；coding-intl 仅 ZhipuV4 后端支持；ClinePass 仅 Cline(94)
     codebuddy_region: z
-      .enum(['cn', 'intl', ''])
+      .enum(['cn', 'intl', 'codearts', ''])
       .optional(), // CodeBuddy(93)：接入方式区域标记，仅写入 settings，不改写 base_url
     // Field passthrough controls (stored in settings JSON)
     allow_service_tier: z.boolean().optional(), // OpenAI/Anthropic
@@ -646,7 +646,7 @@ export function transformChannelToFormDefaults(
   let vertexApiVersion: 'v1' | 'v1beta1' = 'v1'
   let azureResponsesVersion = ''
   let endpointProfile: 'coding' | 'coding-intl' | 'clinepass' | '' = ''
-  let codebuddyRegion: 'cn' | 'intl' | '' = ''
+  let codebuddyRegion: 'cn' | 'intl' | 'codearts' | '' = ''
   let isEnterpriseAccount = false
   let awsKeyType: 'ak_sk' | 'api_key' = 'ak_sk'
   let awsApiType: 'invoke_model' | 'mantle' = 'invoke_model'
@@ -681,7 +681,9 @@ export function transformChannelToFormDefaults(
           ? parsed.endpoint_profile
           : ''
       codebuddyRegion =
-        parsed.codebuddy_region === 'cn' || parsed.codebuddy_region === 'intl'
+        parsed.codebuddy_region === 'cn' ||
+        parsed.codebuddy_region === 'intl' ||
+        parsed.codebuddy_region === 'codearts'
           ? parsed.codebuddy_region
           : ''
       isEnterpriseAccount = parsed.openrouter_enterprise === true
