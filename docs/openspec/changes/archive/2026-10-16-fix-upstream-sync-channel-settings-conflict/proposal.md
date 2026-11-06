@@ -2,7 +2,7 @@
 
 ## 问题描述
 
-`.github/workflows/sync-upstream.yml` 每日把上游 `QuantumNous/new-api` 的 `main` 三方合并进本 fork（`zhangjinglei137/new-api`）的 `main`。上一个 change 的修复（`relay/channel/api_request.go` 融合 + rerere 种子回填）已归档并 push，但随后触发的 run [38866286804](https://github.com/zhangjinglei137/new-api/actions/runs/38866286804)（2026-10-16T07:17:35Z，`workflow_dispatch`，headSha `cfb79af57`）仍在 step 7「Merge upstream into main (three-way + rerere)」失败（13s），issue #13 已被 workflow 更新为这轮的新冲突内容。
+`.github/workflows/sync-upstream.yml` 每日把上游 `QuantumNous/new-api` 的 `main` 三方合并进本 fork（`thntime/new-api`）的 `main`。上一个 change 的修复（`relay/channel/api_request.go` 融合 + rerere 种子回填）已归档并 push，但随后触发的 run [38866286804](https://github.com/thntime/new-api/actions/runs/38866286804)（2026-10-16T07:17:35Z，`workflow_dispatch`，headSha `cfb79af57`）仍在 step 7「Merge upstream into main (three-way + rerere)」失败（13s），issue #13 已被 workflow 更新为这轮的新冲突内容。
 
 ## 背景与现状
 

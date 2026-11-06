@@ -2,7 +2,7 @@
 
 ## 问题描述
 
-`.github/workflows/sync-upstream.yml` 每日把上游 `QuantumNous/new-api` 的 `main` 三方合并进本 fork（`zhangjinglei137/new-api`）的 `main`。本次调度运行 [38843406519](https://github.com/zhangjinglei137/new-api/actions/runs/38843406519)（2026-10-16T03:01:23Z，headSha `315d35301`）在 step 7「Merge upstream into main (three-way + rerere)」失败，后续 vet / rerere 回填 / push 步骤全部 skipped，failure 兜底创建 issue [#13](https://github.com/zhangjinglei137/new-api/issues/13) 等待人工处理。
+`.github/workflows/sync-upstream.yml` 每日把上游 `QuantumNous/new-api` 的 `main` 三方合并进本 fork（`thntime/new-api`）的 `main`。本次调度运行 [38843406519](https://github.com/thntime/new-api/actions/runs/38843406519)（2026-10-16T03:01:23Z，headSha `315d35301`）在 step 7「Merge upstream into main (three-way + rerere)」失败，后续 vet / rerere 回填 / push 步骤全部 skipped，failure 兜底创建 issue [#13](https://github.com/thntime/new-api/issues/13) 等待人工处理。
 
 ## 背景与现状
 

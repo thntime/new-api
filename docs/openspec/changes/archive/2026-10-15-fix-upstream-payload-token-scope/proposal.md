@@ -1,6 +1,6 @@
 ## Why
 
-升级 CI（run [38546607612](https://github.com/zhangjinglei137/new-api/actions/runs/38546607612) 的 Backend vet, build, and test）在 router 包测试 `TestAccessTokenRouteRulesCoverEveryDashboardRoute` 失败：
+升级 CI（run [38546607612](https://github.com/thntime/new-api/actions/runs/38546607612) 的 Backend vet, build, and test）在 router 包测试 `TestAccessTokenRouteRulesCoverEveryDashboardRoute` 失败：
 
 ```
 panel route GET /api/log/upstream_payload must be declared exactly once
