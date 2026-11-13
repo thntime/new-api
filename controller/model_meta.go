@@ -158,6 +158,7 @@ func UpdateModelMeta(c *gin.Context) {
 			common.ApiError(c, err)
 			return
 		}
+		model.BumpSyncTopic(model.SyncTopicModels)
 	} else {
 		if err := validateModelCapabilities(m.Capabilities); err != nil {
 			common.ApiErrorMsg(c, err.Error())

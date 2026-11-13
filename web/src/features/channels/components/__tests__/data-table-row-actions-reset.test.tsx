@@ -44,6 +44,7 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>()
   return {
     ...actual,
+    useQuery: () => ({ data: undefined, isSuccess: false, isPending: false }),
     useQueryClient: () => ({ invalidateQueries: vi.fn() }),
   }
 })

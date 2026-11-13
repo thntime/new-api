@@ -111,6 +111,8 @@ const OPERATIONS_SECTIONS = [
             settings['log_setting.max_range_days'] ?? 365,
           'log_setting.capture_upstream_payload':
             settings['log_setting.capture_upstream_payload'] ?? false,
+          'system_task_setting.retention_days':
+            settings['system_task_setting.retention_days'] ?? 30,
         }}
       />
     ),

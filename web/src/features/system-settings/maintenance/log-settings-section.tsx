@@ -55,6 +55,9 @@ const logSettingsSchema = z.object({
     max_range_days: z.number().int().min(1),
     capture_upstream_payload: z.boolean(),
   }),
+  system_task_setting: z.object({
+    retention_days: z.number().int().min(1),
+  }),
 })
 
 type LogSettingsFormValues = z.infer<typeof logSettingsSchema>
@@ -65,6 +68,7 @@ type LogSettingsSectionProps = {
     'log_setting.user_export_enabled': boolean
     'log_setting.max_range_days': number
     'log_setting.capture_upstream_payload': boolean
+    'system_task_setting.retention_days': number
   }
 }
 
@@ -73,6 +77,7 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
   const updateOption = useUpdateOption()
   const recordingTitleId = useId()
   const searchTitleId = useId()
+  const taskHistoryTitleId = useId()
   const formDefaults = useMemo<LogSettingsFormValues>(
     () => ({
       LogConsumeEnabled: props.defaultValues.LogConsumeEnabled,
@@ -82,6 +87,10 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
         max_range_days: props.defaultValues['log_setting.max_range_days'],
         capture_upstream_payload:
           props.defaultValues['log_setting.capture_upstream_payload'],
+      },
+      system_task_setting: {
+        retention_days:
+          props.defaultValues['system_task_setting.retention_days'],
       },
     }),
     [props.defaultValues]
@@ -106,6 +115,10 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
       [
         'log_setting.capture_upstream_payload',
         values.log_setting.capture_upstream_payload,
+      ],
+      [
+        'system_task_setting.retention_days',
+        values.system_task_setting.retention_days,
       ],
     ] as const
     for (const [key, value] of changes) {
@@ -230,6 +243,44 @@ export function LogSettingsSection(props: LogSettingsSectionProps) {
                     <FormDescription>
                       {t(
                         'The longest time range a user can view at once in the logs and on the dashboard, and the longest range any export can cover.'
+                      )}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </SettingsFormGrid>
+          </div>
+
+          <Separator />
+
+          <div
+            role='group'
+            aria-labelledby={taskHistoryTitleId}
+            className='flex min-w-0 flex-col gap-4'
+          >
+            <h4 id={taskHistoryTitleId} className='font-medium'>
+              {t('System task records')}
+            </h4>
+            <SettingsFormGrid>
+              <FormField
+                control={form.control}
+                name='system_task_setting.retention_days'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Keep finished tasks for (days)')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='number'
+                        min={1}
+                        step={1}
+                        placeholder='30'
+                        {...safeNumberFieldProps(field)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t(
+                        'Finished system tasks older than this are deleted automatically every day.'
                       )}
                     </FormDescription>
                     <FormMessage />
