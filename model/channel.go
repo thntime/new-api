@@ -514,6 +514,32 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 	return channel, nil
 }
 
+// GetChannelsByIdsOrdered returns the channels of ids in the given order,
+// including their keys. It reports a missing id instead of silently dropping it,
+// so a caller that must return exactly the selected rows cannot lose one.
+func GetChannelsByIdsOrdered(ids []int) ([]*Channel, error) {
+	channels := make([]*Channel, 0, len(ids))
+	if len(ids) == 0 {
+		return channels, nil
+	}
+	var found []*Channel
+	if err := DB.Where("id IN ?", ids).Find(&found).Error; err != nil {
+		return nil, err
+	}
+	byID := make(map[int]*Channel, len(found))
+	for _, channel := range found {
+		byID[channel.Id] = channel
+	}
+	for _, id := range ids {
+		channel, ok := byID[id]
+		if !ok {
+			return nil, fmt.Errorf("channel %d does not exist", id)
+		}
+		channels = append(channels, channel)
+	}
+	return channels, nil
+}
+
 func BatchInsertChannels(channels []Channel) error {
 	if len(channels) == 0 {
 		return nil

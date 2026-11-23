@@ -42,10 +42,14 @@ import type {
   ChannelTestResponse,
   CopyChannelParams,
   CopyChannelResponse,
+  ExportChannelsParams,
+  ExportChannelsResponse,
   FetchModelsResponse,
   GetChannelResponse,
   GetChannelsParams,
   GetChannelsResponse,
+  ImportChannelsParams,
+  ImportChannelsResponse,
   MultiKeyManageParams,
   MultiKeyStatusResponse,
   SearchChannelsParams,
@@ -314,6 +318,34 @@ export async function batchSetChannelTag(
 ): Promise<{ success: boolean; message?: string; data?: number }> {
   const res = await api.post(
     '/api/channel/batch/tag',
+    data,
+    channelActionConfig()
+  )
+  return res.data
+}
+
+/**
+ * Export selected channels as a password-encrypted `.nacx` file.
+ */
+export async function exportChannels(
+  data: ExportChannelsParams
+): Promise<ExportChannelsResponse> {
+  const res = await api.post(
+    '/api/channel/export',
+    data,
+    channelActionConfig()
+  )
+  return res.data
+}
+
+/**
+ * Import channels from a password-encrypted `.nacx` file.
+ */
+export async function importChannels(
+  data: ImportChannelsParams
+): Promise<ImportChannelsResponse> {
+  const res = await api.post(
+    '/api/channel/import',
     data,
     channelActionConfig()
   )

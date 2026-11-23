@@ -8135,6 +8135,25 @@
     "Some models kept ratio pricing and need manual conversion: {{models}}": "Certains modèles conservent une tarification par ratio et doivent être convertis manuellement : {{models}}",
     "Preparing billing expressions... {{completed}}/{{total}}": "Préparation des expressions de facturation... {{completed}}/{{total}}",
     "Clear pricing for {{count}} models?": "Effacer la tarification de {{count}} modèles ?",
-    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Cela supprime tous les champs de tarification des modèles sélectionnés. Les modifications s'appliquent après l'enregistrement."
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Cela supprime tous les champs de tarification des modèles sélectionnés. Les modifications s'appliquent après l'enregistrement.",
+    "Export Channels": "Exporter les canaux",
+    "Import Channels": "Importer des canaux",
+    "Export selected channels": "Exporter les canaux sélectionnés",
+    "Import": "Importer",
+    "Channel export file": "Fichier d'export de canaux",
+    "Failed to export channels": "Échec de l'export des canaux",
+    "Failed to import channels": "Échec de l'import des canaux",
+    "Exported {{count}} channels": "{{count}} canaux exportés",
+    "Imported {{count}} channels": "{{count}} canaux importés",
+    "Please select a channel export file": "Sélectionnez un fichier d'export de canaux",
+    "The exported file is encrypted with this password. The password cannot be recovered.": "Le fichier exporté est chiffré avec ce mot de passe. Le mot de passe ne peut pas être récupéré.",
+    "The file contains channel keys. Store it securely.": "Le fichier contient les clés des canaux. Conservez-le en lieu sûr.",
+    "The file is decrypted with the password used when it was exported.": "Le fichier est déchiffré avec le mot de passe utilisé lors de l'export.",
+    "Import channels from a password-encrypted channel export file.": "Importer des canaux depuis un fichier d'export chiffré par mot de passe.",
+    "Wrong password or corrupted export file": "Mot de passe incorrect ou fichier d'export corrompu",
+    "Channel export file is empty": "Le fichier d'export de canaux est vide",
+    "You can export at most {{max}} channels at a time": "Vous pouvez exporter au maximum {{max}} canaux à la fois",
+    "You can import at most {{max}} channels at a time": "Vous pouvez importer au maximum {{max}} canaux à la fois",
+    "Channel {{index}} ({{name}}) is invalid: {{error}}": "Le canal {{index}} ({{name}}) est invalide : {{error}}"
   }
 }

@@ -8135,6 +8135,25 @@
     "Some models kept ratio pricing and need manual conversion: {{models}}": "部分模型仍使用倍率定價，需要手動轉換：{{models}}",
     "Preparing billing expressions... {{completed}}/{{total}}": "正在準備計費表達式... {{completed}}/{{total}}",
     "Clear pricing for {{count}} models?": "清空 {{count}} 個模型的定價？",
-    "This removes all pricing fields for the selected models. Changes apply only after saving.": "這會刪除所選模型的全部定價欄位，儲存後生效。"
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "這會刪除所選模型的全部定價欄位，儲存後生效。",
+    "Export Channels": "匯出渠道",
+    "Import Channels": "匯入渠道",
+    "Export selected channels": "匯出選取的渠道",
+    "Import": "匯入",
+    "Channel export file": "渠道匯出檔案",
+    "Failed to export channels": "匯出渠道失敗",
+    "Failed to import channels": "匯入渠道失敗",
+    "Exported {{count}} channels": "已匯出 {{count}} 個渠道",
+    "Imported {{count}} channels": "已匯入 {{count}} 個渠道",
+    "Please select a channel export file": "請選擇一個渠道匯出檔案",
+    "The exported file is encrypted with this password. The password cannot be recovered.": "匯出檔案使用此密碼加密，密碼無法找回。",
+    "The file contains channel keys. Store it securely.": "檔案包含渠道金鑰，請妥善保管。",
+    "The file is decrypted with the password used when it was exported.": "檔案使用匯出時設定的密碼解密。",
+    "Import channels from a password-encrypted channel export file.": "從使用密碼加密的渠道匯出檔案匯入渠道。",
+    "Wrong password or corrupted export file": "密碼錯誤或匯出檔案已損毀",
+    "Channel export file is empty": "渠道匯出檔案為空",
+    "You can export at most {{max}} channels at a time": "一次最多匯出 {{max}} 個渠道",
+    "You can import at most {{max}} channels at a time": "一次最多匯入 {{max}} 個渠道",
+    "Channel {{index}} ({{name}}) is invalid: {{error}}": "第 {{index}} 個渠道（{{name}}）無效：{{error}}"
   }
 }

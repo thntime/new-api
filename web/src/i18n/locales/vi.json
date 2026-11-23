@@ -8135,6 +8135,25 @@
     "Some models kept ratio pricing and need manual conversion: {{models}}": "Một số mô hình vẫn dùng giá theo tỷ lệ và cần chuyển đổi thủ công: {{models}}",
     "Preparing billing expressions... {{completed}}/{{total}}": "Đang chuẩn bị biểu thức tính phí... {{completed}}/{{total}}",
     "Clear pricing for {{count}} models?": "Xóa giá của {{count}} mô hình?",
-    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Thao tác này xóa tất cả trường giá của các mô hình đã chọn. Thay đổi chỉ áp dụng sau khi lưu."
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "Thao tác này xóa tất cả trường giá của các mô hình đã chọn. Thay đổi chỉ áp dụng sau khi lưu.",
+    "Export Channels": "Xuất kênh",
+    "Import Channels": "Nhập kênh",
+    "Export selected channels": "Xuất các kênh đã chọn",
+    "Import": "Nhập",
+    "Channel export file": "Tệp xuất kênh",
+    "Failed to export channels": "Xuất kênh thất bại",
+    "Failed to import channels": "Nhập kênh thất bại",
+    "Exported {{count}} channels": "Đã xuất {{count}} kênh",
+    "Imported {{count}} channels": "Đã nhập {{count}} kênh",
+    "Please select a channel export file": "Vui lòng chọn tệp xuất kênh",
+    "The exported file is encrypted with this password. The password cannot be recovered.": "Tệp xuất được mã hóa bằng mật khẩu này. Không thể khôi phục mật khẩu.",
+    "The file contains channel keys. Store it securely.": "Tệp chứa khóa của kênh. Hãy lưu trữ an toàn.",
+    "The file is decrypted with the password used when it was exported.": "Tệp được giải mã bằng mật khẩu đã dùng khi xuất.",
+    "Import channels from a password-encrypted channel export file.": "Nhập kênh từ tệp xuất kênh được mã hóa bằng mật khẩu.",
+    "Wrong password or corrupted export file": "Sai mật khẩu hoặc tệp xuất bị hỏng",
+    "Channel export file is empty": "Tệp xuất kênh trống",
+    "You can export at most {{max}} channels at a time": "Chỉ có thể xuất tối đa {{max}} kênh mỗi lần",
+    "You can import at most {{max}} channels at a time": "Chỉ có thể nhập tối đa {{max}} kênh mỗi lần",
+    "Channel {{index}} ({{name}}) is invalid: {{error}}": "Kênh {{index}} ({{name}}) không hợp lệ: {{error}}"
   }
 }

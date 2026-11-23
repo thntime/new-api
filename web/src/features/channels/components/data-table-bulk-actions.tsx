@@ -17,8 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQueryClient } from '@tanstack/react-query'
-import { type Table } from '@tanstack/react-table'
-import { Power, PowerOff, Tag, Trash2 } from 'lucide-react'
+import type { Table } from '@tanstack/react-table'
+import { Download, Power, PowerOff, Tag, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -47,6 +47,7 @@ import {
   handleBatchSetTag,
 } from '../lib'
 import type { Channel } from '../types'
+import { ExportChannelsDialog } from './dialogs/export-channels-dialog'
 
 interface DataTableBulkActionsProps<TData> {
   table: Table<TData>
@@ -59,6 +60,7 @@ export function DataTableBulkActions<TData>({
   const queryClient = useQueryClient()
   const [showTagDialog, setShowTagDialog] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showExportDialog, setShowExportDialog] = useState(false)
   const [tagValue, setTagValue] = useState('')
   const currentUser = useAuthStore((s) => s.auth.user)
   const canEditSensitive = hasPermission(
@@ -178,6 +180,36 @@ export function DataTableBulkActions<TData>({
           <TooltipTrigger
             render={
               <Button
+                variant='outline'
+                size='icon'
+                onClick={() => setShowExportDialog(true)}
+                disabled={selectedIds.length === 0 || !canEditSensitive}
+                className='size-8'
+                aria-label={t('Export selected channels')}
+                title={
+                  canEditSensitive
+                    ? t('Export selected channels')
+                    : t('No permission to perform this action')
+                }
+              />
+            }
+          >
+            <Download />
+            <span className='sr-only'>{t('Export selected channels')}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              {canEditSensitive
+                ? t('Export selected channels')
+                : t('No permission to perform this action')}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
                 variant='destructive'
                 size='icon'
                 onClick={() => {
@@ -286,6 +318,12 @@ export function DataTableBulkActions<TData>({
       >
         {' '}
       </Dialog>
+
+      <ExportChannelsDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        ids={selectedIds}
+      />
     </>
   )
 }

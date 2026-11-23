@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>变更说明 · 渠道批量加密导出与导入</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #fafbfc;
+  --ink: #202a35;
+  --muted: #566575;
+  --line: #dbe2e8;
+  --accent: #245b85;
+  --highlight: #edf3f7;
+  --hover: #e9eef3;
+  --code-bg: #edf0f4;
+  --code-ink: #263443;
+  --success: #236d4f;
+  --failure: #a83131;
+  --text: 15px;
+  --small: 13px;
+  --label: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #181d23;
+    --ink: #e4eaf0;
+    --muted: #a4b1be;
+    --line: #35404b;
+    --accent: #94c6ec;
+    --highlight: #222e39;
+    --hover: #27323d;
+    --code-bg: #10161d;
+    --code-ink: #e0e8f0;
+    --success: #8ed8b5;
+    --failure: #ffb0a8;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: var(--text)/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1040px; margin: auto; padding: 32px 32px 48px; }
+.eyebrow { color: var(--accent); font-size: var(--label); font-weight: 500; letter-spacing: .08em; }
+h1 { margin: 8px 0 12px; max-width: 32em; font-size: 28px; font-weight: 500; line-height: 1.4; letter-spacing: -.02em; overflow-wrap: anywhere; }
+h2 { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+h3 { margin: 0 0 4px; color: var(--muted); font-size: var(--label); font-weight: 500; }
+p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+strong { font-weight: 500; }
+.meta { margin-bottom: 24px; color: var(--muted); font-size: var(--small); overflow-wrap: anywhere; }
+.meta p + p { margin-top: 2px; }
+article { padding: 20px 0 12px; border-top: 1px solid var(--line); }
+article header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.number { color: var(--muted); font: var(--label)/1.5 ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.comparison section { min-width: 0; padding: 12px; }
+.after { background: var(--highlight); border-radius: 4px; }
+.after h3 { color: var(--accent); }
+.reason { margin-top: 12px; font-size: var(--small); color: var(--muted); }
+.reason strong { margin-right: 8px; color: var(--ink); }
+summary { min-height: 44px; padding: 10px 4px; cursor: pointer; font-size: var(--small); font-weight: 500; border-radius: 4px; }
+summary:hover { background: var(--hover); }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.count, .tag { color: var(--muted); font-size: var(--label); font-weight: 400; }
+.count { margin-left: 4px; font-variant-numeric: tabular-nums; }
+.file { min-width: 0; padding: 0 0 16px; scroll-margin-top: 20px; }
+.file:target { outline: 2px solid var(--accent); outline-offset: 4px; }
+.file-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.file-heading code { min-width: 0; font-size: var(--small); overflow-wrap: anywhere; }
+.tag { white-space: nowrap; }
+pre { margin: 8px 0 0; padding: 12px 16px; overflow: auto; background: var(--code-bg); color: var(--code-ink); border-radius: 4px; font: var(--small)/1.65 ui-monospace, Consolas, monospace; tab-size: 2; }
+footer { margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+footer h2 { margin-bottom: 8px; }
+.check { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.status { padding-top: 2px; font-size: var(--label); font-weight: 500; }
+.passed { color: var(--success); }
+.failed { color: var(--failure); }
+.not-run, .unknown { color: var(--muted); }
+.check p { margin-top: 2px; color: var(--muted); font-size: var(--small); }
+.more { border-top: 1px solid var(--line); }
+.more > summary { padding-block: 12px; }
+.diagram { margin: 0; padding: 20px 0; border-top: 1px solid var(--line); }
+.diagram figcaption { margin-bottom: 12px; font-size: 18px; font-weight: 500; overflow-wrap: anywhere; }
+.diagram-svg { display: block; max-width: 100%; height: auto; margin: auto; overflow: visible; font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; }
+.diagram-svg text { fill: var(--ink); }
+.diagram-edge { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.diagram-svg marker path { fill: var(--muted); }
+.diagram-edge-label { fill: var(--page); }
+.diagram-svg .diagram-edge-text { fill: var(--muted); font-size: 12px; }
+.diagram-node rect { fill: var(--page); stroke: var(--line); stroke-width: 1.5; }
+.diagram-node.modified rect { fill: var(--highlight); stroke: var(--accent); }
+.diagram-node.added rect { stroke: var(--success); }
+.diagram-node.deleted rect { stroke: var(--failure); stroke-dasharray: 4 3; }
+.diagram-svg .diagram-kind { fill: var(--muted); font-size: 11px; }
+.diagram-node[href] { cursor: pointer; }
+.diagram-node[href]:hover rect, .diagram-node[href]:focus-visible rect { stroke: var(--accent); stroke-width: 2.5; }
+.diagram-node[href]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.diagram-hint { margin-top: 12px; color: var(--muted); font-size: var(--small); text-align: center; }
+.diagram-comparison { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+.diagram-comparison > section { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 4px; }
+.diagram-comparison > section > h3 { margin-bottom: 12px; }
+.diagram-compact { display: none; }
+@media (max-width: 999px) {
+  .diagram-wide { display: none; }
+  .diagram-compact { display: block; }
+}
+@media (max-width: 640px) {
+  main { padding: 24px 16px 32px; }
+  h1 { font-size: 24px; }
+  .meta { margin-bottom: 20px; }
+  article { padding-top: 16px; }
+  article header { gap: 8px; }
+  .comparison { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .check { grid-template-columns: 60px minmax(0, 1fr); gap: 8px; }
+  pre { padding: 12px; }
+  .diagram-comparison { grid-template-columns: minmax(0,1fr); }
+  .diagram-comparison > section { padding: 12px 0; border: 0; }
+}
+</style></head><body><main><div class="eyebrow">COMET / 变更说明</div><h1>渠道批量加密导出与导入</h1><div class="meta"><p>比较范围 · 工作区相对 HEAD 的本次实现差异；不包含 .gitignore、AGENTS.md、.comet/ 等无关改动。</p><p>生成时间 · 2026-11-23T07:14:47.819Z</p></div><figure class="diagram"><figcaption>导出与导入主路径</figcaption><svg class="diagram-svg" width="272" height="660" viewBox="0 0 272 660" role="group" aria-labelledby="walkthrough-diagram-0-compact-title walkthrough-diagram-0-compact-description"><title id="walkthrough-diagram-0-compact-title">导出与导入主路径</title><desc id="walkthrough-diagram-0-compact-description">选中渠道 → 导出弹窗 / 密码; 导出弹窗 / 密码 → .nacx 加密文件; .nacx 加密文件 → 导入弹窗 / 同密码; 导入弹窗 / 同密码 → 逐条校验; 逐条校验 → 整批插入 / 新 id 保序</desc><defs><marker id="walkthrough-diagram-0-compact-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z"/></marker></defs><path class="diagram-edge" d="M 136 88 C 136 106, 136 106, 136 121" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 200 C 136 218, 136 218, 136 233" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 312 C 136 330, 136 330, 136 345" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 424 C 136 442, 136 442, 136 457" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 536 C 136 554, 136 554, 136 569" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><g class="diagram-node "><rect x="80" y="12" width="112" height="76" rx="5"/><text class="" x="136" y="54" text-anchor="middle"><tspan x="136" dy="0">选中渠道</tspan></text></g><a class="diagram-node added" href="#walkthrough-file-1-0" aria-label="导出弹窗 / 密码 · web/src/features/channels/components/dialogs/export-channels-dialog.tsx"><rect x="80" y="124" width="112" height="76" rx="5"/><text class="diagram-kind" x="136" y="141" text-anchor="middle"><tspan x="136" dy="0">新增</tspan></text><text class="" x="136" y="159" text-anchor="middle"><tspan x="136" dy="0">导出弹窗 /</tspan><tspan x="136" dy="18">密码</tspan></text></a><a class="diagram-node added" href="#walkthrough-file-0-0" aria-label=".nacx 加密文件 · controller/channel_export.go"><rect x="80" y="236" width="112" height="76" rx="5"/><text class="diagram-kind" x="136" y="253" text-anchor="middle"><tspan x="136" dy="0">新增</tspan></text><text class="" x="136" y="271" text-anchor="middle"><tspan x="136" dy="0">.nacx</tspan><tspan x="136" dy="18">加密文件</tspan></text></a><a class="diagram-node added" href="#walkthrough-file-1-1" aria-label="导入弹窗 / 同密码 · web/src/features/channels/components/dialogs/import-channels-dialog.tsx"><rect x="80" y="348" width="112" height="76" rx="5"/><text class="diagram-kind" x="136" y="365" text-anchor="middle"><tspan x="136" dy="0">新增</tspan></text><text class="" x="136" y="383" text-anchor="middle"><tspan x="136" dy="0">导入弹窗 /</tspan><tspan x="136" dy="18">同密码</tspan></text></a><a class="diagram-node added" href="#walkthrough-file-0-0" aria-label="逐条校验 · controller/channel_export.go"><rect x="80" y="460" width="112" height="76" rx="5"/><text class="diagram-kind" x="136" y="477" text-anchor="middle"><tspan x="136" dy="0">新增</tspan></text><text class="" x="136" y="495" text-anchor="middle"><tspan x="136" dy="0">逐条校验</tspan></text></a><a class="diagram-node modified" href="#walkthrough-file-0-1" aria-label="整批插入 / 新 id 保序 · model/channel.go"><rect x="80" y="572" width="112" height="76" rx="5"/><text class="diagram-kind" x="136" y="589" text-anchor="middle"><tspan x="136" dy="0">修改</tspan></text><text class="" x="136" y="607" text-anchor="middle"><tspan x="136" dy="0">整批插入 /</tspan><tspan x="136" dy="18">新 id 保序</tspan></text></a></svg><p class="diagram-hint">点击带链接的节点查看相关代码。</p></figure><article><header><span class="number">01</span><h2>后端导出与导入</h2></header><div class="comparison"><section><h3>原来</h3><p>渠道配置只能逐个手工重建，跨实例迁移没有安全通道。</p></section><section class="after"><h3>现在</h3><p>选中渠道用密码加密导出为 .nacx；导入时输入同一密码才创建，id 自增且严格保持文件顺序。</p></section></div><p class="reason"><strong>原因</strong> 支持实例迁移、备份恢复和批量复制，同时避免密码错误或文件被篡改时落库。</p><details><summary>查看文件和关键代码 <span class="count">4</span></summary><div class="file" id="walkthrough-file-0-0"><div class="file-heading"><span class="tag">新增</span><code>controller/channel_export.go</code></div><pre><code>ExportChannels / ImportChannels：scrypt + AES-256-GCM 信封、DTO 白名单、逐条校验、BatchInsertChannels 整批回滚</code></pre></div><div class="file" id="walkthrough-file-0-1"><div class="file-heading"><span class="tag">修改</span><code>model/channel.go</code></div><pre><code>GetChannelsByIdsOrdered：按请求 ids 保序查询，缺失 id 报错</code></pre></div><div class="file" id="walkthrough-file-0-2"><div class="file-heading"><span class="tag">修改</span><code>router/channel-router.go</code></div><pre><code>POST /api/channel/export、/import，权限 ChannelSensitiveWrite</code></pre></div><div class="file" id="walkthrough-file-0-3"><div class="file-heading"><span class="tag">修改</span><code>controller/audit.go</code></div><pre><code>channel.export / channel.import 审计模板，只记录 count</code></pre></div></details></article><article><header><span class="number">02</span><h2>前端入口与弹窗</h2></header><div class="comparison"><section><h3>原来</h3><p>渠道页没有导入导出入口。</p></section><section class="after"><h3>现在</h3><p>批量操作栏可导出选中渠道；「更多操作」可导入 .nacx；弹窗处理密码、文件选择、下载和错误翻译。</p></section></div><p class="reason"><strong>原因</strong> 让管理员在现有渠道列表里完成迁移，不需要手工拼请求。</p><details><summary>查看文件和关键代码 <span class="count">4</span></summary><div class="file" id="walkthrough-file-1-0"><div class="file-heading"><span class="tag">新增</span><code>web/src/features/channels/components/dialogs/export-channels-dialog.tsx</code></div><pre><code>密码校验、下载后端返回的 filename/content、成功提示数量</code></pre></div><div class="file" id="walkthrough-file-1-1"><div class="file-heading"><span class="tag">新增</span><code>web/src/features/channels/components/dialogs/import-channels-dialog.tsx</code></div><pre><code>读取文件文本、提交 password/content、内层 error_key/error_params 翻译、刷新列表</code></pre></div><div class="file" id="walkthrough-file-1-2"><div class="file-heading"><span class="tag">修改</span><code>web/src/features/channels/components/data-table-bulk-actions.tsx</code></div><pre><code>导出按钮：无选中或无敏感写权限时不可用</code></pre></div><div class="file" id="walkthrough-file-1-3"><div class="file-heading"><span class="tag">修改</span><code>web/src/features/channels/components/channels-primary-buttons.tsx</code></div><pre><code>更多操作 → Import Channels，权限不足置灰</code></pre></div></details></article><article><header><span class="number">03</span><h2>i18n 与审计展示</h2></header><div class="comparison"><section><h3>原来</h3><p>没有对应界面文案和审计动作展示。</p></section><section class="after"><h3>现在</h3><p>7 个语言文件补齐界面与后端错误键；使用日志能展示导出/导入动作。</p></section></div><p class="reason"><strong>原因</strong> 保证多语言可用和操作可追溯。</p><details><summary>查看文件和关键代码 <span class="count">2</span></summary><div class="file" id="walkthrough-file-2-0"><div class="file-heading"><span class="tag">修改</span><code>web/src/features/usage-logs/lib/format.ts</code></div><pre><code>channel.export / channel.import 展示模板</code></pre></div><div class="file" id="walkthrough-file-2-1"><div class="file-heading"><span class="tag">修改</span><code>web/src/i18n/locales/en.json</code></div><pre><code>新增界面键与后端错误键（7 个语言文件同步）</code></pre></div></details></article><footer><h2>实际验证</h2><div class="check"><span class="status passed">通过</span><div><strong>Builder 自检</strong><p>go build 0；后端 TestChannelExportImport 19 PASS / 0 FAIL；前端 10 PASS；tsgo 0；oxlint 0；i18n:sync 7 语言 missing/extras 0 且幂等</p></div></div><div class="check"><span class="status passed">通过</span><div><strong>独立任务审查</strong><p>后端导出 Approved；后端导入 2 Important 已修并复查通过；前端 Approved，3 Minor 已修</p></div></div><div class="check"><span class="status passed">通过</span><div><strong>反向验证</strong><p>导入倒序与错误密码保护变异均产生 RED，还原后 19 PASS，无残留</p></div></div><div class="check"><span class="status not-run">未执行</span><div><strong>最终集成审查</strong><p>正在执行 Comet Verify 的最终集成审查</p></div></div></footer></main><template id="walkthrough-data">eyJzdW1tYXJ5Ijoi5rig6YGT5om56YeP5Yqg5a+G5a+85Ye65LiO5a+85YWlIiwic2NvcGUiOiLlt6XkvZzljLrnm7jlr7kgSEVBRCDnmoTmnKzmrKHlrp7njrDlt67lvILvvJvkuI3ljIXlkKsgLmdpdGlnbm9yZeOAgUFHRU5UUy5tZOOAgS5jb21ldC8g562J5peg5YWz5pS55Yqo44CCIiwiY2hhbmdlcyI6W3sidGl0bGUiOiLlkI7nq6/lr7zlh7rkuI7lr7zlhaUiLCJiZWZvcmUiOiLmuKDpgZPphY3nva7lj6rog73pgJDkuKrmiYvlt6Xph43lu7rvvIzot6jlrp7kvovov4Hnp7vmsqHmnInlronlhajpgJrpgZPjgIIiLCJhZnRlciI6IumAieS4rea4oOmBk+eUqOWvhueggeWKoOWvhuWvvOWHuuS4uiAubmFjeO+8m+WvvOWFpeaXtui+k+WFpeWQjOS4gOWvhueggeaJjeWIm+W7uu+8jGlkIOiHquWinuS4lOS4peagvOS/neaMgeaWh+S7tumhuuW6j+OAgiIsInJlYXNvbiI6IuaUr+aMgeWunuS+i+i/geenu+OAgeWkh+S7veaBouWkjeWSjOaJuemHj+WkjeWItu+8jOWQjOaXtumBv+WFjeWvhueggemUmeivr+aIluaWh+S7tuiiq+evoeaUueaXtuiQveW6k+OAgiIsImZpbGVzIjpbeyJwYXRoIjoiY29udHJvbGxlci9jaGFubmVsX2V4cG9ydC5nbyIsImtpbmQiOiJhZGRlZCIsImNvZGUiOiJFeHBvcnRDaGFubmVscyAvIEltcG9ydENoYW5uZWxz77yac2NyeXB0ICsgQUVTLTI1Ni1HQ00g5L+h5bCB44CBRFRPIOeZveWQjeWNleOAgemAkOadoeagoemqjOOAgUJhdGNoSW5zZXJ0Q2hhbm5lbHMg5pW05om55Zue5ruaIn0seyJwYXRoIjoibW9kZWwvY2hhbm5lbC5nbyIsImtpbmQiOiJtb2RpZmllZCIsImNvZGUiOiJHZXRDaGFubmVsc0J5SWRzT3JkZXJlZO+8muaMieivt+axgiBpZHMg5L+d5bqP5p+l6K+i77yM57y65aSxIGlkIOaKpemUmSJ9LHsicGF0aCI6InJvdXRlci9jaGFubmVsLXJvdXRlci5nbyIsImtpbmQiOiJtb2RpZmllZCIsImNvZGUiOiJQT1NUIC9hcGkvY2hhbm5lbC9leHBvcnTjgIEvaW1wb3J077yM5p2D6ZmQIENoYW5uZWxTZW5zaXRpdmVXcml0ZSJ9LHsicGF0aCI6ImNvbnRyb2xsZXIvYXVkaXQuZ28iLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoiY2hhbm5lbC5leHBvcnQgLyBjaGFubmVsLmltcG9ydCDlrqHorqHmqKHmnb/vvIzlj6rorrDlvZUgY291bnQifV19LHsidGl0bGUiOiLliY3nq6/lhaXlj6PkuI7lvLnnqpciLCJiZWZvcmUiOiLmuKDpgZPpobXmsqHmnInlr7zlhaXlr7zlh7rlhaXlj6PjgIIiLCJhZnRlciI6IuaJuemHj+aTjeS9nOagj+WPr+WvvOWHuumAieS4rea4oOmBk++8m+OAjOabtOWkmuaTjeS9nOOAjeWPr+WvvOWFpSAubmFjeO+8m+W8ueeql+WkhOeQhuWvhueggeOAgeaWh+S7tumAieaLqeOAgeS4i+i9veWSjOmUmeivr+e/u+ivkeOAgiIsInJlYXNvbiI6IuiuqeeuoeeQhuWRmOWcqOeOsOaciea4oOmBk+WIl+ihqOmHjOWujOaIkOi/geenu++8jOS4jemcgOimgeaJi+W3peaLvOivt+axguOAgiIsImZpbGVzIjpbeyJwYXRoIjoid2ViL3NyYy9mZWF0dXJlcy9jaGFubmVscy9jb21wb25lbnRzL2RpYWxvZ3MvZXhwb3J0LWNoYW5uZWxzLWRpYWxvZy50c3giLCJraW5kIjoiYWRkZWQiLCJjb2RlIjoi5a+G56CB5qCh6aqM44CB5LiL6L295ZCO56uv6L+U5Zue55qEIGZpbGVuYW1lL2NvbnRlbnTjgIHmiJDlip/mj5DnpLrmlbDph48ifSx7InBhdGgiOiJ3ZWIvc3JjL2ZlYXR1cmVzL2NoYW5uZWxzL2NvbXBvbmVudHMvZGlhbG9ncy9pbXBvcnQtY2hhbm5lbHMtZGlhbG9nLnRzeCIsImtpbmQiOiJhZGRlZCIsImNvZGUiOiLor7vlj5bmlofku7bmlofmnKzjgIHmj5DkuqQgcGFzc3dvcmQvY29udGVudOOAgeWGheWxgiBlcnJvcl9rZXkvZXJyb3JfcGFyYW1zIOe/u+ivkeOAgeWIt+aWsOWIl+ihqCJ9LHsicGF0aCI6IndlYi9zcmMvZmVhdHVyZXMvY2hhbm5lbHMvY29tcG9uZW50cy9kYXRhLXRhYmxlLWJ1bGstYWN0aW9ucy50c3giLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoi5a+85Ye65oyJ6ZKu77ya5peg6YCJ5Lit5oiW5peg5pWP5oSf5YaZ5p2D6ZmQ5pe25LiN5Y+v55SoIn0seyJwYXRoIjoid2ViL3NyYy9mZWF0dXJlcy9jaGFubmVscy9jb21wb25lbnRzL2NoYW5uZWxzLXByaW1hcnktYnV0dG9ucy50c3giLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoi5pu05aSa5pON5L2cIOKGkiBJbXBvcnQgQ2hhbm5lbHPvvIzmnYPpmZDkuI3otrPnva7ngbAifV19LHsidGl0bGUiOiJpMThuIOS4juWuoeiuoeWxleekuiIsImJlZm9yZSI6IuayoeacieWvueW6lOeVjOmdouaWh+ahiOWSjOWuoeiuoeWKqOS9nOWxleekuuOAgiIsImFmdGVyIjoiNyDkuKror63oqIDmlofku7booaXpvZDnlYzpnaLkuI7lkI7nq6/plJnor6/plK7vvJvkvb/nlKjml6Xlv5fog73lsZXnpLrlr7zlh7ov5a+85YWl5Yqo5L2c44CCIiwicmVhc29uIjoi5L+d6K+B5aSa6K+t6KiA5Y+v55So5ZKM5pON5L2c5Y+v6L+95rqv44CCIiwiZmlsZXMiOlt7InBhdGgiOiJ3ZWIvc3JjL2ZlYXR1cmVzL3VzYWdlLWxvZ3MvbGliL2Zvcm1hdC50cyIsImtpbmQiOiJtb2RpZmllZCIsImNvZGUiOiJjaGFubmVsLmV4cG9ydCAvIGNoYW5uZWwuaW1wb3J0IOWxleekuuaooeadvyJ9LHsicGF0aCI6IndlYi9zcmMvaTE4bi9sb2NhbGVzL2VuLmpzb24iLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoi5paw5aKe55WM6Z2i6ZSu5LiO5ZCO56uv6ZSZ6K+v6ZSu77yINyDkuKror63oqIDmlofku7blkIzmraXvvIkifV19XSwidmVyaWZpY2F0aW9uIjpbeyJsYWJlbCI6IkJ1aWxkZXIg6Ieq5qOAIiwic3RhdHVzIjoicGFzc2VkIiwiZGV0YWlsIjoiZ28gYnVpbGQgMO+8m+WQjuerryBUZXN0Q2hhbm5lbEV4cG9ydEltcG9ydCAxOSBQQVNTIC8gMCBGQUlM77yb5YmN56uvIDEwIFBBU1PvvJt0c2dvIDDvvJtveGxpbnQgMO+8m2kxOG46c3luYyA3IOivreiogCBtaXNzaW5nL2V4dHJhcyAwIOS4lOW5guetiSJ9LHsibGFiZWwiOiLni6znq4vku7vliqHlrqHmn6UiLCJzdGF0dXMiOiJwYXNzZWQiLCJkZXRhaWwiOiLlkI7nq6/lr7zlh7ogQXBwcm92ZWTvvJvlkI7nq6/lr7zlhaUgMiBJbXBvcnRhbnQg5bey5L+u5bm25aSN5p+l6YCa6L+H77yb5YmN56uvIEFwcHJvdmVk77yMMyBNaW5vciDlt7Lkv64ifSx7ImxhYmVsIjoi5Y+N5ZCR6aqM6K+BIiwic3RhdHVzIjoicGFzc2VkIiwiZGV0YWlsIjoi5a+85YWl5YCS5bqP5LiO6ZSZ6K+v5a+G56CB5L+d5oqk5Y+Y5byC5Z2H5Lqn55SfIFJFRO+8jOi/mOWOn+WQjiAxOSBQQVNT77yM5peg5q6L55WZIn0seyJsYWJlbCI6IuacgOe7iOmbhuaIkOWuoeafpSIsInN0YXR1cyI6Im5vdC1ydW4iLCJkZXRhaWwiOiLmraPlnKjmiafooYwgQ29tZXQgVmVyaWZ5IOeahOacgOe7iOmbhuaIkOWuoeafpSJ9XSwiZGlhZ3JhbXMiOlt7InR5cGUiOiJmbG93IiwidGl0bGUiOiLlr7zlh7rkuI7lr7zlhaXkuLvot6/lvoQiLCJub2RlcyI6W3siaWQiOiJzZWxlY3QiLCJsYWJlbCI6IumAieS4rea4oOmBkyJ9LHsiaWQiOiJleHBvcnQiLCJsYWJlbCI6IuWvvOWHuuW8ueeqlyAvIOWvhueggSIsImZpbGUiOiJ3ZWIvc3JjL2ZlYXR1cmVzL2NoYW5uZWxzL2NvbXBvbmVudHMvZGlhbG9ncy9leHBvcnQtY2hhbm5lbHMtZGlhbG9nLnRzeCIsImtpbmQiOiJhZGRlZCJ9LHsiaWQiOiJmaWxlIiwibGFiZWwiOiIubmFjeCDliqDlr4bmlofku7YiLCJmaWxlIjoiY29udHJvbGxlci9jaGFubmVsX2V4cG9ydC5nbyIsImtpbmQiOiJhZGRlZCJ9LHsiaWQiOiJpbXBvcnQiLCJsYWJlbCI6IuWvvOWFpeW8ueeqlyAvIOWQjOWvhueggSIsImZpbGUiOiJ3ZWIvc3JjL2ZlYXR1cmVzL2NoYW5uZWxzL2NvbXBvbmVudHMvZGlhbG9ncy9pbXBvcnQtY2hhbm5lbHMtZGlhbG9nLnRzeCIsImtpbmQiOiJhZGRlZCJ9LHsiaWQiOiJ2YWxpZGF0ZSIsImxhYmVsIjoi6YCQ5p2h5qCh6aqMIiwiZmlsZSI6ImNvbnRyb2xsZXIvY2hhbm5lbF9leHBvcnQuZ28iLCJraW5kIjoiYWRkZWQifSx7ImlkIjoiaW5zZXJ0IiwibGFiZWwiOiLmlbTmibnmj5LlhaUgLyDmlrAgaWQg5L+d5bqPIiwiZmlsZSI6Im1vZGVsL2NoYW5uZWwuZ28iLCJraW5kIjoibW9kaWZpZWQifV0sImVkZ2VzIjpbeyJmcm9tIjoic2VsZWN0IiwidG8iOiJleHBvcnQifSx7ImZyb20iOiJleHBvcnQiLCJ0byI6ImZpbGUifSx7ImZyb20iOiJmaWxlIiwidG8iOiJpbXBvcnQifSx7ImZyb20iOiJpbXBvcnQiLCJ0byI6InZhbGlkYXRlIn0seyJmcm9tIjoidmFsaWRhdGUiLCJ0byI6Imluc2VydCJ9XX1dfQ==</template></body></html>

@@ -278,6 +278,28 @@ export interface CopyChannelResponse {
   }
 }
 
+export interface ExportChannelsResponse {
+  success: boolean
+  message?: string
+  message_key?: string
+  message_params?: Record<string, unknown>
+  data?: {
+    filename: string
+    content: string
+  }
+}
+
+export interface ImportChannelsResponse {
+  success: boolean
+  message?: string
+  message_key?: string
+  message_params?: Record<string, unknown>
+  data?: {
+    count: number
+    ids: number[]
+  }
+}
+
 // ============================================================================
 // Multi-Key Management Types
 // ============================================================================
@@ -386,6 +408,16 @@ export interface MultiKeyManageParams {
 
 export interface BatchDeleteParams {
   ids: number[]
+}
+
+export interface ExportChannelsParams {
+  ids: number[]
+  password: string
+}
+
+export interface ImportChannelsParams {
+  password: string
+  content: string
 }
 
 export interface BatchSetTagParams {

@@ -29,6 +29,7 @@ import {
   ListChecks,
   RefreshCw,
   ArrowUpFromLine,
+  Upload,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -69,6 +70,7 @@ import {
 import type { ChannelSortBy } from '../types'
 import { ChannelSortControl } from './channel-priority-controls'
 import { useChannels } from './channels-provider'
+import { ImportChannelsDialog } from './dialogs/import-channels-dialog'
 
 const route = getRouteApi('/_authenticated/channels/')
 
@@ -90,6 +92,7 @@ export function ChannelsPrimaryButtons() {
   const queryClient = useQueryClient()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showConsistencyDialog, setShowConsistencyDialog] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(false)
   const [isRepairingConsistency, setIsRepairingConsistency] = useState(false)
   const currentUser = useAuthStore((s) => s.auth.user)
   const canEditSensitive = hasPermission(
@@ -279,6 +282,22 @@ export function ChannelsPrimaryButtons() {
               onSelect={(e) => {
                 e.preventDefault()
                 if (!canEditSensitive) return
+                setShowImportDialog(true)
+              }}
+              disabled={!canEditSensitive}
+            >
+              {t('Import Channels')}
+              <DropdownMenuShortcut>
+                <Upload className='h-4 w-4' />
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault()
+                if (!canEditSensitive) return
                 setShowDeleteDialog(true)
               }}
               disabled={!canEditSensitive}
@@ -332,6 +351,11 @@ export function ChannelsPrimaryButtons() {
             setIsRepairingConsistency(false)
           }
         }}
+      />
+
+      <ImportChannelsDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
       />
     </>
   )

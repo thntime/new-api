@@ -8135,6 +8135,25 @@
     "Some models kept ratio pricing and need manual conversion: {{models}}": "Some models kept ratio pricing and need manual conversion: {{models}}",
     "Preparing billing expressions... {{completed}}/{{total}}": "Preparing billing expressions... {{completed}}/{{total}}",
     "Clear pricing for {{count}} models?": "Clear pricing for {{count}} models?",
-    "This removes all pricing fields for the selected models. Changes apply only after saving.": "This removes all pricing fields for the selected models. Changes apply only after saving."
+    "This removes all pricing fields for the selected models. Changes apply only after saving.": "This removes all pricing fields for the selected models. Changes apply only after saving.",
+    "Export Channels": "Export Channels",
+    "Import Channels": "Import Channels",
+    "Export selected channels": "Export selected channels",
+    "Import": "Import",
+    "Channel export file": "Channel export file",
+    "Failed to export channels": "Failed to export channels",
+    "Failed to import channels": "Failed to import channels",
+    "Exported {{count}} channels": "Exported {{count}} channels",
+    "Imported {{count}} channels": "Imported {{count}} channels",
+    "Please select a channel export file": "Please select a channel export file",
+    "The exported file is encrypted with this password. The password cannot be recovered.": "The exported file is encrypted with this password. The password cannot be recovered.",
+    "The file contains channel keys. Store it securely.": "The file contains channel keys. Store it securely.",
+    "The file is decrypted with the password used when it was exported.": "The file is decrypted with the password used when it was exported.",
+    "Import channels from a password-encrypted channel export file.": "Import channels from a password-encrypted channel export file.",
+    "Wrong password or corrupted export file": "Wrong password or corrupted export file",
+    "Channel export file is empty": "Channel export file is empty",
+    "You can export at most {{max}} channels at a time": "You can export at most {{max}} channels at a time",
+    "You can import at most {{max}} channels at a time": "You can import at most {{max}} channels at a time",
+    "Channel {{index}} ({{name}}) is invalid: {{error}}": "Channel {{index}} ({{name}}) is invalid: {{error}}"
   }
 }

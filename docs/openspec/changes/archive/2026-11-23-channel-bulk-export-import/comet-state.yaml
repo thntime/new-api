@@ -1,0 +1,3037 @@
+# comet-execution: managed-run
+change_id: 884ae0a7-b30e-454b-addc-804f52bba0df
+workflow: full
+language: zh-CN
+phase: archive
+context_compression: off
+build_mode: subagent-driven-development
+build_pause: null
+subagent_dispatch: confirmed
+tdd_mode: tdd
+review_mode: standard
+isolation: current
+verify_mode: null
+auto_transition: true
+base_ref: 5779db02d183aa56a052d20ba9dd79291d9a5ca5
+design_doc: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import/design.md
+plan: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+verify_result: pass
+verify_failures: 0
+verification_report: docs/superpowers/reports/channel-bulk-export-import-verify.md
+branch_status: pending
+created_at: 2026-11-23
+verified_at: 2026-11-23
+archive_confirmation: confirmed
+archived: true
+bound_branch: main
+run_checkpoint:
+  schema: comet.workflow-run-checkpoint.v2
+  hash: 27d5eff16c2beab21b457d33b398e5cd1ed7f358199f20e169dfa32e45fdcf44
+  run:
+    protocolVersion: 1
+    schemaVersion: 1
+    runId: channel-bulk-export-import
+    revision: 1
+    workflow:
+      id: comet-classic-full
+      version: "2"
+      hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+    definitionHashes:
+      '["comet-classic-full","2"]': 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+    initialStateHash: 95cd53cf724cfe3f4ae39daa6b679766cc087c460b267134f2f07186900bf96a
+    input:
+      change: channel-bulk-export-import
+      changeDir: docs/openspec/changes/channel-bulk-export-import
+      workspaceBaseline:
+        ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+    state:
+      archiveConfirmation: confirmed
+      archived: true
+      autoTransition: true
+      baseRef: 5779db02d183aa56a052d20ba9dd79291d9a5ca5
+      boundBranch: main
+      branchStatus: pending
+      buildMode: subagent-driven-development
+      buildPause: null
+      checkEpoch: 8
+      classicMigration: null
+      classicProfile: null
+      contextCompression: off
+      createdAt: 2026-11-23
+      designDoc: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import/design.md
+      directOverride: false
+      handoffContext: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import/proposal.md
+      handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+      isolation: current
+      language: zh-CN
+      phase: archive
+      plan: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+      reviewMode: standard
+      subagentDispatch: confirmed
+      tddMode: tdd
+      verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      verifiedAt: 2026-11-23
+      verifyFailures: 0
+      verifyMode: null
+      verifyResult: pass
+      workflow: full
+    status: running
+    sequence: 25
+    actions:
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-ceea875125c189ca6f5e0c02b1acc5a07ffb5fc2d3e54b0e070c89b8dc2cf027
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:1
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+        outcome:
+          actionId: channel-bulk-export-import:1
+          attempt: 1
+          claimToken: portable-ceea875125c189ca6f5e0c02b1acc5a07ffb5fc2d3e54b0e070c89b8dc2cf027
+          inputHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+          outcomeId: 92413529-d8c9-4083-8dc5-7a8da22154c0
+          output:
+            event: open-complete
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: f40abd37858d4979e53feb91e7fdb2522e3bc704cee20bc9040cbc7f5c0872f1
+            outcomeId: 92413529-d8c9-4083-8dc5-7a8da22154c0
+        reconciliations: []
+        ref: comet-open
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.open
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-open-revalidate
+          token: portable-68939f22b68be2ac18c951d7c2f6d7899c325f8c6446687d769d0f831c4a1cad
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:4
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 6c198f18fb36acd3070556cb5f974bbd00855a6990c4c49c4229485fc960375c
+        outcome:
+          actionId: channel-bulk-export-import:4
+          attempt: 1
+          claimToken: portable-68939f22b68be2ac18c951d7c2f6d7899c325f8c6446687d769d0f831c4a1cad
+          inputHash: 6c198f18fb36acd3070556cb5f974bbd00855a6990c4c49c4229485fc960375c
+          outcomeId: channel-bulk-export-import:4:1:executor-result
+          output:
+            contentHash: 6c198f18fb36acd3070556cb5f974bbd00855a6990c4c49c4229485fc960375c
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 3d88c57f1fea4f01c4702c59d9846dad6912728b64b1b6de2b6836fe9d62779d
+            outcomeId: channel-bulk-export-import:4:1:executor-result
+        reconciliations: []
+        ref: classic-open-revalidate
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.open.revalidate
+        type: call_tool
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-8a9c72ec4adee2e5caf311b4dc65d6f0d6bf6445842f1f6b790997aa17c2f689
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:5
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+        outcome:
+          actionId: channel-bulk-export-import:5
+          attempt: 1
+          claimToken: portable-8a9c72ec4adee2e5caf311b4dc65d6f0d6bf6445842f1f6b790997aa17c2f689
+          inputHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+          outcomeId: 8655f761-a330-484a-8d36-2762babac91e
+          output:
+            handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+            handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+            proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+              固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+              id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+              还原，channel_info 只留配置并重算 multi_key_size，状态
+              3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+              重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+              BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+              model.GetChannelsByIds 保序查询，两条 POST 路由用
+              authz.ChannelSensitiveWrite，审计 channel.export/channel.import
+              只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个 Dialog 密码框不落
+              localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport 覆盖保序/无
+              id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+              settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗 GPU；AES-GCM
+              自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进 URL。风险：密码丢失不可恢复（UI
+              提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB
+              上限）、多行 INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec
+              Patch：无，当前 delta spec 已覆盖全部行为。
+            requirementsEvidence:
+              ref: docs/openspec/changes/channel-bulk-export-import
+            sourceEvidence:
+              ref: docs/openspec/changes/channel-bulk-export-import
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 9d2d8c2e5972c4cff218ff91d614567ff2e5b66ec517dca5062a59cb37749fbb
+            outcomeId: 8655f761-a330-484a-8d36-2762babac91e
+        reconciliations: []
+        ref: comet-design
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.design.handoff
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-f001f58c925635071a6057ad7522f99422d823adcc4045f17380fe26ffac3aea
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:7
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+        outcome:
+          actionId: channel-bulk-export-import:7
+          attempt: 1
+          claimToken: portable-f001f58c925635071a6057ad7522f99422d823adcc4045f17380fe26ffac3aea
+          inputHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+          outcomeId: daf7a660-4578-4435-ab25-f55ae1e8f7f8
+          output:
+            designDoc: docs/openspec/changes/channel-bulk-export-import/design.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 30ba72d20be9363b1b4c41d84a5dbc53864a55ab3dcbcd05de8d87b379fec029
+            outcomeId: daf7a660-4578-4435-ab25-f55ae1e8f7f8
+        reconciliations: []
+        ref: comet-design
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.design.document
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-534252256a16db8c2a7f3a8ca6ec3ad148867a99dd15837c6202474694f12aa1
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:9
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 488e30e1e53a7d3d4f4e7350b1858792b23b9219c776fe4b8b3c24e03d188362
+        outcome:
+          actionId: channel-bulk-export-import:9
+          attempt: 1
+          claimToken: portable-534252256a16db8c2a7f3a8ca6ec3ad148867a99dd15837c6202474694f12aa1
+          inputHash: 488e30e1e53a7d3d4f4e7350b1858792b23b9219c776fe4b8b3c24e03d188362
+          outcomeId: eb5befc3-043b-4d6c-a963-6b87e659eeeb
+          output:
+            boundBranch: main
+            buildMode: subagent-driven-development
+            directOverride: false
+            isolation: current
+            reviewMode: standard
+            subagentDispatch: confirmed
+            tddMode: tdd
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 44ece27ae403e17e0cce14b26ca1c33027ed6d0fa1ed1627bafe13ae47d9eb4f
+            outcomeId: eb5befc3-043b-4d6c-a963-6b87e659eeeb
+        reconciliations: []
+        ref: comet-build
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.build.configure
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-c892a1ea70fb5cf1cc73fe251d5323c3bd58b049cc0218255cd0092acd7a813e
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:11
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+        outcome:
+          actionId: channel-bulk-export-import:11
+          attempt: 1
+          claimToken: portable-c892a1ea70fb5cf1cc73fe251d5323c3bd58b049cc0218255cd0092acd7a813e
+          inputHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+          outcomeId: 66a54022-eb5e-4d0d-a41c-005e9f1e8ac1
+          output:
+            designEvidence:
+              contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+              ref: docs/openspec/changes/channel-bulk-export-import/design.md
+            plan: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+            planEvidence:
+              contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+              ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: c646cbfbb07bdd95034a6117806482e8944deb98ed16b63a65cb5d19bbbd7d4f
+            outcomeId: 66a54022-eb5e-4d0d-a41c-005e9f1e8ac1
+        reconciliations: []
+        ref: comet-build
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.build.plan
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          sessionId: classic-builder/channel-bulk-export-import:13/1
+          token: portable-ba726d7da1a6b5c4c22d1b585cd3b7ae27ba471813b65678b58520ad3c2b31c1
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:13
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 09bbf88f6726afe5324f814873609bbb8c23c9afd4087f205f6a001772a2506e
+        outcome:
+          actionId: channel-bulk-export-import:13
+          attempt: 1
+          claimToken: portable-ba726d7da1a6b5c4c22d1b585cd3b7ae27ba471813b65678b58520ad3c2b31c1
+          inputHash: 09bbf88f6726afe5324f814873609bbb8c23c9afd4087f205f6a001772a2506e
+          outcomeId: ad82964e-35eb-4708-badc-6d03e0e55c10
+          output:
+            checks:
+              - name: go build ./...
+                note: exit 0
+                result: passed
+              - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+                note: 19 PASS / 0 FAIL; 18 subtests
+                result: passed
+              - name: cd web && ./node_modules/.bin/tsgo -b
+                note: exit 0
+                result: passed
+              - name: oxlint changed frontend files
+                note: exit 0
+                result: passed
+              - name: vitest channel-export-import.test.tsx
+                note: 10 passed
+                result: passed
+              - name: bun run i18n:sync idempotence
+                note: 7 locales missing/extras 0; second run no diff
+                result: passed
+              - name: reverse verification
+                note: import order and wrong-password mutations produced RED; restored GREEN; no
+                  residue
+                result: passed
+              - name: secret check
+                note: audit only count; no console/localStorage; synthetic test secrets
+                result: passed
+              - name: Task 1 independent review
+                note: Approved; 0 Critical / 0 Important
+                result: passed
+              - name: Task 2 independent review + fix re-review
+                note: 2 Important fixed; re-review all addressed, no new breakage
+                result: passed
+              - name: Frontend independent review
+                note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+                result: passed
+            event: build-complete
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 1146980d7b498bbf2617c7b0e7ff18155cc60baeafa98c973c19d5325e8a279d
+            outcomeId: ad82964e-35eb-4708-badc-6d03e0e55c10
+        reconciliations: []
+        ref: comet-build
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.build.execute
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-94f14ce38ca094c013cee56c012b247aa9173551201be956fe124bbaa957fd30
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:14
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 81018c61914f6d4919ee1d87949698bff25cd2c82961c01239ccd6000588f911
+        outcome:
+          actionId: channel-bulk-export-import:14
+          attempt: 1
+          claimToken: portable-94f14ce38ca094c013cee56c012b247aa9173551201be956fe124bbaa957fd30
+          inputHash: 81018c61914f6d4919ee1d87949698bff25cd2c82961c01239ccd6000588f911
+          outcomeId: d2e8d2a2-b358-467a-98c5-d054870476e7
+          output:
+            checks:
+              - name: go build ./...
+                note: exit 0
+                result: passed
+              - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+                note: 19 PASS / 0 FAIL (18 subtests)
+                result: passed
+              - name: go test ./controller -count=1
+                note: ok 97.677s
+                result: passed
+              - name: go test ./router -count=1
+                note: ok 25.533s
+                result: passed
+              - name: vitest channel-export-import.test.tsx
+                note: 10 passed
+                result: passed
+              - name: vitest src/features/channels
+                note: 63 files / 621 tests passed
+                result: passed
+              - name: cd web && ./node_modules/.bin/tsgo -b
+                note: exit 0
+                result: passed
+              - name: oxlint changed frontend files
+                note: exit 0
+                result: passed
+              - name: bun run i18n:sync idempotence
+                note: 7 locales missing/extras 0; second run no diff
+                result: passed
+              - name: reverse verification
+                note: import order and wrong-password mutations produced RED; restored GREEN; no
+                  residue
+                result: passed
+              - name: secret check
+                note: audit only count; no console/localStorage; synthetic test secrets
+                result: passed
+              - name: Task 1 independent review
+                note: Approved; 0 Critical / 0 Important
+                result: passed
+              - name: Task 2 independent review + fix re-review
+                note: 2 Important fixed; re-review all addressed
+                result: passed
+              - name: Frontend independent review
+                note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+                result: passed
+              - name: Final integration review
+                note: Approved; Ready for archive; 0 Critical / 0 Important
+                result: passed
+            event: verification-ready
+            verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: ae2f5df870cf3839504eb9e468d29c7c6a43effa224ae7a1ae0f0ec082333bc0
+            outcomeId: d2e8d2a2-b358-467a-98c5-d054870476e7
+        reconciliations: []
+        ref: comet-verify
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.verify.run
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-a0091ad7e23872092a0eaeef1d36b49f0a87222e1ad3187bb3e8f517d0cc8a33
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:16
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 31052a3bb68e636f31bd5cc7d8311e92d3670489218515f7aaf473bf487179f6
+        outcome:
+          actionId: channel-bulk-export-import:16
+          attempt: 1
+          claimToken: portable-a0091ad7e23872092a0eaeef1d36b49f0a87222e1ad3187bb3e8f517d0cc8a33
+          inputHash: 31052a3bb68e636f31bd5cc7d8311e92d3670489218515f7aaf473bf487179f6
+          outcomeId: 1c28be94-a2c5-4d26-9998-3146057e0614
+          output:
+            summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+              移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+              design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+              .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+            targetBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 4108398b4029043c1eeb80deb63a6f7c468dd28555bbe944c3390491c3657baa
+            outcomeId: 1c28be94-a2c5-4d26-9998-3146057e0614
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.archive.prepare
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-fd7888babe17441275acb6ed2048c6cd856cef86d3e04fdd2ab19de7c9935e09
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:19
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 8f5ad70a402c188b488986fa1019dacb09cd526eca86b72b909d22baea83a31a
+        outcome:
+          actionId: channel-bulk-export-import:19
+          attempt: 1
+          claimToken: portable-fd7888babe17441275acb6ed2048c6cd856cef86d3e04fdd2ab19de7c9935e09
+          inputHash: 8f5ad70a402c188b488986fa1019dacb09cd526eca86b72b909d22baea83a31a
+          outcomeId: d900f686-4dd8-4fcb-a6ff-03d88ec18ae7
+          output:
+            checks:
+              - name: go build ./...
+                note: exit 0
+                result: passed
+              - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+                note: 19 PASS / 0 FAIL (18 subtests)
+                result: passed
+              - name: go test ./controller -count=1
+                note: ok 97.677s
+                result: passed
+              - name: go test ./router -count=1
+                note: ok 25.533s
+                result: passed
+              - name: vitest channel-export-import.test.tsx
+                note: 10 passed
+                result: passed
+              - name: vitest src/features/channels
+                note: 63 files / 621 tests passed
+                result: passed
+              - name: cd web && ./node_modules/.bin/tsgo -b
+                note: exit 0
+                result: passed
+              - name: oxlint changed frontend files
+                note: exit 0
+                result: passed
+              - name: bun run i18n:sync idempotence
+                note: 7 locales missing/extras 0; second run no diff
+                result: passed
+              - name: reverse verification
+                note: import order and wrong-password mutations produced RED; restored GREEN; no
+                  residue
+                result: passed
+              - name: secret check
+                note: audit only count; no console/localStorage; synthetic test secrets
+                result: passed
+              - name: Task 1 independent review
+                note: Approved; 0 Critical / 0 Important
+                result: passed
+              - name: Task 2 independent review + fix re-review
+                note: 2 Important fixed; re-review all addressed
+                result: passed
+              - name: Frontend independent review
+                note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+                result: passed
+              - name: Final integration review
+                note: Approved; Ready for archive; 0 Critical / 0 Important
+                result: passed
+            event: verification-ready
+            verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 89348bbdfc4fa716cd31c4e4b58dab718778c6c0c136383cfd1050a37a1f30e1
+            outcomeId: d900f686-4dd8-4fcb-a6ff-03d88ec18ae7
+        reconciliations: []
+        ref: comet-verify
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.verify.run
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-993b437bfc159f60bf5e19a834547f09a22fb4dd0bcfd5f124ac0538660477b5
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:21
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: f21c0c55cec14fc8fb521bcd0abf5a5f45ab751efc62a643023ee4e40efc55b9
+        outcome:
+          actionId: channel-bulk-export-import:21
+          attempt: 1
+          claimToken: portable-993b437bfc159f60bf5e19a834547f09a22fb4dd0bcfd5f124ac0538660477b5
+          inputHash: f21c0c55cec14fc8fb521bcd0abf5a5f45ab751efc62a643023ee4e40efc55b9
+          outcomeId: 550057d6-5380-46f4-a363-5ea5b1da8252
+          output:
+            remote: origin
+            summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+              移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+              design/plan/walkthrough；交付到 origin/main。
+            targetBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 5bfb8211c7aad07c289226153f86438e16c4a39e3f724d70fa3d3018428912b5
+            outcomeId: 550057d6-5380-46f4-a363-5ea5b1da8252
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.archive.prepare
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive-preflight
+          token: portable-ba1543d1476b861fdd4d363a17f24b6cd6f106139b6dc58275f699c376c589da
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:23
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 09ef5d674d198570a080fce3d36c3b9aca510faf30238719bb885be2de3a5ee1
+        outcome:
+          actionId: channel-bulk-export-import:23
+          attempt: 1
+          claimToken: portable-ba1543d1476b861fdd4d363a17f24b6cd6f106139b6dc58275f699c376c589da
+          inputHash: 09ef5d674d198570a080fce3d36c3b9aca510faf30238719bb885be2de3a5ee1
+          outcomeId: 771ed519-fa03-4c38-8465-efea63c2321a
+          output:
+            baseCommit: 5779db02d183aa56a052d20ba9dd79291d9a5ca5
+            deliveryAction: push
+            deliveryPaths:
+              - controller/audit.go
+              - controller/channel_export.go
+              - controller/channel_export_test.go
+              - model/channel.go
+              - router/channel-router.go
+              - web/src/features/channels/api.ts
+              - web/src/features/channels/components/__tests__/channel-export-import.test.tsx
+              - web/src/features/channels/components/channels-primary-buttons.tsx
+              - web/src/features/channels/components/data-table-bulk-actions.tsx
+              - web/src/features/channels/components/dialogs/export-channels-dialog.tsx
+              - web/src/features/channels/components/dialogs/import-channels-dialog.tsx
+              - web/src/features/channels/lib/channel-export.ts
+              - web/src/features/channels/types.ts
+              - web/src/features/usage-logs/lib/format.ts
+              - web/src/i18n/locales/en.json
+              - web/src/i18n/locales/fr.json
+              - web/src/i18n/locales/ja.json
+              - web/src/i18n/locales/ru.json
+              - web/src/i18n/locales/vi.json
+              - web/src/i18n/locales/zh-TW.json
+              - web/src/i18n/locales/zh.json
+            remote: origin
+            remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+            targetBranch: main
+            verifiedBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 063c1794569e2dad6e08d7f738bf683634b003e332c1ba85b07829bc196b51b1
+            outcomeId: 771ed519-fa03-4c38-8465-efea63c2321a
+        reconciliations: []
+        ref: classic-archive-preflight
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.archive.preflight
+        type: call_tool
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive
+          token: portable-9f19543fa0addedd091add31e2c565416de34f5ba6f9765defcde95233aa8b9f
+        executionOrigin:
+          workflow:
+            hash: 7ce8fdaf0677ac46e6ccb70901eeb1f45a032d4eac90d4af3ffd9a5d906f5bbe
+            id: comet-classic-full
+            version: "2"
+        id: channel-bulk-export-import:24
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: 4f924034a4dd3aaa0f6b13da5263eb7d200434255b125637bae05a02b36bdca2
+        outcome:
+          actionId: channel-bulk-export-import:24
+          artifacts: []
+          attempt: 1
+          claimToken: portable-9f19543fa0addedd091add31e2c565416de34f5ba6f9765defcde95233aa8b9f
+          inputHash: 4f924034a4dd3aaa0f6b13da5263eb7d200434255b125637bae05a02b36bdca2
+          outcomeId: 42eb84bd-d4a8-4898-959f-a18a0d71b582
+          output:
+            archiveDirectory: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: c0f6c4d60c3c0f244b5157143cac9c74a0f9e085261e5f1a87d5c0e4e863071a
+            outcomeId: 42eb84bd-d4a8-4898-959f-a18a0d71b582
+        reconciliations: []
+        ref: classic-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: succeeded
+        stepId: full.archive.execute
+        type: call_tool
+      - attempt: 1
+        id: channel-bulk-export-import:25
+        input:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs: {}
+        inputHash: f28ee1b4eb75c469c0486f84beb34d4bc7340b0339c8906f181dcba33eae5942
+        protocolVersion: 1
+        receipts: []
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: channel-bulk-export-import
+        status: pending
+        stepId: full.archive.deliver
+        type: invoke_skill
+    actionContexts:
+      channel-bulk-export-import:1:
+        results: {}
+        sequence: 1
+      channel-bulk-export-import:11:
+        results: {}
+        sequence: 11
+      channel-bulk-export-import:13:
+        results: {}
+        sequence: 13
+      channel-bulk-export-import:14:
+        results: {}
+        sequence: 14
+      channel-bulk-export-import:16:
+        results: {}
+        sequence: 16
+      channel-bulk-export-import:19:
+        results: {}
+        sequence: 19
+      channel-bulk-export-import:21:
+        results: {}
+        sequence: 21
+      channel-bulk-export-import:23:
+        results: {}
+        sequence: 23
+      channel-bulk-export-import:24:
+        results: {}
+        sequence: 24
+      channel-bulk-export-import:25:
+        results: {}
+        sequence: 25
+      channel-bulk-export-import:4:
+        results: {}
+        sequence: 4
+      channel-bulk-export-import:5:
+        results: {}
+        sequence: 5
+      channel-bulk-export-import:7:
+        results: {}
+        sequence: 7
+      channel-bulk-export-import:9:
+        results: {}
+        sequence: 9
+    waits:
+      - id: channel-bulk-export-import:3
+        stepId: full.open.confirm
+        sequence: 3
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.open:
+              event: open-complete
+            full.open.evidence:
+              contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+              ref: docs/openspec/changes/channel-bulk-export-import
+        proposalHash: ce921d5b0728f5c2be3ce90d5afb4acea24b149b6b35b6b4637dba6e37f00e19
+        choices:
+          - approved
+          - rejected
+        results: {}
+        decision:
+          id: classic-open-883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+          choice: approved
+          proposalHash: ce921d5b0728f5c2be3ce90d5afb4acea24b149b6b35b6b4637dba6e37f00e19
+      - id: channel-bulk-export-import:6
+        stepId: full.design.confirm
+        sequence: 6
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.design.handoff:
+              handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+              handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+              proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+                固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+                id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+                还原，channel_info 只留配置并重算 multi_key_size，状态
+                3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+                重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+                BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+                model.GetChannelsByIds 保序查询，两条 POST 路由用
+                authz.ChannelSensitiveWrite，审计 channel.export/channel.import
+                只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个 Dialog 密码框不落
+                localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport 覆盖保序/无
+                id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+                settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗
+                GPU；AES-GCM 自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进
+                URL。风险：密码丢失不可恢复（UI
+                提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB
+                上限）、多行 INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec
+                Patch：无，当前 delta spec 已覆盖全部行为。
+              requirementsEvidence:
+                ref: docs/openspec/changes/channel-bulk-export-import
+              sourceEvidence:
+                ref: docs/openspec/changes/channel-bulk-export-import
+        proposalHash: f61fd7438943f61e3c6a250aa89fcf8b653d06385aa45d08b5e15b57b70e7a82
+        choices:
+          - approved
+          - rejected
+        results: {}
+        decision:
+          id: classic-design-f61fd7438943f61e3c6a250aa89fcf8b653d06385aa45d08b5e15b57b70e7a82-approved
+          choice: approved
+          proposalHash: f61fd7438943f61e3c6a250aa89fcf8b653d06385aa45d08b5e15b57b70e7a82
+      - id: channel-bulk-export-import:10
+        stepId: full.build.confirm
+        sequence: 10
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.build.configure:
+              boundBranch: main
+              buildMode: subagent-driven-development
+              directOverride: false
+              isolation: current
+              reviewMode: standard
+              subagentDispatch: confirmed
+              tddMode: tdd
+        proposalHash: 4284cbdedf8a87b9aea10e7d7241d1358f423dd1de714f2b453d85c16ba4fe26
+        choices:
+          - approved
+          - rejected
+        results: {}
+        decision:
+          id: c5ccabaf-3576-432d-b152-3f2468c17aff
+          choice: approved
+          proposalHash: 4284cbdedf8a87b9aea10e7d7241d1358f423dd1de714f2b453d85c16ba4fe26
+      - id: channel-bulk-export-import:17
+        stepId: full.archive.confirm
+        sequence: 17
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.archive.prepare:
+              summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+                .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+              targetBranch: main
+        proposalHash: 9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53
+        choices:
+          - local
+          - push
+          - pr
+          - reverify
+          - later
+        results: {}
+        decision:
+          id: classic-archive-9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53-later
+          choice: later
+          proposalHash: 9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53
+      - id: channel-bulk-export-import:18
+        stepId: full.archive.confirm
+        sequence: 18
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.archive.prepare:
+              summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+                .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+              targetBranch: main
+        proposalHash: 9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53
+        choices:
+          - local
+          - push
+          - pr
+          - reverify
+          - later
+        results: {}
+        decision:
+          id: classic-archive-9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53-reverify
+          choice: reverify
+          proposalHash: 9c3bc6106bb75a472a09631bd6d58da0568d13b4b701b5a544416375ed082d53
+      - id: channel-bulk-export-import:22
+        stepId: full.archive.confirm
+        sequence: 22
+        status: resolved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.archive.prepare:
+              remote: origin
+              summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                design/plan/walkthrough；交付到 origin/main。
+              targetBranch: main
+        proposalHash: 3603984c58eaf1ab7ae86d25e54392adcdd51c6165a299662f5d96f4dc14ecae
+        choices:
+          - local
+          - push
+          - pr
+          - reverify
+          - later
+        results: {}
+        decision:
+          id: classic-archive-3603984c58eaf1ab7ae86d25e54392adcdd51c6165a299662f5d96f4dc14ecae-push
+          choice: push
+          proposalHash: 3603984c58eaf1ab7ae86d25e54392adcdd51c6165a299662f5d96f4dc14ecae
+    evidenceWaits:
+      - id: channel-bulk-export-import:2
+        stepId: full.open.evidence
+        sequence: 2
+        kind: classic-open-artifacts
+        status: resolved
+        results: {}
+        receipt:
+          ref: docs/openspec/changes/channel-bulk-export-import
+          contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+          submissionId: 2326a2bf-8182-4b80-8656-05bcb1aec008
+      - id: channel-bulk-export-import:8
+        stepId: full.design.evidence
+        sequence: 8
+        kind: classic-design-document
+        status: resolved
+        results: {}
+        receipt:
+          ref: docs/openspec/changes/channel-bulk-export-import/design.md
+          contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+          submissionId: a84cf372-59c4-45f2-ba74-85e0013163b7
+      - id: channel-bulk-export-import:12
+        stepId: full.build.plan.evidence
+        sequence: 12
+        kind: classic-build-plan
+        status: resolved
+        results: {}
+        receipt:
+          ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+          contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+          submissionId: cc0e81ad-0315-425a-a75a-d18c6065b810
+      - id: channel-bulk-export-import:15
+        stepId: full.verify.report.evidence
+        sequence: 15
+        kind: classic-verification-report
+        status: resolved
+        results: {}
+        receipt:
+          ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+          contentHash: 81018c61914f6d4919ee1d87949698bff25cd2c82961c01239ccd6000588f911
+          submissionId: 410211de-87f1-4302-933b-b4c814be5560
+      - id: channel-bulk-export-import:20
+        stepId: full.verify.report.evidence
+        sequence: 20
+        kind: classic-verification-report
+        status: resolved
+        results: {}
+        receipt:
+          ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+          contentHash: 8f5ad70a402c188b488986fa1019dacb09cd526eca86b72b909d22baea83a31a
+          submissionId: 7dcfe3a6-5200-4085-aa01-b5ef529532b7
+    ready: []
+    joins: {}
+    outputs: {}
+    children: []
+    lineage: []
+  sourceRevision: 38
+  sourceHash: b931878df1938a47e646b7affc835d769cb1952a9265750f780973309398f8fd
+  pool:
+    version: 3
+    values:
+      - event: open-complete
+      - choice: approved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.open:
+              event: open-complete
+            full.open.evidence:
+              contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+              ref: docs/openspec/changes/channel-bulk-export-import
+      - contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+        ref: docs/openspec/changes/channel-bulk-export-import
+      - contentHash: 6c198f18fb36acd3070556cb5f974bbd00855a6990c4c49c4229485fc960375c
+      - choice: approved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.design.handoff:
+              handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+              handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+              proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+                固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+                id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+                还原，channel_info 只留配置并重算 multi_key_size，状态
+                3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+                重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+                BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+                model.GetChannelsByIds 保序查询，两条 POST 路由用
+                authz.ChannelSensitiveWrite，审计 channel.export/channel.import
+                只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个 Dialog 密码框不落
+                localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport 覆盖保序/无
+                id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+                settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗
+                GPU；AES-GCM 自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进
+                URL。风险：密码丢失不可恢复（UI
+                提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB
+                上限）、多行 INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec
+                Patch：无，当前 delta spec 已覆盖全部行为。
+              requirementsEvidence:
+                ref: docs/openspec/changes/channel-bulk-export-import
+              sourceEvidence:
+                ref: docs/openspec/changes/channel-bulk-export-import
+      - handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+        handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+        proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+          固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+          id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+          还原，channel_info 只留配置并重算 multi_key_size，状态
+          3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+          重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+          BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+          model.GetChannelsByIds 保序查询，两条 POST 路由用 authz.ChannelSensitiveWrite，审计
+          channel.export/channel.import 只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个
+          Dialog 密码框不落 localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport
+          覆盖保序/无 id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+          settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗 GPU；AES-GCM
+          自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进 URL。风险：密码丢失不可恢复（UI
+          提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB 上限）、多行
+          INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec Patch：无，当前
+          delta spec 已覆盖全部行为。
+        requirementsEvidence:
+          ref: docs/openspec/changes/channel-bulk-export-import
+        sourceEvidence:
+          ref: docs/openspec/changes/channel-bulk-export-import
+      - designDoc: docs/openspec/changes/channel-bulk-export-import/design.md
+      - contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+        ref: docs/openspec/changes/channel-bulk-export-import/design.md
+      - boundBranch: main
+        buildMode: subagent-driven-development
+        directOverride: false
+        isolation: current
+        reviewMode: standard
+        subagentDispatch: confirmed
+        tddMode: tdd
+      - choice: approved
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.build.configure:
+              boundBranch: main
+              buildMode: subagent-driven-development
+              directOverride: false
+              isolation: current
+              reviewMode: standard
+              subagentDispatch: confirmed
+              tddMode: tdd
+      - designEvidence:
+          contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+          ref: docs/openspec/changes/channel-bulk-export-import/design.md
+        plan: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+        planEvidence:
+          contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+          ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+      - contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+        ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+      - checks:
+          - name: go build ./...
+            note: exit 0
+            result: passed
+          - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+            note: 19 PASS / 0 FAIL; 18 subtests
+            result: passed
+          - name: cd web && ./node_modules/.bin/tsgo -b
+            note: exit 0
+            result: passed
+          - name: oxlint changed frontend files
+            note: exit 0
+            result: passed
+          - name: vitest channel-export-import.test.tsx
+            note: 10 passed
+            result: passed
+          - name: bun run i18n:sync idempotence
+            note: 7 locales missing/extras 0; second run no diff
+            result: passed
+          - name: reverse verification
+            note: import order and wrong-password mutations produced RED; restored GREEN; no
+              residue
+            result: passed
+          - name: secret check
+            note: audit only count; no console/localStorage; synthetic test secrets
+            result: passed
+          - name: Task 1 independent review
+            note: Approved; 0 Critical / 0 Important
+            result: passed
+          - name: Task 2 independent review + fix re-review
+            note: 2 Important fixed; re-review all addressed, no new breakage
+            result: passed
+          - name: Frontend independent review
+            note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+            result: passed
+        event: build-complete
+      - contentHash: 81018c61914f6d4919ee1d87949698bff25cd2c82961c01239ccd6000588f911
+        ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - checks:
+          - name: go build ./...
+            note: exit 0
+            result: passed
+          - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+            note: 19 PASS / 0 FAIL (18 subtests)
+            result: passed
+          - name: go test ./controller -count=1
+            note: ok 97.677s
+            result: passed
+          - name: go test ./router -count=1
+            note: ok 25.533s
+            result: passed
+          - name: vitest channel-export-import.test.tsx
+            note: 10 passed
+            result: passed
+          - name: vitest src/features/channels
+            note: 63 files / 621 tests passed
+            result: passed
+          - name: cd web && ./node_modules/.bin/tsgo -b
+            note: exit 0
+            result: passed
+          - name: oxlint changed frontend files
+            note: exit 0
+            result: passed
+          - name: bun run i18n:sync idempotence
+            note: 7 locales missing/extras 0; second run no diff
+            result: passed
+          - name: reverse verification
+            note: import order and wrong-password mutations produced RED; restored GREEN; no
+              residue
+            result: passed
+          - name: secret check
+            note: audit only count; no console/localStorage; synthetic test secrets
+            result: passed
+          - name: Task 1 independent review
+            note: Approved; 0 Critical / 0 Important
+            result: passed
+          - name: Task 2 independent review + fix re-review
+            note: 2 Important fixed; re-review all addressed
+            result: passed
+          - name: Frontend independent review
+            note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+            result: passed
+          - name: Final integration review
+            note: Approved; Ready for archive; 0 Critical / 0 Important
+            result: passed
+        event: verification-ready
+        verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - choice: reverify
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.archive.prepare:
+              summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+                .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+              targetBranch: main
+      - summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+          移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+          design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+          .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+        targetBranch: main
+      - contentHash: 8f5ad70a402c188b488986fa1019dacb09cd526eca86b72b909d22baea83a31a
+        ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - choice: push
+        proposal:
+          input:
+            change: channel-bulk-export-import
+            changeDir: docs/openspec/changes/channel-bulk-export-import
+            workspaceBaseline:
+              ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+          outputs:
+            full.archive.prepare:
+              remote: origin
+              summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                design/plan/walkthrough；交付到 origin/main。
+              targetBranch: main
+      - remote: origin
+        summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+          移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+          design/plan/walkthrough；交付到 origin/main。
+        targetBranch: main
+      - baseCommit: 5779db02d183aa56a052d20ba9dd79291d9a5ca5
+        deliveryAction: push
+        deliveryPaths:
+          - controller/audit.go
+          - controller/channel_export.go
+          - controller/channel_export_test.go
+          - model/channel.go
+          - router/channel-router.go
+          - web/src/features/channels/api.ts
+          - web/src/features/channels/components/__tests__/channel-export-import.test.tsx
+          - web/src/features/channels/components/channels-primary-buttons.tsx
+          - web/src/features/channels/components/data-table-bulk-actions.tsx
+          - web/src/features/channels/components/dialogs/export-channels-dialog.tsx
+          - web/src/features/channels/components/dialogs/import-channels-dialog.tsx
+          - web/src/features/channels/lib/channel-export.ts
+          - web/src/features/channels/types.ts
+          - web/src/features/usage-logs/lib/format.ts
+          - web/src/i18n/locales/en.json
+          - web/src/i18n/locales/fr.json
+          - web/src/i18n/locales/ja.json
+          - web/src/i18n/locales/ru.json
+          - web/src/i18n/locales/vi.json
+          - web/src/i18n/locales/zh-TW.json
+          - web/src/i18n/locales/zh.json
+        remote: origin
+        remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+        targetBranch: main
+        verifiedBranch: main
+      - archiveDirectory: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import
+      - sequence: 9
+        value:
+          boundBranch: main
+          buildMode: subagent-driven-development
+          directOverride: false
+          isolation: current
+          reviewMode: standard
+          subagentDispatch: confirmed
+          tddMode: tdd
+      - sequence: 10
+        value:
+          choice: approved
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.build.configure:
+                boundBranch: main
+                buildMode: subagent-driven-development
+                directOverride: false
+                isolation: current
+                reviewMode: standard
+                subagentDispatch: confirmed
+                tddMode: tdd
+      - sequence: 6
+        value:
+          choice: approved
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.design.handoff:
+                handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+                handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+                proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+                  固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+                  id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+                  还原，channel_info 只留配置并重算 multi_key_size，状态
+                  3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+                  重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+                  BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+                  model.GetChannelsByIds 保序查询，两条 POST 路由用
+                  authz.ChannelSensitiveWrite，审计 channel.export/channel.import
+                  只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个 Dialog 密码框不落
+                  localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport 覆盖保序/无
+                  id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+                  settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗
+                  GPU；AES-GCM 自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进
+                  URL。风险：密码丢失不可恢复（UI
+                  提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB
+                  上限）、多行 INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec
+                  Patch：无，当前 delta spec 已覆盖全部行为。
+                requirementsEvidence:
+                  ref: docs/openspec/changes/channel-bulk-export-import
+                sourceEvidence:
+                  ref: docs/openspec/changes/channel-bulk-export-import
+      - sequence: 7
+        value:
+          designDoc: docs/openspec/changes/channel-bulk-export-import/design.md
+      - sequence: 8
+        value:
+          contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+          ref: docs/openspec/changes/channel-bulk-export-import/design.md
+      - sequence: 5
+        value:
+          handoffContext: docs/openspec/changes/channel-bulk-export-import/proposal.md
+          handoffHash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+          proposal: 候选方案：新增 `.nacx` 自描述 JSON 信封（scrypt N=32768,r=8,p=1 + AES-256-GCM，AAD
+            固定 `new-api-channel-export:v1`）；导出按前端 ids 顺序查询重排，显式 DTO 白名单排除
+            id/时间/余额/用量/other_info，settings 的 5 个凭证字段先 DecryptSecret
+            还原，channel_info 只留配置并重算 multi_key_size，状态
+            3→1；导入解密后逐条构造、mergeSensitiveOtherSettings
+            重新加密、validateChannel/任务插件/request_plugins/空 key 全部校验通过后按数组顺序
+            BatchInsertChannels 并 InitChannelCache，任一失败整批回滚；新增
+            model.GetChannelsByIds 保序查询，两条 POST 路由用
+            authz.ChannelSensitiveWrite，审计 channel.export/channel.import
+            只记数量，导出响应 no-store；前端批量栏加导出、更多操作加导入，两个 Dialog 密码框不落
+            localStorage，成功后刷新列表并提示数量；后端单测试 TestChannelExportImport 覆盖保序/无
+            id/字段/时间/状态/错误密码/篡改/非法项回滚/敏感
+            settings，前端单测试覆盖请求/下载/导入/错误/禁用。关键取舍：自描述信封可演进；scrypt 抗 GPU；AES-GCM
+            自带完整性；显式 DTO 防字段外泄；全有或全无避免半批数据；POST 避免密码进 URL。风险：密码丢失不可恢复（UI
+            提示）、文件含密钥（整体加密+敏感写权限+no-store）、跨实例插件缺失（整批回滚并报序号）、大文件（仅选中渠道+32MB
+            上限）、多行 INSERT 的 id 顺序假设（测试断言严格递增）、格式演进（version/KDF 参数自描述）。Spec
+            Patch：无，当前 delta spec 已覆盖全部行为。
+          requirementsEvidence:
+            ref: docs/openspec/changes/channel-bulk-export-import
+          sourceEvidence:
+            ref: docs/openspec/changes/channel-bulk-export-import
+      - sequence: 1
+        value:
+          event: open-complete
+      - sequence: 3
+        value:
+          choice: approved
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.open:
+                event: open-complete
+              full.open.evidence:
+                contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+                ref: docs/openspec/changes/channel-bulk-export-import
+      - sequence: 2
+        value:
+          contentHash: 883b437061d2b1cee508b8a0f0ea79572dff119e4edaf2adaa797d2b57a54d26
+          ref: docs/openspec/changes/channel-bulk-export-import
+      - sequence: 4
+        value:
+          contentHash: 6c198f18fb36acd3070556cb5f974bbd00855a6990c4c49c4229485fc960375c
+      - sequence: 11
+        value:
+          designEvidence:
+            contentHash: ac014c33c2b78ce7838eab4bffbae3d35821b67233c26bf9ed08c61f327366bb
+            ref: docs/openspec/changes/channel-bulk-export-import/design.md
+          plan: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+          planEvidence:
+            contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+            ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+      - sequence: 12
+        value:
+          contentHash: 0f50e905446ece8b61b1ae736c1a7f1ba27307d085289f43eecef3a33cbc0c7d
+          ref: docs/superpowers/plans/2026-11-23-channel-bulk-export-import.md
+      - sequence: 13
+        value:
+          checks:
+            - name: go build ./...
+              note: exit 0
+              result: passed
+            - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+              note: 19 PASS / 0 FAIL; 18 subtests
+              result: passed
+            - name: cd web && ./node_modules/.bin/tsgo -b
+              note: exit 0
+              result: passed
+            - name: oxlint changed frontend files
+              note: exit 0
+              result: passed
+            - name: vitest channel-export-import.test.tsx
+              note: 10 passed
+              result: passed
+            - name: bun run i18n:sync idempotence
+              note: 7 locales missing/extras 0; second run no diff
+              result: passed
+            - name: reverse verification
+              note: import order and wrong-password mutations produced RED; restored GREEN; no
+                residue
+              result: passed
+            - name: secret check
+              note: audit only count; no console/localStorage; synthetic test secrets
+              result: passed
+            - name: Task 1 independent review
+              note: Approved; 0 Critical / 0 Important
+              result: passed
+            - name: Task 2 independent review + fix re-review
+              note: 2 Important fixed; re-review all addressed, no new breakage
+              result: passed
+            - name: Frontend independent review
+              note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+              result: passed
+          event: build-complete
+      - sequence: 15
+        value:
+          contentHash: 81018c61914f6d4919ee1d87949698bff25cd2c82961c01239ccd6000588f911
+          ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - sequence: 14
+        value:
+          checks:
+            - name: go build ./...
+              note: exit 0
+              result: passed
+            - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+              note: 19 PASS / 0 FAIL (18 subtests)
+              result: passed
+            - name: go test ./controller -count=1
+              note: ok 97.677s
+              result: passed
+            - name: go test ./router -count=1
+              note: ok 25.533s
+              result: passed
+            - name: vitest channel-export-import.test.tsx
+              note: 10 passed
+              result: passed
+            - name: vitest src/features/channels
+              note: 63 files / 621 tests passed
+              result: passed
+            - name: cd web && ./node_modules/.bin/tsgo -b
+              note: exit 0
+              result: passed
+            - name: oxlint changed frontend files
+              note: exit 0
+              result: passed
+            - name: bun run i18n:sync idempotence
+              note: 7 locales missing/extras 0; second run no diff
+              result: passed
+            - name: reverse verification
+              note: import order and wrong-password mutations produced RED; restored GREEN; no
+                residue
+              result: passed
+            - name: secret check
+              note: audit only count; no console/localStorage; synthetic test secrets
+              result: passed
+            - name: Task 1 independent review
+              note: Approved; 0 Critical / 0 Important
+              result: passed
+            - name: Task 2 independent review + fix re-review
+              note: 2 Important fixed; re-review all addressed
+              result: passed
+            - name: Frontend independent review
+              note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+              result: passed
+            - name: Final integration review
+              note: Approved; Ready for archive; 0 Critical / 0 Important
+              result: passed
+          event: verification-ready
+          verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - sequence: 18
+        value:
+          choice: reverify
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.archive.prepare:
+                summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                  移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                  design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+                  .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+                targetBranch: main
+      - sequence: 16
+        value:
+          summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+            移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+            design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+            .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+          targetBranch: main
+      - sequence: 20
+        value:
+          contentHash: 8f5ad70a402c188b488986fa1019dacb09cd526eca86b72b909d22baea83a31a
+          ref: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - sequence: 19
+        value:
+          checks:
+            - name: go build ./...
+              note: exit 0
+              result: passed
+            - name: go test ./controller -run '^TestChannelExportImport$' -count=1 -v
+              note: 19 PASS / 0 FAIL (18 subtests)
+              result: passed
+            - name: go test ./controller -count=1
+              note: ok 97.677s
+              result: passed
+            - name: go test ./router -count=1
+              note: ok 25.533s
+              result: passed
+            - name: vitest channel-export-import.test.tsx
+              note: 10 passed
+              result: passed
+            - name: vitest src/features/channels
+              note: 63 files / 621 tests passed
+              result: passed
+            - name: cd web && ./node_modules/.bin/tsgo -b
+              note: exit 0
+              result: passed
+            - name: oxlint changed frontend files
+              note: exit 0
+              result: passed
+            - name: bun run i18n:sync idempotence
+              note: 7 locales missing/extras 0; second run no diff
+              result: passed
+            - name: reverse verification
+              note: import order and wrong-password mutations produced RED; restored GREEN; no
+                residue
+              result: passed
+            - name: secret check
+              note: audit only count; no console/localStorage; synthetic test secrets
+              result: passed
+            - name: Task 1 independent review
+              note: Approved; 0 Critical / 0 Important
+              result: passed
+            - name: Task 2 independent review + fix re-review
+              note: 2 Important fixed; re-review all addressed
+              result: passed
+            - name: Frontend independent review
+              note: Approved; 0 Critical / 0 Important; 3 Minor fixed
+              result: passed
+            - name: Final integration review
+              note: Approved; Ready for archive; 0 Critical / 0 Important
+              result: passed
+          event: verification-ready
+          verificationReport: docs/superpowers/reports/channel-bulk-export-import-verify.md
+      - sequence: 22
+        value:
+          choice: push
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.archive.prepare:
+                remote: origin
+                summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                  移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                  design/plan/walkthrough；交付到 origin/main。
+                targetBranch: main
+      - sequence: 21
+        value:
+          remote: origin
+          summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+            移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+            design/plan/walkthrough；交付到 origin/main。
+          targetBranch: main
+      - sequence: 23
+        value:
+          baseCommit: 5779db02d183aa56a052d20ba9dd79291d9a5ca5
+          deliveryAction: push
+          deliveryPaths:
+            - controller/audit.go
+            - controller/channel_export.go
+            - controller/channel_export_test.go
+            - model/channel.go
+            - router/channel-router.go
+            - web/src/features/channels/api.ts
+            - web/src/features/channels/components/__tests__/channel-export-import.test.tsx
+            - web/src/features/channels/components/channels-primary-buttons.tsx
+            - web/src/features/channels/components/data-table-bulk-actions.tsx
+            - web/src/features/channels/components/dialogs/export-channels-dialog.tsx
+            - web/src/features/channels/components/dialogs/import-channels-dialog.tsx
+            - web/src/features/channels/lib/channel-export.ts
+            - web/src/features/channels/types.ts
+            - web/src/features/usage-logs/lib/format.ts
+            - web/src/i18n/locales/en.json
+            - web/src/i18n/locales/fr.json
+            - web/src/i18n/locales/ja.json
+            - web/src/i18n/locales/ru.json
+            - web/src/i18n/locales/vi.json
+            - web/src/i18n/locales/zh-TW.json
+            - web/src/i18n/locales/zh.json
+          remote: origin
+          remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+          targetBranch: main
+          verifiedBranch: main
+      - sequence: 24
+        value:
+          archiveDirectory: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import
+      - sequence: 17
+        value:
+          choice: later
+          proposal:
+            input:
+              change: channel-bulk-export-import
+              changeDir: docs/openspec/changes/channel-bulk-export-import
+              workspaceBaseline:
+                ref: fc0265e0-2316-4f4f-8799-ab964cccb0a3
+            outputs:
+              full.archive.prepare:
+                summary: 渠道批量加密导出/导入：新增 .nacx 信封、导出/导入接口与前端入口；15/15 任务、验证与最终集成审查通过。归档将把 change
+                  移入 archive、同步 channel-transfer delta spec 到主 specs、保存
+                  design/plan/walkthrough。当前分支 main；工作区含本次实现与无关的
+                  .gitignore、AGENTS.md、.comet/ 改动；交付方式待用户选择。
+                targetBranch: main
+    nodes:
+      - key: full.open
+        value: 0
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 2
+        left: null
+        right: null
+        height: 1
+      - key: full.open.confirm
+        value: 1
+        left: 0
+        right: 1
+        height: 2
+      - key: full.open.revalidate
+        value: 3
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 2
+        left: null
+        right: 3
+        height: 2
+      - key: full.open.confirm
+        value: 1
+        left: 0
+        right: 4
+        height: 3
+      - key: full.design.confirm
+        value: 4
+        left: null
+        right: null
+        height: 1
+      - key: full.open
+        value: 0
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 5
+        left: 6
+        right: 7
+        height: 2
+      - key: full.open.confirm
+        value: 1
+        left: 8
+        right: 4
+        height: 3
+      - key: full.design.confirm
+        value: 4
+        left: null
+        right: null
+        height: 1
+      - key: full.design.evidence
+        value: 7
+        left: null
+        right: null
+        height: 1
+      - key: full.design.document
+        value: 6
+        left: 10
+        right: 11
+        height: 2
+      - key: full.design.handoff
+        value: 5
+        left: 12
+        right: 7
+        height: 3
+      - key: full.open.confirm
+        value: 1
+        left: 13
+        right: 4
+        height: 4
+      - key: full.build.configure
+        value: 8
+        left: null
+        right: null
+        height: 1
+      - key: full.design.confirm
+        value: 4
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 9
+        left: 15
+        right: 16
+        height: 2
+      - key: full.design.handoff
+        value: 5
+        left: 11
+        right: 7
+        height: 2
+      - key: full.design.document
+        value: 6
+        left: 17
+        right: 18
+        height: 3
+      - key: full.open.confirm
+        value: 1
+        left: 19
+        right: 4
+        height: 4
+      - key: full.build.plan
+        value: 10
+        left: null
+        right: null
+        height: 1
+      - key: full.design.confirm
+        value: 4
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan.evidence
+        value: 11
+        left: 21
+        right: 22
+        height: 2
+      - key: full.build.confirm
+        value: 9
+        left: 15
+        right: 23
+        height: 3
+      - key: full.open.confirm
+        value: 1
+        left: 18
+        right: 4
+        height: 3
+      - key: full.design.document
+        value: 6
+        left: 24
+        right: 25
+        height: 4
+      - key: full.build.execute
+        value: 12
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 9
+        left: 15
+        right: 27
+        height: 2
+      - key: full.build.plan.evidence
+        value: 11
+        left: null
+        right: 22
+        height: 2
+      - key: full.build.plan
+        value: 10
+        left: 28
+        right: 29
+        height: 3
+      - key: full.design.document
+        value: 6
+        left: 30
+        right: 25
+        height: 4
+      - key: full.open.evidence
+        value: 2
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.run
+        value: 14
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 13
+        left: null
+        right: 33
+        height: 2
+      - key: full.open.revalidate
+        value: 3
+        left: 32
+        right: 34
+        height: 3
+      - key: full.open.confirm
+        value: 1
+        left: 18
+        right: 35
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 30
+        right: 36
+        height: 5
+      - key: full.archive.confirm
+        value: 15
+        left: null
+        right: null
+        height: 1
+      - key: full.build.configure
+        value: 8
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 16
+        left: 38
+        right: 39
+        height: 2
+      - key: full.build.confirm
+        value: 9
+        left: 40
+        right: 27
+        height: 3
+      - key: full.build.plan
+        value: 10
+        left: 41
+        right: 29
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 42
+        right: 36
+        height: 5
+      - key: full.verify.report.evidence
+        value: 17
+        left: null
+        right: 33
+        height: 2
+      - key: full.open.revalidate
+        value: 3
+        left: 32
+        right: 44
+        height: 3
+      - key: full.open.confirm
+        value: 1
+        left: 18
+        right: 45
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 42
+        right: 46
+        height: 5
+      - key: full.archive.confirm
+        value: 18
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 19
+        left: 48
+        right: 39
+        height: 2
+      - key: full.build.confirm
+        value: 9
+        left: 49
+        right: 27
+        height: 3
+      - key: full.build.plan
+        value: 10
+        left: 50
+        right: 29
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 51
+        right: 46
+        height: 5
+      - key: full.archive.preflight
+        value: 20
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.confirm
+        value: 18
+        left: null
+        right: 53
+        height: 2
+      - key: full.build.confirm
+        value: 9
+        left: 39
+        right: 27
+        height: 2
+      - key: full.archive.prepare
+        value: 19
+        left: 54
+        right: 55
+        height: 3
+      - key: full.build.plan
+        value: 10
+        left: 56
+        right: 29
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 57
+        right: 46
+        height: 5
+      - key: full.archive.confirm
+        value: 18
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.preflight
+        value: 20
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.execute
+        value: 21
+        left: 59
+        right: 60
+        height: 2
+      - key: full.archive.prepare
+        value: 19
+        left: 61
+        right: 55
+        height: 3
+      - key: full.build.plan
+        value: 10
+        left: 62
+        right: 29
+        height: 4
+      - key: full.design.document
+        value: 6
+        left: 63
+        right: 46
+        height: 5
+      - key: full.build.configure
+        value: 22
+        left: null
+        right: null
+        height: 1
+      - key: full.design.confirm
+        value: 24
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 23
+        left: 65
+        right: 66
+        height: 2
+      - key: full.design.evidence
+        value: 26
+        left: null
+        right: null
+        height: 1
+      - key: full.open
+        value: 28
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 27
+        left: 68
+        right: 69
+        height: 2
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 30
+        left: null
+        right: 71
+        height: 2
+      - key: full.open.confirm
+        value: 29
+        left: 70
+        right: 72
+        height: 3
+      - key: full.design.document
+        value: 25
+        left: 67
+        right: 73
+        height: 4
+      - key: full.build.plan
+        value: 32
+        left: null
+        right: null
+        height: 1
+      - key: full.design.confirm
+        value: 24
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan.evidence
+        value: 33
+        left: 75
+        right: 76
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 65
+        right: 77
+        height: 3
+      - key: full.design.document
+        value: 25
+        left: 78
+        right: 73
+        height: 4
+      - key: full.build.execute
+        value: 34
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 23
+        left: 65
+        right: 80
+        height: 2
+      - key: full.build.plan.evidence
+        value: 33
+        left: null
+        right: 76
+        height: 2
+      - key: full.build.plan
+        value: 32
+        left: 81
+        right: 82
+        height: 3
+      - key: full.design.document
+        value: 25
+        left: 83
+        right: 73
+        height: 4
+      - key: full.open.evidence
+        value: 30
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.run
+        value: 36
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 35
+        left: null
+        right: 86
+        height: 2
+      - key: full.open.revalidate
+        value: 31
+        left: 85
+        right: 87
+        height: 3
+      - key: full.open.confirm
+        value: 29
+        left: 70
+        right: 88
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 83
+        right: 89
+        height: 5
+      - key: full.archive.confirm
+        value: 37
+        left: null
+        right: null
+        height: 1
+      - key: full.build.configure
+        value: 22
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 38
+        left: 91
+        right: 92
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 93
+        right: 80
+        height: 3
+      - key: full.build.plan
+        value: 32
+        left: 94
+        right: 82
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 95
+        right: 89
+        height: 5
+      - key: full.verify.run
+        value: 40
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 39
+        left: null
+        right: 97
+        height: 2
+      - key: full.open.revalidate
+        value: 31
+        left: 85
+        right: 98
+        height: 3
+      - key: full.open.confirm
+        value: 29
+        left: 70
+        right: 99
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 95
+        right: 100
+        height: 5
+      - key: full.archive.confirm
+        value: 41
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 42
+        left: 102
+        right: 92
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 103
+        right: 80
+        height: 3
+      - key: full.build.plan
+        value: 32
+        left: 104
+        right: 82
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 105
+        right: 100
+        height: 5
+      - key: full.archive.preflight
+        value: 43
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.confirm
+        value: 41
+        left: null
+        right: 107
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 92
+        right: 80
+        height: 2
+      - key: full.archive.prepare
+        value: 42
+        left: 108
+        right: 109
+        height: 3
+      - key: full.build.plan
+        value: 32
+        left: 110
+        right: 82
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 111
+        right: 100
+        height: 5
+      - key: full.archive.confirm
+        value: 41
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.preflight
+        value: 43
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.execute
+        value: 44
+        left: 113
+        right: 114
+        height: 2
+      - key: full.archive.prepare
+        value: 42
+        left: 115
+        right: 109
+        height: 3
+      - key: full.build.plan
+        value: 32
+        left: 116
+        right: 82
+        height: 4
+      - key: full.design.document
+        value: 25
+        left: 117
+        right: 100
+        height: 5
+      - key: full.open
+        value: 28
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 30
+        left: null
+        right: null
+        height: 1
+      - key: full.open.confirm
+        value: 29
+        left: 119
+        right: 120
+        height: 2
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 30
+        left: null
+        right: 122
+        height: 2
+      - key: full.open.confirm
+        value: 29
+        left: 119
+        right: 123
+        height: 3
+      - key: full.design.confirm
+        value: 24
+        left: null
+        right: null
+        height: 1
+      - key: full.open
+        value: 28
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 27
+        left: 125
+        right: 126
+        height: 2
+      - key: full.open.confirm
+        value: 29
+        left: 127
+        right: 123
+        height: 3
+      - key: full.design.confirm
+        value: 24
+        left: null
+        right: null
+        height: 1
+      - key: full.design.evidence
+        value: 26
+        left: null
+        right: null
+        height: 1
+      - key: full.design.document
+        value: 25
+        left: 129
+        right: 130
+        height: 2
+      - key: full.design.handoff
+        value: 27
+        left: 131
+        right: 126
+        height: 3
+      - key: full.open.confirm
+        value: 29
+        left: 132
+        right: 123
+        height: 4
+      - key: full.open.evidence
+        value: 30
+        left: null
+        right: null
+        height: 1
+      - key: full.open
+        value: 28
+        left: null
+        right: 134
+        height: 2
+      - key: full.design.handoff
+        value: 27
+        left: null
+        right: null
+        height: 1
+      - key: full.open.confirm
+        value: 29
+        left: null
+        right: null
+        height: 1
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 30
+        left: 137
+        right: 138
+        height: 2
+      - key: full.open
+        value: 28
+        left: 136
+        right: 139
+        height: 3
+      - key: full.build.configure
+        value: 22
+        left: null
+        right: null
+        height: 1
+      - key: full.design.document
+        value: 25
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 27
+        left: null
+        right: null
+        height: 1
+      - key: full.design.evidence
+        value: 26
+        left: 142
+        right: 143
+        height: 2
+      - key: full.design.confirm
+        value: 24
+        left: 141
+        right: 144
+        height: 3
+      - key: full.open
+        value: 28
+        left: 145
+        right: 139
+        height: 4
+      - key: full.archive.prepare
+        value: 38
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 23
+        left: null
+        right: null
+        height: 1
+      - key: full.build.configure
+        value: 22
+        left: 147
+        right: 148
+        height: 2
+      - key: full.build.plan.evidence
+        value: 33
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan
+        value: 32
+        left: null
+        right: 150
+        height: 2
+      - key: full.build.execute
+        value: 34
+        left: 149
+        right: 151
+        height: 3
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.run
+        value: 36
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 35
+        left: 153
+        right: 154
+        height: 2
+      - key: full.open.evidence
+        value: 30
+        left: 137
+        right: 155
+        height: 3
+      - key: full.open
+        value: 28
+        left: 144
+        right: 156
+        height: 4
+      - key: full.design.confirm
+        value: 24
+        left: 152
+        right: 157
+        height: 5
+      - key: full.archive.confirm
+        value: 45
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 38
+        left: 159
+        right: null
+        height: 2
+      - key: full.build.configure
+        value: 22
+        left: 160
+        right: 148
+        height: 3
+      - key: full.build.execute
+        value: 34
+        left: 161
+        right: 151
+        height: 4
+      - key: full.design.confirm
+        value: 24
+        left: 162
+        right: 157
+        height: 5
+      - key: full.archive.confirm
+        value: 37
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 42
+        left: 164
+        right: null
+        height: 2
+      - key: full.build.configure
+        value: 22
+        left: 165
+        right: 148
+        height: 3
+      - key: full.build.execute
+        value: 34
+        left: 166
+        right: 151
+        height: 4
+      - key: full.verify.run
+        value: 40
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 39
+        left: 153
+        right: 168
+        height: 2
+      - key: full.open.evidence
+        value: 30
+        left: 137
+        right: 169
+        height: 3
+      - key: full.open
+        value: 28
+        left: 144
+        right: 170
+        height: 4
+      - key: full.design.confirm
+        value: 24
+        left: 167
+        right: 171
+        height: 5
+      - key: full.open
+        value: 28
+        left: null
+        right: null
+        height: 1
+      - key: full.design.confirm
+        value: 24
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 27
+        left: null
+        right: null
+        height: 1
+      - key: full.design.document
+        value: 25
+        left: 174
+        right: 175
+        height: 2
+      - key: full.open.confirm
+        value: 29
+        left: null
+        right: null
+        height: 1
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.open.evidence
+        value: 30
+        left: 177
+        right: 178
+        height: 2
+      - key: full.open
+        value: 28
+        left: 176
+        right: 179
+        height: 3
+      - key: full.build.configure
+        value: 22
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan
+        value: 32
+        left: null
+        right: null
+        height: 1
+      - key: full.build.confirm
+        value: 23
+        left: 181
+        right: 182
+        height: 2
+      - key: full.design.document
+        value: 25
+        left: null
+        right: null
+        height: 1
+      - key: full.design.handoff
+        value: 27
+        left: null
+        right: null
+        height: 1
+      - key: full.design.evidence
+        value: 26
+        left: 184
+        right: 185
+        height: 2
+      - key: full.design.confirm
+        value: 24
+        left: 183
+        right: 186
+        height: 3
+      - key: full.open
+        value: 28
+        left: 187
+        right: 179
+        height: 4
+      - key: full.build.execute
+        value: 34
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan.evidence
+        value: 33
+        left: null
+        right: null
+        height: 1
+      - key: full.build.plan
+        value: 32
+        left: 189
+        right: 190
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 181
+        right: 191
+        height: 3
+      - key: full.verify.run
+        value: 36
+        left: null
+        right: null
+        height: 1
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: 193
+        height: 2
+      - key: full.open.evidence
+        value: 30
+        left: 177
+        right: 194
+        height: 3
+      - key: full.open
+        value: 28
+        left: 186
+        right: 195
+        height: 4
+      - key: full.design.confirm
+        value: 24
+        left: 192
+        right: 196
+        height: 5
+      - key: full.archive.confirm
+        value: 37
+        left: null
+        right: null
+        height: 1
+      - key: full.build.configure
+        value: 22
+        left: null
+        right: null
+        height: 1
+      - key: full.archive.prepare
+        value: 38
+        left: 198
+        right: 199
+        height: 2
+      - key: full.build.confirm
+        value: 23
+        left: 200
+        right: 191
+        height: 3
+      - key: full.open.revalidate
+        value: 31
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.run
+        value: 40
+        left: null
+        right: null
+        height: 1
+      - key: full.verify.report.evidence
+        value: 35
+        left: 202
+        right: 203
+        height: 2
+      - key: full.open.evidence
+        value: 30
+        left: 177
+        right: 204
+        height: 3
+      - key: full.open
+        value: 28
+        left: 186
+        right: 205
+        height: 4
+      - key: full.design.confirm
+        value: 24
+        left: 201
+        right: 206
+        height: 5
+    maps:
+      - null
+      - 2
+      - 5
+      - 9
+      - 14
+      - 20
+      - 26
+      - 31
+      - 37
+      - 43
+      - 47
+      - 52
+      - 58
+      - 64
+      - 74
+      - 79
+      - 84
+      - 90
+      - 96
+      - 101
+      - 106
+      - 112
+      - 118
+      - 121
+      - 124
+      - 128
+      - 133
+      - 135
+      - 140
+      - 146
+      - 158
+      - 163
+      - 172
+      - 173
+      - 180
+      - 188
+      - 197
+      - 207
+    bindings:
+      - path:
+          - actions
+          - "0"
+          - input
+          - outputs
+        map: 0
+      - path:
+          - actions
+          - "1"
+          - input
+          - outputs
+        map: 1
+      - path:
+          - actions
+          - "2"
+          - input
+          - outputs
+        map: 2
+      - path:
+          - actions
+          - "3"
+          - input
+          - outputs
+        map: 3
+      - path:
+          - actions
+          - "4"
+          - input
+          - outputs
+        map: 4
+      - path:
+          - actions
+          - "5"
+          - input
+          - outputs
+        map: 5
+      - path:
+          - actions
+          - "6"
+          - input
+          - outputs
+        map: 6
+      - path:
+          - actions
+          - "7"
+          - input
+          - outputs
+        map: 7
+      - path:
+          - actions
+          - "8"
+          - input
+          - outputs
+        map: 8
+      - path:
+          - actions
+          - "9"
+          - input
+          - outputs
+        map: 9
+      - path:
+          - actions
+          - "10"
+          - input
+          - outputs
+        map: 10
+      - path:
+          - actions
+          - "11"
+          - input
+          - outputs
+        map: 11
+      - path:
+          - actions
+          - "12"
+          - input
+          - outputs
+        map: 12
+      - path:
+          - actions
+          - "13"
+          - input
+          - outputs
+        map: 13
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:1
+          - results
+        map: 0
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:11
+          - results
+        map: 14
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:13
+          - results
+        map: 15
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:14
+          - results
+        map: 16
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:16
+          - results
+        map: 17
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:19
+          - results
+        map: 18
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:21
+          - results
+        map: 19
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:23
+          - results
+        map: 20
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:24
+          - results
+        map: 21
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:25
+          - results
+        map: 22
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:4
+          - results
+        map: 23
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:5
+          - results
+        map: 24
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:7
+          - results
+        map: 25
+      - path:
+          - actionContexts
+          - channel-bulk-export-import:9
+          - results
+        map: 26
+      - path:
+          - outputs
+        map: 22
+      - path:
+          - waits
+          - "0"
+          - results
+        map: 27
+      - path:
+          - waits
+          - "1"
+          - results
+        map: 28
+      - path:
+          - waits
+          - "2"
+          - results
+        map: 29
+      - path:
+          - waits
+          - "3"
+          - results
+        map: 30
+      - path:
+          - waits
+          - "4"
+          - results
+        map: 31
+      - path:
+          - waits
+          - "5"
+          - results
+        map: 32
+      - path:
+          - evidenceWaits
+          - "0"
+          - results
+        map: 33
+      - path:
+          - evidenceWaits
+          - "1"
+          - results
+        map: 34
+      - path:
+          - evidenceWaits
+          - "2"
+          - results
+        map: 35
+      - path:
+          - evidenceWaits
+          - "3"
+          - results
+        map: 36
+      - path:
+          - evidenceWaits
+          - "4"
+          - results
+        map: 37
+  storageHash: da5c5c1237bc042938f44a58184ba74ae5f6499dcb11db6a650d66d8227dfd36
+direct_override: false
+handoff_context: docs/openspec/changes/archive/2026-11-23-channel-bulk-export-import/proposal.md
+handoff_hash: c8f78c7dbba5cdee0dacb966a8be8aeccd4d9b0db8fea83a0e5c5a4346521f25
+classic_profile: null
+classic_migration: null
+check_epoch: 8
