@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>变更说明 · sync-upstream 改为上游发布新版本时才自动合并</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #fafbfc;
+  --ink: #202a35;
+  --muted: #566575;
+  --line: #dbe2e8;
+  --accent: #245b85;
+  --highlight: #edf3f7;
+  --hover: #e9eef3;
+  --code-bg: #edf0f4;
+  --code-ink: #263443;
+  --success: #236d4f;
+  --failure: #a83131;
+  --text: 15px;
+  --small: 13px;
+  --label: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #181d23;
+    --ink: #e4eaf0;
+    --muted: #a4b1be;
+    --line: #35404b;
+    --accent: #94c6ec;
+    --highlight: #222e39;
+    --hover: #27323d;
+    --code-bg: #10161d;
+    --code-ink: #e0e8f0;
+    --success: #8ed8b5;
+    --failure: #ffb0a8;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: var(--text)/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1040px; margin: auto; padding: 32px 32px 48px; }
+.eyebrow { color: var(--accent); font-size: var(--label); font-weight: 500; letter-spacing: .08em; }
+h1 { margin: 8px 0 12px; max-width: 32em; font-size: 28px; font-weight: 500; line-height: 1.4; letter-spacing: -.02em; overflow-wrap: anywhere; }
+h2 { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+h3 { margin: 0 0 4px; color: var(--muted); font-size: var(--label); font-weight: 500; }
+p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+strong { font-weight: 500; }
+.meta { margin-bottom: 24px; color: var(--muted); font-size: var(--small); overflow-wrap: anywhere; }
+.meta p + p { margin-top: 2px; }
+article { padding: 20px 0 12px; border-top: 1px solid var(--line); }
+article header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.number { color: var(--muted); font: var(--label)/1.5 ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.comparison section { min-width: 0; padding: 12px; }
+.after { background: var(--highlight); border-radius: 4px; }
+.after h3 { color: var(--accent); }
+.reason { margin-top: 12px; font-size: var(--small); color: var(--muted); }
+.reason strong { margin-right: 8px; color: var(--ink); }
+summary { min-height: 44px; padding: 10px 4px; cursor: pointer; font-size: var(--small); font-weight: 500; border-radius: 4px; }
+summary:hover { background: var(--hover); }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.count, .tag { color: var(--muted); font-size: var(--label); font-weight: 400; }
+.count { margin-left: 4px; font-variant-numeric: tabular-nums; }
+.file { min-width: 0; padding: 0 0 16px; scroll-margin-top: 20px; }
+.file:target { outline: 2px solid var(--accent); outline-offset: 4px; }
+.file-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.file-heading code { min-width: 0; font-size: var(--small); overflow-wrap: anywhere; }
+.tag { white-space: nowrap; }
+pre { margin: 8px 0 0; padding: 12px 16px; overflow: auto; background: var(--code-bg); color: var(--code-ink); border-radius: 4px; font: var(--small)/1.65 ui-monospace, Consolas, monospace; tab-size: 2; }
+footer { margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+footer h2 { margin-bottom: 8px; }
+.check { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.status { padding-top: 2px; font-size: var(--label); font-weight: 500; }
+.passed { color: var(--success); }
+.failed { color: var(--failure); }
+.not-run, .unknown { color: var(--muted); }
+.check p { margin-top: 2px; color: var(--muted); font-size: var(--small); }
+.more { border-top: 1px solid var(--line); }
+.more > summary { padding-block: 12px; }
+.diagram { margin: 0; padding: 20px 0; border-top: 1px solid var(--line); }
+.diagram figcaption { margin-bottom: 12px; font-size: 18px; font-weight: 500; overflow-wrap: anywhere; }
+.diagram-svg { display: block; max-width: 100%; height: auto; margin: auto; overflow: visible; font: 13px system-ui, -apple-system, "Segoe UI", sans-serif; }
+.diagram-svg text { fill: var(--ink); }
+.diagram-edge { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.diagram-svg marker path { fill: var(--muted); }
+.diagram-edge-label { fill: var(--page); }
+.diagram-svg .diagram-edge-text { fill: var(--muted); font-size: 12px; }
+.diagram-node rect { fill: var(--page); stroke: var(--line); stroke-width: 1.5; }
+.diagram-node.modified rect { fill: var(--highlight); stroke: var(--accent); }
+.diagram-node.added rect { stroke: var(--success); }
+.diagram-node.deleted rect { stroke: var(--failure); stroke-dasharray: 4 3; }
+.diagram-svg .diagram-kind { fill: var(--muted); font-size: 11px; }
+.diagram-node[href] { cursor: pointer; }
+.diagram-node[href]:hover rect, .diagram-node[href]:focus-visible rect { stroke: var(--accent); stroke-width: 2.5; }
+.diagram-node[href]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.diagram-hint { margin-top: 12px; color: var(--muted); font-size: var(--small); text-align: center; }
+.diagram-comparison { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+.diagram-comparison > section { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 4px; }
+.diagram-comparison > section > h3 { margin-bottom: 12px; }
+.diagram-compact { display: none; }
+@media (max-width: 999px) {
+  .diagram-wide { display: none; }
+  .diagram-compact { display: block; }
+}
+@media (max-width: 640px) {
+  main { padding: 24px 16px 32px; }
+  h1 { font-size: 24px; }
+  .meta { margin-bottom: 20px; }
+  article { padding-top: 16px; }
+  article header { gap: 8px; }
+  .comparison { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .check { grid-template-columns: 60px minmax(0, 1fr); gap: 8px; }
+  pre { padding: 12px; }
+  .diagram-comparison { grid-template-columns: minmax(0,1fr); }
+  .diagram-comparison > section { padding: 12px 0; border: 0; }
+}
+</style></head><body><main><div class="eyebrow">COMET / 变更说明</div><h1>sync-upstream 改为上游发布新版本时才自动合并</h1><div class="meta"><p>比较范围 · 比较范围：HEAD 9d2fec66a 与当前工作区；本次只改 .github/workflows/sync-upstream.yml 与本地 upstream-sync 规格。.gitignore / AGENTS.md / .comet 为既有未提交 Comet 状态，未纳入本次成果。</p><p>生成时间 · 2026-11-26T08:33:08.410Z</p></div><figure class="diagram"><figcaption>定时同步门禁</figcaption><div class="diagram-wide"><svg class="diagram-svg" width="784" height="176" viewBox="0 0 784 176" role="group" aria-labelledby="walkthrough-diagram-0-wide-title walkthrough-diagram-0-wide-description"><title id="walkthrough-diagram-0-wide-title">定时同步门禁</title><desc id="walkthrough-diagram-0-wide-description">每日 cron → fetch main + tags; fetch main + tags → 解析最新 v* tag; 解析最新 v* tag → tag 已在 HEAD?; tag 已在 HEAD? → 成功短路 (是); tag 已在 HEAD? → 三方合并 + vet (否)</desc><defs><marker id="walkthrough-diagram-0-wide-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z"/></marker></defs><path class="diagram-edge" d="M 132 88 C 152 88, 152 88, 169 88" marker-end="url(#walkthrough-diagram-0-wide-arrow)"/><path class="diagram-edge" d="M 292 88 C 312 88, 312 88, 329 88" marker-end="url(#walkthrough-diagram-0-wide-arrow)"/><path class="diagram-edge" d="M 452 88 C 472 88, 472 88, 489 88" marker-end="url(#walkthrough-diagram-0-wide-arrow)"/><path class="diagram-edge" d="M 612 88 C 632 88, 632 42, 649 42" marker-end="url(#walkthrough-diagram-0-wide-arrow)"/><rect class="diagram-edge-label" x="621.5" y="54" width="21" height="22"/><text class="diagram-edge-text" x="632" y="69" text-anchor="middle"><tspan x="632" dy="0">是</tspan></text><path class="diagram-edge" d="M 612 88 C 632 88, 632 134, 649 134" marker-end="url(#walkthrough-diagram-0-wide-arrow)"/><rect class="diagram-edge-label" x="621.5" y="100" width="21" height="22"/><text class="diagram-edge-text" x="632" y="115" text-anchor="middle"><tspan x="632" dy="0">否</tspan></text><g class="diagram-node "><rect x="12" y="58" width="120" height="60" rx="5"/><text class="" x="72" y="92" text-anchor="middle"><tspan x="72" dy="0">每日 cron</tspan></text></g><g class="diagram-node "><rect x="172" y="58" width="120" height="60" rx="5"/><text class="" x="232" y="83" text-anchor="middle"><tspan x="232" dy="0">fetch main +</tspan><tspan x="232" dy="18">tags</tspan></text></g><g class="diagram-node "><rect x="332" y="58" width="120" height="60" rx="5"/><text class="" x="392" y="83" text-anchor="middle"><tspan x="392" dy="0">解析最新 v*</tspan><tspan x="392" dy="18">tag</tspan></text></g><g class="diagram-node "><rect x="492" y="58" width="120" height="60" rx="5"/><text class="" x="552" y="92" text-anchor="middle"><tspan x="552" dy="0">tag 已在 HEAD?</tspan></text></g><g class="diagram-node "><rect x="652" y="12" width="120" height="60" rx="5"/><text class="" x="712" y="46" text-anchor="middle"><tspan x="712" dy="0">成功短路</tspan></text></g><g class="diagram-node "><rect x="652" y="104" width="120" height="60" rx="5"/><text class="" x="712" y="138" text-anchor="middle"><tspan x="712" dy="0">三方合并 + vet</tspan></text></g></svg></div><div class="diagram-compact"><svg class="diagram-svg" width="272" height="468" viewBox="0 0 272 468" role="group" aria-labelledby="walkthrough-diagram-0-compact-title walkthrough-diagram-0-compact-description"><title id="walkthrough-diagram-0-compact-title">定时同步门禁</title><desc id="walkthrough-diagram-0-compact-description">每日 cron → fetch main + tags; fetch main + tags → 解析最新 v* tag; 解析最新 v* tag → tag 已在 HEAD?; tag 已在 HEAD? → 成功短路 (是); tag 已在 HEAD? → 三方合并 + vet (否)</desc><defs><marker id="walkthrough-diagram-0-compact-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z"/></marker></defs><path class="diagram-edge" d="M 136 72 C 136 90, 136 90, 136 105" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 168 C 136 186, 136 186, 136 201" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 264 C 136 282, 136 282, 136 297" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><path class="diagram-edge" d="M 136 360 C 136 378, 68 378, 68 393" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><rect class="diagram-edge-label" x="91.5" y="367" width="21" height="22"/><text class="diagram-edge-text" x="102" y="382" text-anchor="middle"><tspan x="102" dy="0">是</tspan></text><path class="diagram-edge" d="M 136 360 C 136 378, 204 378, 204 393" marker-end="url(#walkthrough-diagram-0-compact-arrow)"/><rect class="diagram-edge-label" x="159.5" y="367" width="21" height="22"/><text class="diagram-edge-text" x="170" y="382" text-anchor="middle"><tspan x="170" dy="0">否</tspan></text><g class="diagram-node "><rect x="80" y="12" width="112" height="60" rx="5"/><text class="" x="136" y="46" text-anchor="middle"><tspan x="136" dy="0">每日 cron</tspan></text></g><g class="diagram-node "><rect x="80" y="108" width="112" height="60" rx="5"/><text class="" x="136" y="133" text-anchor="middle"><tspan x="136" dy="0">fetch main</tspan><tspan x="136" dy="18">+ tags</tspan></text></g><g class="diagram-node "><rect x="80" y="204" width="112" height="60" rx="5"/><text class="" x="136" y="229" text-anchor="middle"><tspan x="136" dy="0">解析最新 v*</tspan><tspan x="136" dy="18">tag</tspan></text></g><g class="diagram-node "><rect x="80" y="300" width="112" height="60" rx="5"/><text class="" x="136" y="325" text-anchor="middle"><tspan x="136" dy="0">tag 已在</tspan><tspan x="136" dy="18">HEAD?</tspan></text></g><g class="diagram-node "><rect x="12" y="396" width="112" height="60" rx="5"/><text class="" x="68" y="430" text-anchor="middle"><tspan x="68" dy="0">成功短路</tspan></text></g><g class="diagram-node "><rect x="148" y="396" width="112" height="60" rx="5"/><text class="" x="204" y="421" text-anchor="middle"><tspan x="204" dy="0">三方合并 +</tspan><tspan x="204" dy="18">vet</tspan></text></g></svg></div></figure><article><header><span class="number">01</span><h2>上游版本门禁</h2></header><div class="comparison"><section><h3>原来</h3><p>每日只要 upstream/main 有新提交就合并，普通提交也会触发冲突与人工处理。</p></section><section class="after"><h3>现在</h3><p>定时触发先解析上游 main 上最新 v* 版本 tag；该 tag 已在 HEAD 时短路，不合并普通提交。</p></section></div><p class="reason"><strong>原因</strong> 把自动同步收敛到上游版本边界，降低每日冲突频率。</p><details><summary>查看文件和关键代码 <span class="count">1</span></summary><div class="file" id="walkthrough-file-0-0"><div class="file-heading"><span class="tag">修改</span><code>.github/workflows/sync-upstream.yml:81</code></div><pre><code>Check upstream version gate: git tag --merged upstream/main --list &#39;v*&#39; --sort=-v:refname | grep -Ev -- &#39;-[0-9]{12}$&#39; | head -n 1</code></pre></div></details></article><article><header><span class="number">02</span><h2>手动触发保留</h2></header><div class="comparison"><section><h3>原来</h3><p>workflow_dispatch 与定时任务走同一短路判断。</p></section><section class="after"><h3>现在</h3><p>workflow_dispatch 跳过版本门禁，仍可立即同步或复核。</p></section></div><p class="reason"><strong>原因</strong> 保留需要时强制追赶上游的能力。</p><details><summary>查看文件和关键代码 <span class="count">1</span></summary><div class="file" id="walkthrough-file-1-0"><div class="file-heading"><span class="tag">修改</span><code>.github/workflows/sync-upstream.yml:84</code></div><pre><code>if [ &quot;${{ github.event_name }}&quot; = &quot;workflow_dispatch&quot; ]; then ... skipped=false</code></pre></div></details></article><article><header><span class="number">03</span><h2>版本解析失败上报</h2></header><div class="comparison"><section><h3>原来</h3><p>失败类型只有 auth / conflict / vet / push。</p></section><section class="after"><h3>现在</h3><p>新增 version 失败类型；解析不到上游 v* tag 时失败并给出处理线索。</p></section></div><p class="reason"><strong>原因</strong> 避免版本解析异常时退化为无条件合并。</p><details><summary>查看文件和关键代码 <span class="count">2</span></summary><div class="file" id="walkthrough-file-2-0"><div class="file-heading"><span class="tag">修改</span><code>.github/workflows/sync-upstream.yml:98</code></div><pre><code>echo &quot;version&quot; &gt; /tmp/failure-kind</code></pre></div><div class="file" id="walkthrough-file-2-1"><div class="file-heading"><span class="tag">修改</span><code>.github/workflows/sync-upstream.yml:222</code></div><pre><code>version: &#39;Sync upstream 无法解析上游版本 - 需人工处理&#39;</code></pre></div></details></article><details class="more"><summary>其余变化 (1)</summary><div><article><header><span class="number">04</span><h2>规格同步</h2></header><div class="comparison"><section><h3>原来</h3><p>upstream-sync 规格描述每日同步。</p></section><section class="after"><h3>现在</h3><p>Purpose 与 delta spec 改为上游版本门禁语义。</p></section></div><p class="reason"><strong>原因</strong> 让验收契约与实现一致。</p><details><summary>查看文件和关键代码 <span class="count">2</span></summary><div class="file" id="walkthrough-file-3-0"><div class="file-heading"><span class="tag">修改</span><code>docs/openspec/specs/upstream-sync/spec.md:4</code></div><pre><code>定义在上游发布新版本时把上游 QuantumNous/new-api 的 main 同步进本仓库 main...</code></pre></div><div class="file" id="walkthrough-file-3-1"><div class="file-heading"><span class="tag">新增</span><code>docs/openspec/changes/sync-upstream-version-trigger/specs/upstream-sync/spec.md</code></div><pre><code>## ADDED Requirements: 上游版本门禁</code></pre></div></details></article></div></details><footer><h2>实际验证</h2><div class="check"><span class="status passed">通过</span><div><strong>Builder 自检</strong><p>Build 阶段门禁五场景、真实仓库 rc.51 短路、YAML/bash/node 语法、openspec validate --strict 全部通过；Verify 阶段逐条核对 delta spec 场景与实现一致</p></div></div><div class="check"><span class="status not-run">未执行</span><div><strong>Runtime 检查</strong><p>verify guard 提交前</p></div></div><div class="check"><span class="status not-run">未执行</span><div><strong>独立验收</strong><p>review_mode=off，按配置跳过独立审查</p></div></div></footer></main><template id="walkthrough-data">eyJzdW1tYXJ5Ijoic3luYy11cHN0cmVhbSDmlLnkuLrkuIrmuLjlj5HluIPmlrDniYjmnKzml7bmiY3oh6rliqjlkIjlubYiLCJzY29wZSI6IuavlOi+g+iMg+WbtO+8mkhFQUQgOWQyZmVjNjZhIOS4juW9k+WJjeW3peS9nOWMuu+8m+acrOasoeWPquaUuSAuZ2l0aHViL3dvcmtmbG93cy9zeW5jLXVwc3RyZWFtLnltbCDkuI7mnKzlnLAgdXBzdHJlYW0tc3luYyDop4TmoLzjgIIuZ2l0aWdub3JlIC8gQUdFTlRTLm1kIC8gLmNvbWV0IOS4uuaXouacieacquaPkOS6pCBDb21ldCDnirbmgIHvvIzmnKrnurPlhaXmnKzmrKHmiJDmnpzjgIIiLCJjaGFuZ2VzIjpbeyJ0aXRsZSI6IuS4iua4uOeJiOacrOmXqOemgSIsImJlZm9yZSI6Iuavj+aXpeWPquimgSB1cHN0cmVhbS9tYWluIOacieaWsOaPkOS6pOWwseWQiOW5tu+8jOaZrumAmuaPkOS6pOS5n+S8muinpuWPkeWGsueqgeS4juS6uuW3peWkhOeQhuOAgiIsImFmdGVyIjoi5a6a5pe26Kem5Y+R5YWI6Kej5p6Q5LiK5ri4IG1haW4g5LiK5pyA5pawIHYqIOeJiOacrCB0YWfvvJvor6UgdGFnIOW3suWcqCBIRUFEIOaXtuefrei3r++8jOS4jeWQiOW5tuaZrumAmuaPkOS6pOOAgiIsInJlYXNvbiI6IuaKiuiHquWKqOWQjOatpeaUtuaVm+WIsOS4iua4uOeJiOacrOi+ueeVjO+8jOmZjeS9juavj+aXpeWGsueqgemikeeOh+OAgiIsImZpbGVzIjpbeyJwYXRoIjoiLmdpdGh1Yi93b3JrZmxvd3Mvc3luYy11cHN0cmVhbS55bWw6ODEiLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoiQ2hlY2sgdXBzdHJlYW0gdmVyc2lvbiBnYXRlOiBnaXQgdGFnIC0tbWVyZ2VkIHVwc3RyZWFtL21haW4gLS1saXN0ICd2KicgLS1zb3J0PS12OnJlZm5hbWUgfCBncmVwIC1FdiAtLSAnLVswLTldezEyfSQnIHwgaGVhZCAtbiAxIn1dfSx7InRpdGxlIjoi5omL5Yqo6Kem5Y+R5L+d55WZIiwiYmVmb3JlIjoid29ya2Zsb3dfZGlzcGF0Y2gg5LiO5a6a5pe25Lu75Yqh6LWw5ZCM5LiA55+t6Lev5Yik5pat44CCIiwiYWZ0ZXIiOiJ3b3JrZmxvd19kaXNwYXRjaCDot7Pov4fniYjmnKzpl6jnpoHvvIzku43lj6/nq4vljbPlkIzmraXmiJblpI3moLjjgIIiLCJyZWFzb24iOiLkv53nlZnpnIDopoHml7blvLrliLbov73otbbkuIrmuLjnmoTog73lipvjgIIiLCJmaWxlcyI6W3sicGF0aCI6Ii5naXRodWIvd29ya2Zsb3dzL3N5bmMtdXBzdHJlYW0ueW1sOjg0Iiwia2luZCI6Im1vZGlmaWVkIiwiY29kZSI6ImlmIFsgXCIke3sgZ2l0aHViLmV2ZW50X25hbWUgfX1cIiA9IFwid29ya2Zsb3dfZGlzcGF0Y2hcIiBdOyB0aGVuIC4uLiBza2lwcGVkPWZhbHNlIn1dfSx7InRpdGxlIjoi54mI5pys6Kej5p6Q5aSx6LSl5LiK5oqlIiwiYmVmb3JlIjoi5aSx6LSl57G75Z6L5Y+q5pyJIGF1dGggLyBjb25mbGljdCAvIHZldCAvIHB1c2jjgIIiLCJhZnRlciI6IuaWsOWiniB2ZXJzaW9uIOWksei0peexu+Wei++8m+ino+aekOS4jeWIsOS4iua4uCB2KiB0YWcg5pe25aSx6LSl5bm257uZ5Ye65aSE55CG57q/57Si44CCIiwicmVhc29uIjoi6YG/5YWN54mI5pys6Kej5p6Q5byC5bi45pe26YCA5YyW5Li65peg5p2h5Lu25ZCI5bm244CCIiwiZmlsZXMiOlt7InBhdGgiOiIuZ2l0aHViL3dvcmtmbG93cy9zeW5jLXVwc3RyZWFtLnltbDo5OCIsImtpbmQiOiJtb2RpZmllZCIsImNvZGUiOiJlY2hvIFwidmVyc2lvblwiID4gL3RtcC9mYWlsdXJlLWtpbmQifSx7InBhdGgiOiIuZ2l0aHViL3dvcmtmbG93cy9zeW5jLXVwc3RyZWFtLnltbDoyMjIiLCJraW5kIjoibW9kaWZpZWQiLCJjb2RlIjoidmVyc2lvbjogJ1N5bmMgdXBzdHJlYW0g5peg5rOV6Kej5p6Q5LiK5ri454mI5pysIC0g6ZyA5Lq65bel5aSE55CGJyJ9XX0seyJ0aXRsZSI6IuinhOagvOWQjOatpSIsImJlZm9yZSI6InVwc3RyZWFtLXN5bmMg6KeE5qC85o+P6L+w5q+P5pel5ZCM5q2l44CCIiwiYWZ0ZXIiOiJQdXJwb3NlIOS4jiBkZWx0YSBzcGVjIOaUueS4uuS4iua4uOeJiOacrOmXqOemgeivreS5ieOAgiIsInJlYXNvbiI6IuiuqemqjOaUtuWlkee6puS4juWunueOsOS4gOiHtOOAgiIsImZpbGVzIjpbeyJwYXRoIjoiZG9jcy9vcGVuc3BlYy9zcGVjcy91cHN0cmVhbS1zeW5jL3NwZWMubWQ6NCIsImtpbmQiOiJtb2RpZmllZCIsImNvZGUiOiLlrprkuYnlnKjkuIrmuLjlj5HluIPmlrDniYjmnKzml7bmiorkuIrmuLggUXVhbnR1bU5vdXMvbmV3LWFwaSDnmoQgbWFpbiDlkIzmraXov5vmnKzku5PlupMgbWFpbi4uLiJ9LHsicGF0aCI6ImRvY3Mvb3BlbnNwZWMvY2hhbmdlcy9zeW5jLXVwc3RyZWFtLXZlcnNpb24tdHJpZ2dlci9zcGVjcy91cHN0cmVhbS1zeW5jL3NwZWMubWQiLCJraW5kIjoiYWRkZWQiLCJjb2RlIjoiIyMgQURERUQgUmVxdWlyZW1lbnRzOiDkuIrmuLjniYjmnKzpl6jnpoEifV19XSwidmVyaWZpY2F0aW9uIjpbeyJsYWJlbCI6IkJ1aWxkZXIg6Ieq5qOAIiwic3RhdHVzIjoicGFzc2VkIiwiZGV0YWlsIjoiQnVpbGQg6Zi25q616Zeo56aB5LqU5Zy65pmv44CB55yf5a6e5LuT5bqTIHJjLjUxIOefrei3r+OAgVlBTUwvYmFzaC9ub2RlIOivreazleOAgW9wZW5zcGVjIHZhbGlkYXRlIC0tc3RyaWN0IOWFqOmDqOmAmui/h++8m1ZlcmlmeSDpmLbmrrXpgJDmnaHmoLjlr7kgZGVsdGEgc3BlYyDlnLrmma/kuI7lrp7njrDkuIDoh7QifSx7ImxhYmVsIjoiUnVudGltZSDmo4Dmn6UiLCJzdGF0dXMiOiJub3QtcnVuIiwiZGV0YWlsIjoidmVyaWZ5IGd1YXJkIOaPkOS6pOWJjSJ9LHsibGFiZWwiOiLni6znq4vpqozmlLYiLCJzdGF0dXMiOiJub3QtcnVuIiwiZGV0YWlsIjoicmV2aWV3X21vZGU9b2Zm77yM5oyJ6YWN572u6Lez6L+H54us56uL5a6h5p+lIn1dLCJkaWFncmFtcyI6W3sidHlwZSI6ImZsb3ciLCJ0aXRsZSI6IuWumuaXtuWQjOatpemXqOemgSIsIm5vZGVzIjpbeyJpZCI6ImNyb24iLCJsYWJlbCI6Iuavj+aXpSBjcm9uIn0seyJpZCI6ImZldGNoIiwibGFiZWwiOiJmZXRjaCBtYWluICsgdGFncyJ9LHsiaWQiOiJ0YWciLCJsYWJlbCI6Iuino+aekOacgOaWsCB2KiB0YWcifSx7ImlkIjoiY2hlY2siLCJsYWJlbCI6InRhZyDlt7LlnKggSEVBRD8ifSx7ImlkIjoic2tpcCIsImxhYmVsIjoi5oiQ5Yqf55+t6LevIn0seyJpZCI6Im1lcmdlIiwibGFiZWwiOiLkuInmlrnlkIjlubYgKyB2ZXQifV0sImVkZ2VzIjpbeyJmcm9tIjoiY3JvbiIsInRvIjoiZmV0Y2gifSx7ImZyb20iOiJmZXRjaCIsInRvIjoidGFnIn0seyJmcm9tIjoidGFnIiwidG8iOiJjaGVjayJ9LHsiZnJvbSI6ImNoZWNrIiwidG8iOiJza2lwIiwibGFiZWwiOiLmmK8ifSx7ImZyb20iOiJjaGVjayIsInRvIjoibWVyZ2UiLCJsYWJlbCI6IuWQpiJ9XX1dfQ==</template></body></html>

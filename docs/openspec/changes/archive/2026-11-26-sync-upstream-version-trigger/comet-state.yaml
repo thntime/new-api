@@ -1,0 +1,2037 @@
+# comet-execution: managed-run
+change_id: 71d0c925-8dc4-4fe1-a5f4-8325cca8a002
+workflow: tweak
+language: zh-CN
+phase: archive
+context_compression: off
+build_mode: direct
+build_pause: null
+subagent_dispatch: null
+tdd_mode: direct
+review_mode: off
+isolation: current
+verify_mode: light
+auto_transition: true
+base_ref: 9d2fec66aac096ce967f723558e9e0d15652cad1
+design_doc: null
+plan: null
+verify_result: pass
+verify_failures: 0
+verification_report: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+branch_status: pending
+created_at: 2026-11-26
+verified_at: 2026-11-26
+archive_confirmation: confirmed
+archived: true
+bound_branch: main
+run_checkpoint:
+  schema: comet.workflow-run-checkpoint.v1
+  hash: 5971b9b7968230ed8719da50d7b7d85fcc8c8884da3f855a06e2d245f238c8a5
+  run:
+    protocolVersion: 1
+    schemaVersion: 1
+    runId: sync-upstream-version-trigger
+    revision: 1
+    workflow:
+      id: comet-classic-tweak
+      version: "2"
+      hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+    definitionHashes:
+      '["comet-classic-tweak","2"]': 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+    initialStateHash: 2dc491d1886b4cd54164764938c31f721760e9387a4accb360a6318bc39189d5
+    input:
+      change: sync-upstream-version-trigger
+      changeDir: docs/openspec/changes/sync-upstream-version-trigger
+      workspaceBaseline:
+        ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+    state:
+      archiveConfirmation: confirmed
+      archived: true
+      autoTransition: true
+      baseRef: 9d2fec66aac096ce967f723558e9e0d15652cad1
+      boundBranch: main
+      branchStatus: pending
+      buildMode: direct
+      buildPause: null
+      checkEpoch: 5
+      classicMigration: null
+      classicProfile: null
+      contextCompression: off
+      createdAt: 2026-11-26
+      designDoc: null
+      directOverride: null
+      handoffContext: null
+      handoffHash: null
+      isolation: current
+      language: zh-CN
+      phase: archive
+      plan: null
+      reviewMode: off
+      subagentDispatch: null
+      tddMode: direct
+      verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+      verifiedAt: 2026-11-26
+      verifyFailures: 0
+      verifyMode: light
+      verifyResult: pass
+      workflow: tweak
+    status: running
+    sequence: 10
+    actions:
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-2933cb40ca1b00e276c31e19dc958a37b1daeb34e6f95b9ca4059de8a6e7402e
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:1
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs: {}
+        inputHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+        outcome:
+          actionId: sync-upstream-version-trigger:1
+          attempt: 1
+          claimToken: portable-2933cb40ca1b00e276c31e19dc958a37b1daeb34e6f95b9ca4059de8a6e7402e
+          inputHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+          outcomeId: 308ad10d-86d2-4740-8829-697224da4fd8
+          output:
+            event: open-complete
+            requirementsEvidence:
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 1e50e49c8fe2501313d8bee5e8ab5e1d4b492bb63335bde209be5f10023a10d6
+            outcomeId: 308ad10d-86d2-4740-8829-697224da4fd8
+        reconciliations: []
+        ref: comet-tweak
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.open
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          sessionId: ses_de918f10dffey1oGWfNXUfsayo
+          token: portable-4b3b427ed02f64943df740abe17d96869b13858a746ce8b19db9f577c1de6996
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:3
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+        inputHash: ae42734a5008a5ff0eaa14086e85d538502de093880553fae602e6ed5d5238f0
+        outcome:
+          actionId: sync-upstream-version-trigger:3
+          attempt: 1
+          claimToken: portable-4b3b427ed02f64943df740abe17d96869b13858a746ce8b19db9f577c1de6996
+          inputHash: ae42734a5008a5ff0eaa14086e85d538502de093880553fae602e6ed5d5238f0
+          outcomeId: 63976268-0903-465a-bef5-72dce72d52e0
+          output:
+            checks:
+              - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                  rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                  退出码 1 且 failure-kind=version；workflow_dispatch →
+                  skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                result: passed
+              - name: 真实仓库门禁判定（upstream/main + tags）
+                note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                  merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                  成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                result: passed
+              - name: workflow YAML 解析
+                note: cd web && node -e
+                  "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                  → yaml ok；解析出 13 个 step。
+                result: passed
+              - name: workflow 内嵌 shell 语法检查
+                note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                result: passed
+              - name: 失败上报脚本语法检查
+                note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                  含 version 键，其余键保持原值。
+                result: passed
+              - name: OpenSpec delta spec 严格校验
+                note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                  → Change is valid。
+                result: passed
+              - name: 改动空白与范围检查
+                note: git diff --check -- .github/workflows/sync-upstream.yml
+                  docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                  显示本次跟踪改动只有
+                  .github/workflows/sync-upstream.yml（docs/openspec/specs 为本地忽略的
+                  OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet 状态，未纳入）。
+                result: passed
+            event: build-complete
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 1eccbdd3702a2987376be3b29c4de927d71afcec92010b55ebb794c77047ffb4
+            outcomeId: 63976268-0903-465a-bef5-72dce72d52e0
+        reconciliations: []
+        ref: comet-build
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.build.execute
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-9c3f281b8a6691e4db37900d8048ae782d0d15466ac77a32dc03fa73b199e6e5
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:4
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.build.execute:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+        inputHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+        outcome:
+          actionId: sync-upstream-version-trigger:4
+          attempt: 1
+          claimToken: portable-9c3f281b8a6691e4db37900d8048ae782d0d15466ac77a32dc03fa73b199e6e5
+          inputHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+          outcomeId: c2879071-288a-424c-8eab-410f80c469b6
+          output:
+            checks:
+              - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                  rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                  退出码 1 且 failure-kind=version；workflow_dispatch →
+                  skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                result: passed
+              - name: 真实仓库门禁判定（upstream/main + tags）
+                note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                  merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                  成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                result: passed
+              - name: workflow YAML 解析
+                note: cd web && node -e
+                  "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                  → yaml ok；解析出 13 个 step。
+                result: passed
+              - name: workflow 内嵌 shell 语法检查
+                note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                result: passed
+              - name: 失败上报脚本语法检查
+                note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                  含 version 键，其余键保持原值。
+                result: passed
+              - name: OpenSpec delta spec 严格校验
+                note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                  → Change is valid。
+                result: passed
+              - name: 改动空白与范围检查
+                note: git diff --check -- .github/workflows/sync-upstream.yml
+                  docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                  显示本次跟踪改动只有
+                  .github/workflows/sync-upstream.yml（docs/openspec/specs 为本地忽略的
+                  OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet 状态，未纳入）。
+                result: passed
+              - name: delta spec 场景与实现一致性核对
+                note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                  排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                result: passed
+              - name: 验证报告与候选范围核对
+                note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                  任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                result: passed
+            event: verification-ready
+            verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 440d296527b19ecb2cb441dee772c7ec517286182ee0c67c3aaebebf1defd90d
+            outcomeId: c2879071-288a-424c-8eab-410f80c469b6
+        reconciliations: []
+        ref: comet-verify
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.verify.run
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-2d97617b70cce510aeee0c35ff11ba5377703a56c2d605671f85c93d85420fe0
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:6
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.build.execute:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.verify.report.evidence:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+            tweak.verify.run:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        inputHash: fb807f416d9b349a5503a9870db97f01e3bc0855b5327335120f19f51cebd531
+        outcome:
+          actionId: sync-upstream-version-trigger:6
+          attempt: 1
+          claimToken: portable-2d97617b70cce510aeee0c35ff11ba5377703a56c2d605671f85c93d85420fe0
+          inputHash: fb807f416d9b349a5503a9870db97f01e3bc0855b5327335120f19f51cebd531
+          outcomeId: 953e5c42-f882-4844-95cc-d9d70a85d81c
+          output:
+            prBaseBranch: main
+            remote: origin
+            summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+              变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+              失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+              .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+              短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+            targetBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: bc3f0c63010af7a3aa56f8caf35af80c11412da2a019cd4debddc067973c8487
+            outcomeId: 953e5c42-f882-4844-95cc-d9d70a85d81c
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.archive.prepare
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive-preflight
+          token: portable-147faf4637094425c95da4bcad3a35c362e3a2be2758b4e692ff42f230a9655b
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:8
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+            tweak.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+            tweak.build.execute:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.verify.report.evidence:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+            tweak.verify.run:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        inputHash: 95d7e844c4f22cddb3f678170636cc7a3b14cc427ce01cd483e22cc90e654c39
+        outcome:
+          actionId: sync-upstream-version-trigger:8
+          attempt: 1
+          claimToken: portable-147faf4637094425c95da4bcad3a35c362e3a2be2758b4e692ff42f230a9655b
+          inputHash: 95d7e844c4f22cddb3f678170636cc7a3b14cc427ce01cd483e22cc90e654c39
+          outcomeId: 242c3e95-9190-4a59-a8a9-d8eb67a66e8d
+          output:
+            baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+            deliveryAction: push
+            deliveryPaths:
+              - .github/workflows/sync-upstream.yml
+            prBaseBranch: main
+            remote: origin
+            remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+            targetBranch: main
+            verifiedBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: e775a9621c3b44797e607789a778b608e097006369340f5aef2bc8092747b59a
+            outcomeId: 242c3e95-9190-4a59-a8a9-d8eb67a66e8d
+        reconciliations: []
+        ref: classic-archive-preflight
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.archive.preflight
+        type: call_tool
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive
+          token: portable-e13da3921ca181a393598d52d14d3cefd51515a29cd2d234b5168e2e53bb0eaf
+        executionOrigin:
+          workflow:
+            hash: 518d3e8e12eb39899775cb7d2ddcc7ddeba10cb1f1d43cff7b03f2ca61a70c65
+            id: comet-classic-tweak
+            version: "2"
+        id: sync-upstream-version-trigger:9
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+            tweak.archive.preflight:
+              baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+              deliveryAction: push
+              deliveryPaths:
+                - .github/workflows/sync-upstream.yml
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+            tweak.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+            tweak.build.execute:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.verify.report.evidence:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+            tweak.verify.run:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        inputHash: 5c1dfc816fe5df12d5c860bb926a1966a11abaf1332b3c3ede3c7c18b92f2744
+        outcome:
+          actionId: sync-upstream-version-trigger:9
+          artifacts: []
+          attempt: 1
+          claimToken: portable-e13da3921ca181a393598d52d14d3cefd51515a29cd2d234b5168e2e53bb0eaf
+          inputHash: 5c1dfc816fe5df12d5c860bb926a1966a11abaf1332b3c3ede3c7c18b92f2744
+          outcomeId: f36599ff-dab5-4f13-9962-329023abbf72
+          output:
+            archiveDirectory: docs/openspec/changes/archive/2026-11-26-sync-upstream-version-trigger
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: cb23e80dc113891fba4bc6af20b3e95364f6a63a0752a614ff40eb333dab3b99
+            outcomeId: f36599ff-dab5-4f13-9962-329023abbf72
+        reconciliations: []
+        ref: classic-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: succeeded
+        stepId: tweak.archive.execute
+        type: call_tool
+      - attempt: 1
+        id: sync-upstream-version-trigger:10
+        input:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+            tweak.archive.execute:
+              archiveDirectory: docs/openspec/changes/archive/2026-11-26-sync-upstream-version-trigger
+            tweak.archive.preflight:
+              baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+              deliveryAction: push
+              deliveryPaths:
+                - .github/workflows/sync-upstream.yml
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+            tweak.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+            tweak.build.execute:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+            tweak.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.open.evidence:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+            tweak.verify.report.evidence:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+            tweak.verify.run:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        inputHash: 1d48f4e22cc2afe3be6b337639124e55f25a028250d5e1c1d432145deeabb824
+        protocolVersion: 1
+        receipts: []
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: sync-upstream-version-trigger
+        status: pending
+        stepId: tweak.archive.deliver
+        type: invoke_skill
+    actionContexts:
+      sync-upstream-version-trigger:1:
+        results: {}
+        sequence: 1
+      sync-upstream-version-trigger:10:
+        results:
+          tweak.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+          tweak.archive.execute:
+            sequence: 9
+            value:
+              archiveDirectory: docs/openspec/changes/archive/2026-11-26-sync-upstream-version-trigger
+          tweak.archive.preflight:
+            sequence: 8
+            value:
+              baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+              deliveryAction: push
+              deliveryPaths:
+                - .github/workflows/sync-upstream.yml
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+          tweak.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        sequence: 10
+      sync-upstream-version-trigger:3:
+        results:
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+        sequence: 3
+      sync-upstream-version-trigger:4:
+        results:
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+        sequence: 4
+      sync-upstream-version-trigger:6:
+        results:
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        sequence: 6
+      sync-upstream-version-trigger:8:
+        results:
+          tweak.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+          tweak.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        sequence: 8
+      sync-upstream-version-trigger:9:
+        results:
+          tweak.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: sync-upstream-version-trigger
+                  changeDir: docs/openspec/changes/sync-upstream-version-trigger
+                  workspaceBaseline:
+                    ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+                outputs:
+                  tweak.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                      变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增
+                      version 失败类型。归档影响：change 移入
+                      docs/openspec/changes/archive，提交
+                      .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                      rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                    targetBranch: main
+          tweak.archive.preflight:
+            sequence: 8
+            value:
+              baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+              deliveryAction: push
+              deliveryPaths:
+                - .github/workflows/sync-upstream.yml
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+          tweak.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        sequence: 9
+    waits:
+      - id: sync-upstream-version-trigger:7
+        stepId: tweak.archive.confirm
+        sequence: 7
+        status: resolved
+        proposal:
+          input:
+            change: sync-upstream-version-trigger
+            changeDir: docs/openspec/changes/sync-upstream-version-trigger
+            workspaceBaseline:
+              ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+          outputs:
+            tweak.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+        proposalHash: 1bd243d06f922bd886c29049307faa0475879290bf1adf26f7a85bfc12a9783e
+        choices:
+          - local
+          - push
+          - pr
+          - reverify
+          - later
+        results:
+          tweak.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+                短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+              targetBranch: main
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+              ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        decision:
+          id: classic-archive-1bd243d06f922bd886c29049307faa0475879290bf1adf26f7a85bfc12a9783e-push
+          choice: push
+          proposalHash: 1bd243d06f922bd886c29049307faa0475879290bf1adf26f7a85bfc12a9783e
+    evidenceWaits:
+      - id: sync-upstream-version-trigger:2
+        stepId: tweak.open.evidence
+        sequence: 2
+        kind: classic-open-artifacts
+        status: resolved
+        results:
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+        receipt:
+          ref: docs/openspec/changes/sync-upstream-version-trigger
+          contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+          submissionId: 92d77020-7192-4115-a965-f06545e5c5c1
+      - id: sync-upstream-version-trigger:5
+        stepId: tweak.verify.report.evidence
+        sequence: 5
+        kind: classic-verification-report
+        status: resolved
+        results:
+          tweak.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+              event: build-complete
+          tweak.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.open.evidence:
+            sequence: 2
+            value:
+              contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+              ref: docs/openspec/changes/sync-upstream-version-trigger
+          tweak.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+                  note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                    rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag →
+                    退出码 1 且 failure-kind=version；workflow_dispatch →
+                    skipped=false；fork 发布 tag 后缀被排除。全部 PASS。
+                  result: passed
+                - name: 真实仓库门禁判定（upstream/main + tags）
+                  note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                    merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                    成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+                  result: passed
+                - name: workflow YAML 解析
+                  note: cd web && node -e
+                    "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                    → yaml ok；解析出 13 个 step。
+                  result: passed
+                - name: workflow 内嵌 shell 语法检查
+                  note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+                  result: passed
+                - name: 失败上报脚本语法检查
+                  note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                    含 version 键，其余键保持原值。
+                  result: passed
+                - name: OpenSpec delta spec 严格校验
+                  note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                    → Change is valid。
+                  result: passed
+                - name: 改动空白与范围检查
+                  note: git diff --check -- .github/workflows/sync-upstream.yml
+                    docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                    显示本次跟踪改动只有
+                    .github/workflows/sync-upstream.yml（docs/openspec/specs
+                    为本地忽略的 OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet
+                    状态，未纳入）。
+                  result: passed
+                - name: delta spec 场景与实现一致性核对
+                  note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                    排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                    任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+        receipt:
+          ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+          contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+          submissionId: c0d27538-c18a-41d4-b3a9-951e9719e63d
+    ready: []
+    joins: {}
+    outputs:
+      tweak.archive.confirm:
+        sequence: 7
+        value:
+          choice: push
+          proposal:
+            input:
+              change: sync-upstream-version-trigger
+              changeDir: docs/openspec/changes/sync-upstream-version-trigger
+              workspaceBaseline:
+                ref: 21d9e438-cce7-4587-9ef2-c5b51ee8d91a
+            outputs:
+              tweak.archive.prepare:
+                prBaseBranch: main
+                remote: origin
+                summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+                  变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+                  失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+                  .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库
+                  rc.51 短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+                targetBranch: main
+      tweak.archive.execute:
+        sequence: 9
+        value:
+          archiveDirectory: docs/openspec/changes/archive/2026-11-26-sync-upstream-version-trigger
+      tweak.archive.preflight:
+        sequence: 8
+        value:
+          baseCommit: 9d2fec66aac096ce967f723558e9e0d15652cad1
+          deliveryAction: push
+          deliveryPaths:
+            - .github/workflows/sync-upstream.yml
+          prBaseBranch: main
+          remote: origin
+          remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+          targetBranch: main
+          verifiedBranch: main
+      tweak.archive.prepare:
+        sequence: 6
+        value:
+          prBaseBranch: main
+          remote: origin
+          summary: 将 sync-upstream 的自动合并触发从「每日追上游 main 所有提交」改为「上游最新 v* 版本 tag
+            变化时才合并」；定时触发在版本未变时成功短路，手动 workflow_dispatch 保留强制同步；新增 version
+            失败类型。归档影响：change 移入 docs/openspec/changes/archive，提交
+            .github/workflows/sync-upstream.yml 与归档产物；本地已通过门禁五场景、真实仓库 rc.51
+            短路、YAML/bash/node 语法与 openspec validate --strict 验证。
+          targetBranch: main
+      tweak.build.execute:
+        sequence: 3
+        value:
+          checks:
+            - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+              note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag → 退出码
+                1 且 failure-kind=version；workflow_dispatch → skipped=false；fork
+                发布 tag 后缀被排除。全部 PASS。
+              result: passed
+            - name: 真实仓库门禁判定（upstream/main + tags）
+              note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+              result: passed
+            - name: workflow YAML 解析
+              note: cd web && node -e
+                "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                → yaml ok；解析出 13 个 step。
+              result: passed
+            - name: workflow 内嵌 shell 语法检查
+              note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+              result: passed
+            - name: 失败上报脚本语法检查
+              note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                含 version 键，其余键保持原值。
+              result: passed
+            - name: OpenSpec delta spec 严格校验
+              note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                → Change is valid。
+              result: passed
+            - name: 改动空白与范围检查
+              note: git diff --check -- .github/workflows/sync-upstream.yml
+                docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                显示本次跟踪改动只有
+                .github/workflows/sync-upstream.yml（docs/openspec/specs 为本地忽略的
+                OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet 状态，未纳入）。
+              result: passed
+          event: build-complete
+      tweak.open:
+        sequence: 1
+        value:
+          event: open-complete
+          requirementsEvidence:
+            ref: docs/openspec/changes/sync-upstream-version-trigger
+      tweak.open.evidence:
+        sequence: 2
+        value:
+          contentHash: bfe03ec7db9d1a2d4764968b2e1b9dac81293b5456c2284b4baef472f489e0e6
+          ref: docs/openspec/changes/sync-upstream-version-trigger
+      tweak.verify.report.evidence:
+        sequence: 5
+        value:
+          contentHash: 57fb725d53a511fd47a9d5e6903afe898eccbed7b4afee65525ee3c6b396d43a
+          ref: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+      tweak.verify.run:
+        sequence: 4
+        value:
+          checks:
+            - name: 门禁脚本模拟（临时 git 仓库，五种输入）
+              note: bash /tmp/opencode/sync-gate-test.sh：最新 tag 已在 HEAD → skipped=true；上游新增
+                rc.2 → skipped=false；只有新提交、无新 tag → skipped=true；无 v* tag → 退出码
+                1 且 failure-kind=version；workflow_dispatch → skipped=false；fork
+                发布 tag 后缀被排除。全部 PASS。
+              result: passed
+            - name: 真实仓库门禁判定（upstream/main + tags）
+              note: git fetch upstream main --tags 后：latest upstream tag=v1.0.0-rc.51；git
+                merge-base --is-ancestor v1.0.0-rc.51^{commit} HEAD →
+                成立；gate=skipped；HEAD..upstream/main=10 个提交。符合「版本未变则短路」预期。
+              result: passed
+            - name: workflow YAML 解析
+              note: cd web && node -e
+                "YAML.parse(fs.readFileSync('../.github/workflows/sync-upstream.yml','utf8'))"
+                → yaml ok；解析出 13 个 step。
+              result: passed
+            - name: workflow 内嵌 shell 语法检查
+              note: 从 YAML 提取 10 个 run 脚本，逐个 bash -n → 全部通过。
+              result: passed
+            - name: 失败上报脚本语法检查
+              note: 从 YAML 提取 actions/github-script 的 script，node --check → 通过；titles/guidance
+                含 version 键，其余键保持原值。
+              result: passed
+            - name: OpenSpec delta spec 严格校验
+              note: comet classic openspec -- validate sync-upstream-version-trigger --strict
+                → Change is valid。
+              result: passed
+            - name: 改动空白与范围检查
+              note: git diff --check -- .github/workflows/sync-upstream.yml
+                docs/openspec/specs/upstream-sync/spec.md → 无输出；git status
+                显示本次跟踪改动只有
+                .github/workflows/sync-upstream.yml（docs/openspec/specs 为本地忽略的
+                OpenSpec 主规格；.gitignore/AGENTS.md/.comet 为既有未提交 Comet 状态，未纳入）。
+              result: passed
+            - name: delta spec 场景与实现一致性核对
+              note: 逐条对照 upstream-sync delta spec：新版本合并、版本未变短路、无冲突/冲突、手动触发绕过、无法解析版本失败、fork tag
+                排除、失败原因区分均有实现或既有逻辑对应；openspec validate --strict 通过。
+              result: passed
+            - name: 验证报告与候选范围核对
+              note: docs/superpowers/reports/sync-upstream-version-trigger-verify.md 记录 4/4
+                任务、7 项轻量验证、规格一致性、风险与限制；候选范围与 git status 一致。
+              result: passed
+          event: verification-ready
+          verificationReport: docs/superpowers/reports/sync-upstream-version-trigger-verify.md
+    children: []
+    lineage: []
+  sourceRevision: 16
+  sourceHash: 3e8123ee863ab6ec8c61e73dbb4f7045be686fc1d4404f823ad112c32418547a
+direct_override: null
+handoff_context: null
+handoff_hash: null
+classic_profile: null
+classic_migration: null
+check_epoch: 5

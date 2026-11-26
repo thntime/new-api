@@ -1,8 +1,10 @@
 name: Sync Upstream
 
-# 每日 UTC 00:00 自动把 QuantumNous/new-api 的 main 合并进本仓库 main。
-# 策略（本地优先 + 半自动）：
-#   - 默认三方 merge：追加/不重叠改动自动合并；rerere 自动重放已人工解决的冲突
+# 上游发布新版本时自动把 QuantumNous/new-api 的 main 合并进本仓库 main。
+# 触发策略（本地优先 + 半自动）：
+#   - 定时任务每日检查上游最新 v* 版本 tag；该 tag 已在 HEAD 中时短路，不合并普通提交
+#   - 上游出现新版本 tag 时执行三方 merge：追加/不重叠改动自动合并；rerere 自动重放已人工解决的冲突
+#   - 手动 workflow_dispatch 视为明确要求同步，跳过版本门禁，便于立即复核或追赶
 #   - 冲突无法自动解决时不兜底取本地侧（-X ours 会整文件丢弃上游新增符号导致
 #     vet 编译失败），而是中止 merge 并创建/更新 issue 等待人工处理
 #   - go vet 双模块验证关卡：合并结果必须通过 vet 才 push，防止上游必填符号缺失
@@ -13,8 +15,10 @@ name: Sync Upstream
 #   - rerere seed 以 .github/rerere-cache/ 为唯一事实源（已入库，每次从仓库恢复；
 #     不使用 actions/cache，避免旧缓存覆盖新种子）。人工解决冲突后需手动把
 #     .git/rr-cache 新记录回填到该目录并提交（CI 上游已含 HEAD 时短路，无法自动收录）
-#   - 失败上报区分 auth / conflict / vet / push，issue 标题与处理步骤按实际类型生成
-# 冲突自动解决后 push（PAT 推送会触发 build-image.yml 重建镜像）；上游已包含在 HEAD 则短路不 push。
+#   - 失败上报区分 auth / version / conflict / vet / push，issue 标题与处理步骤按实际类型生成
+# 版本门禁：上游 main 可达的最新 v* tag（排除带 12 位时间戳后缀的 fork 发布 tag）
+# 已是 HEAD 祖先时短路；解析不到版本 tag 时按 version 失败上报，不无条件合并。
+# 冲突自动解决后 push（PAT 推送会触发 build-image.yml 重建镜像）；上游版本已包含在 HEAD 则短路不 push。
 # 失败兜底：自动创建或更新带 sync-upstream label 的 issue 通知，不推坏代码。
 
 on:
@@ -72,15 +76,36 @@ jobs:
         run: |
           git remote remove upstream 2>/dev/null || true
           git remote add upstream https://github.com/QuantumNous/new-api.git
-          git fetch upstream main
+          git fetch upstream main --tags
 
-      - name: Check if upstream already merged
+      - name: Check upstream version gate
         id: check
         run: |
-          if git merge-base --is-ancestor upstream/main HEAD; then
-            echo "Upstream is already contained in HEAD, nothing to do"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch: bypassing upstream version gate"
+            echo "skipped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 取 upstream/main 可达的最新 v* 版本 tag；排除形如
+          # v1.0.0-rc.51-202611211222 的 fork 发布 tag。
+          UPSTREAM_VERSION_TAG="$(
+            git tag --merged upstream/main --list 'v*' --sort=-v:refname \
+              | grep -Ev -- '-[0-9]{12}$' \
+              | head -n 1 || true
+          )"
+          if [ -z "$UPSTREAM_VERSION_TAG" ]; then
+            echo "version" > /tmp/failure-kind
+            echo "::error::Unable to resolve the latest upstream version tag from upstream/main"
+            exit 1
+          fi
+          echo "Latest upstream version tag: $UPSTREAM_VERSION_TAG"
+
+          if git merge-base --is-ancestor "${UPSTREAM_VERSION_TAG}^{commit}" HEAD; then
+            echo "Upstream version $UPSTREAM_VERSION_TAG is already contained in HEAD; skipping until the next upstream version"
             echo "skipped=true" >> "$GITHUB_OUTPUT"
           else
+            echo "Upstream version $UPSTREAM_VERSION_TAG is not contained in HEAD; syncing"
             echo "skipped=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -194,6 +219,7 @@ jobs:
               || '(无新增上游提交：合并已完成但未推送)';
             const titles = {
               auth: 'Sync upstream 缺少推送凭证 - 需人工处理',
+              version: 'Sync upstream 无法解析上游版本 - 需人工处理',
               conflict: 'Sync upstream 合并冲突 - 需人工处理',
               vet: 'Sync upstream 合并后 vet 失败 - 需人工处理',
               push: 'Sync upstream 推送被拒绝 - 需人工处理',
@@ -201,6 +227,7 @@ jobs:
             };
             const guidance = {
               auth: '仓库未配置 SYNC_UPSTREAM_TOKEN，或 secret 为空。请创建 fine-grained PAT（Contents: write、Workflows: write，仅授权本仓库），保存为 Actions secret `SYNC_UPSTREAM_TOKEN` 后重跑 workflow。GITHUB_TOKEN 无法获得 workflows 权限，不能替代。',
+              version: '无法从 `upstream/main` 解析出最新的 `v*` 版本 tag。检查上游 tag 是否存在、Fetch upstream 是否带 `--tags`，以及 tag 过滤规则是否与上游版本命名一致；修复后重跑 workflow。',
               conflict: '本地执行 `git fetch upstream && git merge --no-edit upstream/main`，解决冲突并保证 `GOWORK=off go vet ./...`（含 relaykit）通过。提交合并结果后，按下方步骤回填 rerere 种子并 push。',
               vet: '合并成功但双模块 vet 失败，通常是上游新增符号缺失或本地改造与上游冲突。按 vet 日志修复后重新合并，并确认 `GOWORK=off go vet ./...`（含 relaykit）通过。',
               push: '合并与 vet 均通过，但 push 被远端拒绝。检查 `SYNC_UPSTREAM_TOKEN` 是否具备 Contents: write 与 Workflows: write、是否过期，以及 main 分支保护规则是否允许该 PAT 推送。',
