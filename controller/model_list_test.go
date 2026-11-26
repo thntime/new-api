@@ -193,6 +193,9 @@ func modelSquareData[T any](t *testing.T, handler gin.HandlerFunc, path, userGro
 }
 
 func TestModelSquareGroupVisibility(t *testing.T) {
+	perfmetrics.ResetHotBuckets()
+	t.Cleanup(perfmetrics.ResetHotBuckets)
+
 	originalGroups := setting.UserUsableGroups2JSONString()
 	originalRatios := ratio_setting.GroupRatio2JSONString()
 	t.Cleanup(func() {

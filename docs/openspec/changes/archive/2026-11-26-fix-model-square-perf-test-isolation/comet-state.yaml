@@ -1,0 +1,1835 @@
+# comet-execution: managed-run
+change_id: a4f5770f-b88d-4c49-87e5-7cd6e9d839c7
+workflow: hotfix
+language: zh-CN
+phase: archive
+context_compression: off
+build_mode: direct
+build_pause: null
+subagent_dispatch: null
+tdd_mode: direct
+review_mode: off
+isolation: current
+verify_mode: light
+auto_transition: true
+base_ref: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+design_doc: null
+plan: null
+verify_result: pass
+verify_failures: 0
+verification_report: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+branch_status: pending
+created_at: 2026-11-26
+verified_at: 2026-11-26
+archive_confirmation: confirmed
+archived: true
+bound_branch: main
+run_checkpoint:
+  schema: comet.workflow-run-checkpoint.v1
+  hash: c12c27252b7efa4174961ce34c9b6b8c3d7a63f3c78bc6a40e98f7f19dfb75b3
+  run:
+    protocolVersion: 1
+    schemaVersion: 1
+    runId: fix-model-square-perf-test-isolation
+    revision: 1
+    workflow:
+      id: comet-classic-hotfix
+      version: "2"
+      hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+    definitionHashes:
+      '["comet-classic-hotfix","2"]': 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+    initialStateHash: 071882181a71bae6ae5133f382e61d5f6069d800b1bb8e5a9c3e6c04bbbe98d5
+    input:
+      change: fix-model-square-perf-test-isolation
+      changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+      workspaceBaseline:
+        ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+    state:
+      archiveConfirmation: confirmed
+      archived: true
+      autoTransition: true
+      baseRef: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+      boundBranch: main
+      branchStatus: pending
+      buildMode: direct
+      buildPause: null
+      checkEpoch: 5
+      classicMigration: null
+      classicProfile: null
+      contextCompression: off
+      createdAt: 2026-11-26
+      designDoc: null
+      directOverride: null
+      handoffContext: null
+      handoffHash: null
+      isolation: current
+      language: zh-CN
+      phase: archive
+      plan: null
+      reviewMode: off
+      subagentDispatch: null
+      tddMode: direct
+      verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+      verifiedAt: 2026-11-26
+      verifyFailures: 0
+      verifyMode: light
+      verifyResult: pass
+      workflow: hotfix
+    status: running
+    sequence: 10
+    actions:
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-5d79161fb703d15dbc91cbbf8bb9f87ef70e99fa75e820a89c043be68e79222c
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:1
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs: {}
+        inputHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:1
+          attempt: 1
+          claimToken: portable-5d79161fb703d15dbc91cbbf8bb9f87ef70e99fa75e820a89c043be68e79222c
+          inputHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+          outcomeId: f5e684e7-523c-4d99-aa8d-8625cca31c55
+          output:
+            event: open-complete
+            requirementsEvidence:
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: c4a6d0238e943b08b38416c2599e62f946947657af9f8a69fb8d5513c93e3e5c
+            outcomeId: f5e684e7-523c-4d99-aa8d-8625cca31c55
+        reconciliations: []
+        ref: comet-hotfix
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.open
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          sessionId: ses_de918f10dffey1oGWfNXUfsayo
+          token: portable-36a3e7c5cc6dd75d63f22ddebea5a0564f48f0d75935fc11fd91fa26932450b6
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:3
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+        inputHash: 0acacad4bb6ef5bb932f96a91bbe6f54d6c320bddeaefd4d23f7ebcdbcd11cd7
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:3
+          attempt: 1
+          claimToken: portable-36a3e7c5cc6dd75d63f22ddebea5a0564f48f0d75935fc11fd91fa26932450b6
+          inputHash: 0acacad4bb6ef5bb932f96a91bbe6f54d6c320bddeaefd4d23f7ebcdbcd11cd7
+          outcomeId: c16d6dfb-b4be-42e0-8064-eeebda4ba8bb
+          output:
+            checks:
+              - name: 修复前复现（反向证据）
+                note: "GOWORK=off go test ./controller -run
+                  '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGrou\
+                  pVisibility)$' -count=1 → FAIL: summary.Models 多出
+                  fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                result: passed
+              - name: 目标测试（修复后）
+                note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                result: passed
+              - name: 反向验证（移除清空调用）
+                note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                  ok。
+                result: passed
+              - name: controller 相关回归
+                note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                  -count=1 → ok；GOWORK=off go test ./controller -run
+                  '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                result: passed
+              - name: pkg/perf_metrics 回归
+                note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                  github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                result: passed
+              - name: 静态检查
+                note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                  controller/model_list_test.go pkg/perf_metrics/metrics.go 无输出。
+                result: passed
+            event: build-complete
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: ae09295d6bd95b99bf176000c9e816ce8fe33559c3db9dbc4d2e887607198323
+            outcomeId: c16d6dfb-b4be-42e0-8064-eeebda4ba8bb
+        reconciliations: []
+        ref: comet-build
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.build.execute
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-guard
+          token: portable-cd7d43d69e80e908d6d9c37815aa2195562e6bce887d7040aef89f299e6cf06a
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:4
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.build.execute:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+        inputHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:4
+          attempt: 1
+          claimToken: portable-cd7d43d69e80e908d6d9c37815aa2195562e6bce887d7040aef89f299e6cf06a
+          inputHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+          outcomeId: 0866b274-11da-4ae1-8475-bcc4a3a5ebbd
+          output:
+            checks:
+              - name: 修复前复现（反向证据）
+                note: "GOWORK=off go test ./controller -run
+                  '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGrou\
+                  pVisibility)$' -count=1 → FAIL: summary.Models 多出
+                  fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                result: passed
+              - name: 目标测试（修复后）
+                note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                result: passed
+              - name: 反向验证（移除清空调用）
+                note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                  ok。
+                result: passed
+              - name: controller 相关回归
+                note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                  -count=1 → ok；GOWORK=off go test ./controller -run
+                  '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                result: passed
+              - name: pkg/perf_metrics 回归
+                note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                  github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                result: passed
+              - name: 静态检查
+                note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                  controller/model_list_test.go pkg/perf_metrics/metrics.go 无输出。
+                result: passed
+              - name: 根因消除核对
+                note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                  前后清空，目标测试通过；生产路径未改。
+                result: passed
+              - name: 验证报告与候选范围核对
+                note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                  3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                result: passed
+            event: verification-ready
+            verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: df809c760a019c88b453518a3518174af9606e318d8aa67e2fa5289b5c18c35a
+            outcomeId: 0866b274-11da-4ae1-8475-bcc4a3a5ebbd
+        reconciliations: []
+        ref: comet-verify
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.verify.run
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-state
+          token: portable-ac124391223a4af1e3fc963628531c56128b12cae2be96a4f6a23c60f77b487b
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:6
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.build.execute:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.verify.report.evidence:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+            hotfix.verify.run:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        inputHash: 2725ad1fa83dc5a5b9629765140a71dd02a63b7ba0d98d5965e689b9ff349ce1
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:6
+          attempt: 1
+          claimToken: portable-ac124391223a4af1e3fc963628531c56128b12cae2be96a4f6a23c60f77b487b
+          inputHash: 2725ad1fa83dc5a5b9629765140a71dd02a63b7ba0d98d5965e689b9ff349ce1
+          outcomeId: aabf6d8d-4578-4f4b-9986-c208427119d6
+          output:
+            prBaseBranch: main
+            remote: origin
+            summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+              perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入
+              archive，提交 pkg/perf_metrics/metrics.go 与
+              controller/model_list_test.go；本地已复现失败、修复后目标测试与
+              controller/perf_metrics 回归通过，并做反向验证。
+            targetBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: d00667b4fbc5686c465c9ab71e98d6cf35bc3ff1a2301aaf5c0f61f21e859cda
+            outcomeId: aabf6d8d-4578-4f4b-9986-c208427119d6
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.archive.prepare
+        type: invoke_skill
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive-preflight
+          token: portable-56e147f414f70e7c285ff8dfaf517df9fb67a0a18b2a1224f222c1504967dd75
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:8
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+            hotfix.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+            hotfix.build.execute:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.verify.report.evidence:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+            hotfix.verify.run:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        inputHash: 7bcefb327c805fd2da16bb84683c1f3481bfbcb9564d7b3bc8693f0f34cb3df1
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:8
+          attempt: 1
+          claimToken: portable-56e147f414f70e7c285ff8dfaf517df9fb67a0a18b2a1224f222c1504967dd75
+          inputHash: 7bcefb327c805fd2da16bb84683c1f3481bfbcb9564d7b3bc8693f0f34cb3df1
+          outcomeId: 82a03fbb-3e74-48cf-a312-3dc902a204c6
+          output:
+            baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+            deliveryAction: push
+            deliveryPaths:
+              - controller/model_list_test.go
+              - pkg/perf_metrics/metrics.go
+            prBaseBranch: main
+            remote: origin
+            remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+            targetBranch: main
+            verifiedBranch: main
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: 5a789b9da14429428862fdb4bad2cb25489bb9e32f9af603f6f8151395b499ac
+            outcomeId: 82a03fbb-3e74-48cf-a312-3dc902a204c6
+        reconciliations: []
+        ref: classic-archive-preflight
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.archive.preflight
+        type: call_tool
+      - attempt: 1
+        claim:
+          executorId: comet-classic-archive
+          token: portable-6c67ae74a3d154ac1adc412ba3652d17bdaa246ac459a5bdc41e38a5474f2f9c
+        executionOrigin:
+          workflow:
+            hash: 919a5c20169cd396011d40bf1a03b9ad444f4b344df269f12bc0cffd327861ce
+            id: comet-classic-hotfix
+            version: "2"
+        id: fix-model-square-perf-test-isolation:9
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+            hotfix.archive.preflight:
+              baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+              deliveryAction: push
+              deliveryPaths:
+                - controller/model_list_test.go
+                - pkg/perf_metrics/metrics.go
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+            hotfix.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+            hotfix.build.execute:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.verify.report.evidence:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+            hotfix.verify.run:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        inputHash: 9866b1428b0094a9e4c580f2582107ed1e83ea5be204c937c36337a529dd3f81
+        outcome:
+          actionId: fix-model-square-perf-test-isolation:9
+          artifacts: []
+          attempt: 1
+          claimToken: portable-6c67ae74a3d154ac1adc412ba3652d17bdaa246ac459a5bdc41e38a5474f2f9c
+          inputHash: 9866b1428b0094a9e4c580f2582107ed1e83ea5be204c937c36337a529dd3f81
+          outcomeId: 22e685c3-d89f-4fdc-93c1-7acad0b4aa0a
+          output:
+            archiveDirectory: docs/openspec/changes/archive/2026-11-26-fix-model-square-perf-test-isolation
+          status: succeeded
+        protocolVersion: 1
+        receipts:
+          - hash: a1de1bf227377fc0b301c6d5b709a68b427e5c4108d551357f6b98a8438b3cae
+            outcomeId: 22e685c3-d89f-4fdc-93c1-7acad0b4aa0a
+        reconciliations: []
+        ref: classic-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: succeeded
+        stepId: hotfix.archive.execute
+        type: call_tool
+      - attempt: 1
+        id: fix-model-square-perf-test-isolation:10
+        input:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.archive.confirm:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+            hotfix.archive.execute:
+              archiveDirectory: docs/openspec/changes/archive/2026-11-26-fix-model-square-perf-test-isolation
+            hotfix.archive.preflight:
+              baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+              deliveryAction: push
+              deliveryPaths:
+                - controller/model_list_test.go
+                - pkg/perf_metrics/metrics.go
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+            hotfix.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+            hotfix.build.execute:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+            hotfix.open:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.open.evidence:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+            hotfix.verify.report.evidence:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+            hotfix.verify.run:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        inputHash: fc85f8426f575d59049fb6a46799f7078571b58a33b0c6751356b800b1b53949
+        protocolVersion: 1
+        receipts: []
+        reconciliations: []
+        ref: comet-archive
+        requiredCapabilities: []
+        retry: manual
+        runId: fix-model-square-perf-test-isolation
+        status: pending
+        stepId: hotfix.archive.deliver
+        type: invoke_skill
+    actionContexts:
+      fix-model-square-perf-test-isolation:1:
+        results: {}
+        sequence: 1
+      fix-model-square-perf-test-isolation:10:
+        results:
+          hotfix.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+          hotfix.archive.execute:
+            sequence: 9
+            value:
+              archiveDirectory: docs/openspec/changes/archive/2026-11-26-fix-model-square-perf-test-isolation
+          hotfix.archive.preflight:
+            sequence: 8
+            value:
+              baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+              deliveryAction: push
+              deliveryPaths:
+                - controller/model_list_test.go
+                - pkg/perf_metrics/metrics.go
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+          hotfix.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        sequence: 10
+      fix-model-square-perf-test-isolation:3:
+        results:
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+        sequence: 3
+      fix-model-square-perf-test-isolation:4:
+        results:
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+        sequence: 4
+      fix-model-square-perf-test-isolation:6:
+        results:
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        sequence: 6
+      fix-model-square-perf-test-isolation:8:
+        results:
+          hotfix.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+          hotfix.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        sequence: 8
+      fix-model-square-perf-test-isolation:9:
+        results:
+          hotfix.archive.confirm:
+            sequence: 7
+            value:
+              choice: push
+              proposal:
+                input:
+                  change: fix-model-square-perf-test-isolation
+                  changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+                  workspaceBaseline:
+                    ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+                outputs:
+                  hotfix.archive.prepare:
+                    prBaseBranch: main
+                    remote: origin
+                    summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                      perfmetrics.ResetHotBuckets
+                      并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入 archive，提交
+                      pkg/perf_metrics/metrics.go 与
+                      controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                      controller/perf_metrics 回归通过，并做反向验证。
+                    targetBranch: main
+          hotfix.archive.preflight:
+            sequence: 8
+            value:
+              baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+              deliveryAction: push
+              deliveryPaths:
+                - controller/model_list_test.go
+                - pkg/perf_metrics/metrics.go
+              prBaseBranch: main
+              remote: origin
+              remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+              targetBranch: main
+              verifiedBranch: main
+          hotfix.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        sequence: 9
+    waits:
+      - id: fix-model-square-perf-test-isolation:7
+        stepId: hotfix.archive.confirm
+        sequence: 7
+        status: resolved
+        proposal:
+          input:
+            change: fix-model-square-perf-test-isolation
+            changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+            workspaceBaseline:
+              ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+          outputs:
+            hotfix.archive.prepare:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+        proposalHash: f6593a01aeb5e53251bdc61851f3d56c43b280f99314017a8db1c50892e504a0
+        choices:
+          - local
+          - push
+          - pr
+          - reverify
+          - later
+        results:
+          hotfix.archive.prepare:
+            sequence: 6
+            value:
+              prBaseBranch: main
+              remote: origin
+              summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                controller/perf_metrics 回归通过，并做反向验证。
+              targetBranch: main
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.report.evidence:
+            sequence: 5
+            value:
+              contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+              ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        decision:
+          id: classic-archive-f6593a01aeb5e53251bdc61851f3d56c43b280f99314017a8db1c50892e504a0-push
+          choice: push
+          proposalHash: f6593a01aeb5e53251bdc61851f3d56c43b280f99314017a8db1c50892e504a0
+    evidenceWaits:
+      - id: fix-model-square-perf-test-isolation:2
+        stepId: hotfix.open.evidence
+        sequence: 2
+        kind: classic-open-artifacts
+        status: resolved
+        results:
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+        receipt:
+          ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+          submissionId: f9d22bd4-2bea-4d2e-aaa7-4278e0df9e44
+      - id: fix-model-square-perf-test-isolation:5
+        stepId: hotfix.verify.report.evidence
+        sequence: 5
+        kind: classic-verification-report
+        status: resolved
+        results:
+          hotfix.build.execute:
+            sequence: 3
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+              event: build-complete
+          hotfix.open:
+            sequence: 1
+            value:
+              event: open-complete
+              requirementsEvidence:
+                ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.open.evidence:
+            sequence: 2
+            value:
+              contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+              ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+          hotfix.verify.run:
+            sequence: 4
+            value:
+              checks:
+                - name: 修复前复现（反向证据）
+                  note: "GOWORK=off go test ./controller -run
+                    '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGr\
+                    oupVisibility)$' -count=1 → FAIL: summary.Models 多出
+                    fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+                  result: passed
+                - name: 目标测试（修复后）
+                  note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+                  result: passed
+                - name: 反向验证（移除清空调用）
+                  note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                    ok。
+                  result: passed
+                - name: controller 相关回归
+                  note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                    -count=1 → ok；GOWORK=off go test ./controller -run
+                    '^(TestFallback|TestModelSquare)' -count=1 → ok。
+                  result: passed
+                - name: pkg/perf_metrics 回归
+                  note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                    github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+                  result: passed
+                - name: 静态检查
+                  note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                    controller/model_list_test.go pkg/perf_metrics/metrics.go
+                    无输出。
+                  result: passed
+                - name: 根因消除核对
+                  note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                    前后清空，目标测试通过；生产路径未改。
+                  result: passed
+                - name: 验证报告与候选范围核对
+                  note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                    3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+                  result: passed
+              event: verification-ready
+              verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+        receipt:
+          ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+          contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+          submissionId: 0be89c69-58a7-4e5b-a975-6d9fe98a9fcf
+    ready: []
+    joins: {}
+    outputs:
+      hotfix.archive.confirm:
+        sequence: 7
+        value:
+          choice: push
+          proposal:
+            input:
+              change: fix-model-square-perf-test-isolation
+              changeDir: docs/openspec/changes/fix-model-square-perf-test-isolation
+              workspaceBaseline:
+                ref: aece5ab0-b5c1-42cd-b6f5-6dc8f97a4f54
+            outputs:
+              hotfix.archive.prepare:
+                prBaseBranch: main
+                remote: origin
+                summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+                  perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change
+                  移入 archive，提交 pkg/perf_metrics/metrics.go 与
+                  controller/model_list_test.go；本地已复现失败、修复后目标测试与
+                  controller/perf_metrics 回归通过，并做反向验证。
+                targetBranch: main
+      hotfix.archive.execute:
+        sequence: 9
+        value:
+          archiveDirectory: docs/openspec/changes/archive/2026-11-26-fix-model-square-perf-test-isolation
+      hotfix.archive.preflight:
+        sequence: 8
+        value:
+          baseCommit: 6c3f890c681ac195b86a9a45c2466eee653ad8f3
+          deliveryAction: push
+          deliveryPaths:
+            - controller/model_list_test.go
+            - pkg/perf_metrics/metrics.go
+          prBaseBranch: main
+          remote: origin
+          remoteIdentity: 1d611c8fbf7eb1436500092797159c76a37a65c0bd66f2503953f3b684de5afd
+          targetBranch: main
+          verifiedBranch: main
+      hotfix.archive.prepare:
+        sequence: 6
+        value:
+          prBaseBranch: main
+          remote: origin
+          summary: 修复 TestModelSquareGroupVisibility 的全局 hotBuckets 污染：新增
+            perfmetrics.ResetHotBuckets 并在测试前后清空，保留严格断言；生产路径不变。归档影响：change 移入
+            archive，提交 pkg/perf_metrics/metrics.go 与
+            controller/model_list_test.go；本地已复现失败、修复后目标测试与
+            controller/perf_metrics 回归通过，并做反向验证。
+          targetBranch: main
+      hotfix.build.execute:
+        sequence: 3
+        value:
+          checks:
+            - name: 修复前复现（反向证据）
+              note: "GOWORK=off go test ./controller -run
+                '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGroupV\
+                isibility)$' -count=1 → FAIL: summary.Models 多出
+                fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+              result: passed
+            - name: 目标测试（修复后）
+              note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+              result: passed
+            - name: 反向验证（移除清空调用）
+              note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                ok。
+              result: passed
+            - name: controller 相关回归
+              note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                -count=1 → ok；GOWORK=off go test ./controller -run
+                '^(TestFallback|TestModelSquare)' -count=1 → ok。
+              result: passed
+            - name: pkg/perf_metrics 回归
+              note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+              result: passed
+            - name: 静态检查
+              note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                controller/model_list_test.go pkg/perf_metrics/metrics.go 无输出。
+              result: passed
+          event: build-complete
+      hotfix.open:
+        sequence: 1
+        value:
+          event: open-complete
+          requirementsEvidence:
+            ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+      hotfix.open.evidence:
+        sequence: 2
+        value:
+          contentHash: 37b762aac06300fa557648276f13d538d2c4ca6fbfc2660dfb3da101efcb9e95
+          ref: docs/openspec/changes/fix-model-square-perf-test-isolation
+      hotfix.verify.report.evidence:
+        sequence: 5
+        value:
+          contentHash: cd050200efb42aef153b2a811955d0a38fcb881a8ea7de93a5fb14e41022a481
+          ref: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+      hotfix.verify.run:
+        sequence: 4
+        value:
+          checks:
+            - name: 修复前复现（反向证据）
+              note: "GOWORK=off go test ./controller -run
+                '^(TestFallbackSequenceMatchesSpecExample|TestModelSquareGroupV\
+                isibility)$' -count=1 → FAIL: summary.Models 多出
+                fallback-sequence-model，符合 issue 记录的 7 个 fallback-* 模型污染。"
+              result: passed
+            - name: 目标测试（修复后）
+              note: 同一命令修复后通过：ok github.com/QuantumNous/new-api/controller 0.160s。
+              result: passed
+            - name: 反向验证（移除清空调用）
+              note: 临时移除 ResetHotBuckets 调用后目标测试重新 FAIL（多出 fallback-sequence-model）；恢复调用后再次
+                ok。
+              result: passed
+            - name: controller 相关回归
+              note: GOWORK=off go test ./controller -run '^TestModelSquareGroupVisibility$'
+                -count=1 → ok；GOWORK=off go test ./controller -run
+                '^(TestFallback|TestModelSquare)' -count=1 → ok。
+              result: passed
+            - name: pkg/perf_metrics 回归
+              note: GOWORK=off go test ./pkg/perf_metrics -count=1 → ok
+                github.com/QuantumNous/new-api/pkg/perf_metrics 0.039s。
+              result: passed
+            - name: 静态检查
+              note: GOWORK=off go vet ./controller ./pkg/perf_metrics 退出码 0；gofmt -l
+                controller/model_list_test.go pkg/perf_metrics/metrics.go 无输出。
+              result: passed
+            - name: 根因消除核对
+              note: hotBuckets 全局污染路径已复现；ResetHotBuckets 在 TestModelSquareGroupVisibility
+                前后清空，目标测试通过；生产路径未改。
+              result: passed
+            - name: 验证报告与候选范围核对
+              note: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md 记录
+                3/3 任务、7 项轻量验证、根因、命令结果与风险；候选仅 2 个文件。
+              result: passed
+          event: verification-ready
+          verificationReport: docs/superpowers/reports/fix-model-square-perf-test-isolation-verify.md
+    children: []
+    lineage: []
+  sourceRevision: 16
+  sourceHash: 5510331448a77c2d8e3fd4cd333f84fe9298905ffdac9e92bcbe5d31ed28225f
+direct_override: null
+handoff_context: null
+handoff_hash: null
+classic_profile: null
+classic_migration: null
+check_epoch: 5

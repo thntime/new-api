@@ -146,6 +146,12 @@ func Record(sample Sample) {
 	})
 }
 
+// ResetHotBuckets drops all in-memory samples. Tests use it to isolate the
+// process-global cache between cases.
+func ResetHotBuckets() {
+	hotBuckets.Clear()
+}
+
 // queryWindow covers the current partial hour plus the preceding complete
 // hours, so every reader shares the same hourly buckets.
 func queryWindow(now time.Time, hours int) (int64, int64) {
